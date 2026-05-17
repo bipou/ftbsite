@@ -74,7 +74,7 @@ pub type AuthResource = Resource<Result<Option<AuthUser>, ServerFnError>>;
 /// Call inside any reactive scope to get the current user (if signed in).
 pub fn use_auth() -> Option<AuthUser> {
     use_context::<AuthResource>()
-        .and_then(|r| r.get_untracked())
+        .and_then(|r| r.get())
         .and_then(|r| r.ok())
         .flatten()
 }

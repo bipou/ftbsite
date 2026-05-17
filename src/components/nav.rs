@@ -155,9 +155,9 @@ fn ThemeToggle() -> impl IntoView {
 #[component]
 fn AuthSection() -> impl IntoView {
     let i18n = use_i18n();
-    let auth = use_auth();
     move || {
-        if let Some(user) = auth.clone() {
+        let auth = use_auth();
+        if let Some(user) = auth {
             Either::Left(view! {
                 <span class="text-gray-700 dark:text-gray-200 font-medium hidden sm:inline text-base">
                     {user.username}
@@ -185,7 +185,6 @@ fn AuthSection() -> impl IntoView {
 fn HamburgerMenu() -> impl IntoView {
     let (open, set_open) = signal(false);
     let i18n = use_i18n();
-    let auth = use_auth();
     let close = move |_| set_open.set(false);
 
     view! {
@@ -227,8 +226,12 @@ fn HamburgerMenu() -> impl IntoView {
                 <hr/>
                 <div class="px-4 py-3 flex flex-col gap-2">
                     {move || {
-                        if auth.is_some() {
+                        let auth = use_auth();
+                        if let Some(user) = auth {
                             Either::Left(view! {
+                                <span class="text-gray-700 dark:text-gray-200 font-medium text-base">
+                                    {user.username}
+                                </span>
                                 <A href="/sign-out" on:click=close attr:class="hm-signout text-sm hover:text-red-500">
                                     {move || t!(i18n, sign_out)}
                                 </A>

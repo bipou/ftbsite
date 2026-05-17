@@ -504,9 +504,13 @@ pub fn SignInPage() -> impl IntoView {
     let i18n = use_i18n();
     let action = ServerAction::<SignIn>::new();
     let navigate = leptos_router::hooks::use_navigate();
+    let auth_res = use_context::<crate::app::AuthResource>();
 
     Effect::new(move |_| {
         if let Some(Ok(())) = action.value().get() {
+            if let Some(ref res) = auth_res {
+                res.refetch();
+            }
             navigate("/footballs", Default::default());
         }
     });
@@ -554,12 +558,16 @@ pub fn SignInPage() -> impl IntoView {
 pub fn SignOutPage() -> impl IntoView {
     let action = ServerAction::<SignOut>::new();
     let navigate = leptos_router::hooks::use_navigate();
+    let auth_res = use_context::<crate::app::AuthResource>();
 
     Effect::new(move |_| {
         action.dispatch(SignOut {});
     });
     Effect::new(move |_| {
         if action.value().get().is_some() {
+            if let Some(ref res) = auth_res {
+                res.refetch();
+            }
             navigate("/", Default::default());
         }
     });
