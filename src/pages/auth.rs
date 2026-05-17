@@ -257,6 +257,7 @@ fn CaptchaGate(
     let (captcha_ok, set_captcha_ok) = signal(false);
     let (status_msg, set_status_msg) = signal(String::new());
     let answer_ref = NodeRef::<Input>::new();
+    let (answer_val, set_answer_val) = signal(String::new());
 
     let captcha_res = Resource::new(|| (), |_| async move { get_captcha().await.ok() });
 
@@ -278,6 +279,7 @@ fn CaptchaGate(
 
     let on_input = move |ev: leptos::ev::Event| {
         let val = event_target_value(&ev);
+        set_answer_val.set(val.clone());
         let ans = answer();
         if val.is_empty() {
             set_status_msg.set(String::new());
@@ -291,12 +293,21 @@ fn CaptchaGate(
         }
     };
 
+    // captcha refresh -> clear answer
+    Effect::new(move |_| {
+        let _ = captcha_res.get();
+        set_answer_val.set(String::new());
+        if let Some(input) = answer_ref.get() {
+            let _ = input.set_value("");
+        }
+        set_captcha_ok.set(false);
+        set_status_msg.set(String::new());
+    });
+
     // 每5分钟自动刷新验证码
     set_interval(
         move || {
             captcha_res.refetch();
-            set_captcha_ok.set(false);
-            set_status_msg.set(String::new());
         },
         std::time::Duration::from_secs(300),
     );
@@ -305,11 +316,6 @@ fn CaptchaGate(
     Effect::new(move |_| {
         if let Some(Err(_)) = action.value().get() {
             captcha_res.refetch();
-            set_captcha_ok.set(false);
-            set_status_msg.set(String::new());
-            if let Some(input) = answer_ref.get() {
-                let _ = input.set_value("");
-            }
         }
     });
 
@@ -323,11 +329,12 @@ fn CaptchaGate(
                     <div class="rounded overflow-hidden cursor-pointer shrink-0" style="width:160px;height:40px;border:1px solid #d1d5db"
                          inner_html=svg on:click=move |_| captcha_res.refetch() />
                     <input type="text" name="captcha_answer" required node_ref=answer_ref
-                           placeholder="?" class="form-input w-16 text-center text-xl" on:input=on_input />
+                           placeholder="?" class="form-input w-16 text-center text-xl" on:input=on_input
+                           prop:value=move || answer_val.get() autocomplete="off" />
                     <button type="button"
                             class="text-blue-500 hover:text-blue-700 text-lg font-bold shrink-0 leading-none"
                             title="换一个"
-                            on:click=move |_| { captcha_res.refetch(); set_captcha_ok.set(false); set_status_msg.set(String::new()); }>
+                            on:click=move |_| captcha_res.refetch() >
                         "↻"
                     </button>
                     <span class=move || if captcha_ok.get() { "text-green-500 font-bold text-sm" }
