@@ -82,18 +82,26 @@ pub fn FootballsPage() -> impl IntoView {
             .and_then(|v| v.parse().ok())
             .unwrap_or(1i64)
     };
-    // Support both /footballs?filter=topic&fid=xxx and /footballs?topic=xxx
+    // /footballs?topic=xxx  /footballs?category=xxx  /footballs?picks  /footballs?hot
     let filter = move || {
         let q = query.read();
         if q.get("topic").is_some() {
             "topic".to_string()
+        } else if q.get("category").is_some() {
+            "category".to_string()
+        } else if q.get("picks").is_some() {
+            "picks".to_string()
+        } else if q.get("hot").is_some() {
+            "hot".to_string()
         } else {
-            q.get("filter").unwrap_or_default()
+            String::new()
         }
     };
     let filter_id = move || {
         let q = query.read();
-        q.get("topic").or_else(|| q.get("fid")).unwrap_or_default()
+        q.get("topic")
+            .or_else(|| q.get("category"))
+            .unwrap_or_default()
     };
 
     let cats_res = Resource::new(|| (), |_| get_sidebar_categories());
@@ -127,11 +135,11 @@ pub fn FootballsPage() -> impl IntoView {
                        class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                         {move || t!(i18n, all)}
                     </a>
-                    <a href="/footballs?filter=picks"
+                    <a href="/footballs?picks"
                         class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
                         {move || t!(i18n, status_picks)}
                     </a>
-                    <a href="/footballs?filter=hot"
+                    <a href="/footballs?hot"
                         class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
                         {move || t!(i18n, status_hot)}
                     </a>
@@ -140,7 +148,7 @@ pub fn FootballsPage() -> impl IntoView {
                             view! {
                                 {cats.into_iter().map(|cat| {
                                     let kid = crate::utils::common::record_key(&cat.id).to_string();
-                                    let url = format!("/footballs?filter=category&fid={}", kid);
+                                    let url = format!("/footballs?category={}", kid);
                                     let cat_name = if i18n.get_locale() == Locale::zh { cat.name_zh.clone() } else { cat.name_en.clone() };
                                     view! {
                                         <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -167,10 +175,10 @@ pub fn FootballsPage() -> impl IntoView {
                         }),
                         Ok(data) => {
                             let pi = data.page_info.clone();
-                            let base = if filter() == "topic" {
-                                format!("/footballs?topic={}", filter_id())
-                            } else {
-                                format!("/footballs?filter={}&fid={}", filter(), filter_id())
+                            let base = match filter().as_str() {
+                                "topic" | "category" => format!("/footballs?{}={}", filter(), filter_id()),
+                                "picks" | "hot" => format!("/footballs?{}", filter()),
+                                _ => "/footballs".to_string(),
                             };
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {

@@ -220,7 +220,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
                     {topics.iter().map(|t| {
                         let kid = crate::utils::common::record_key(&t.id).to_string();
                         view! {
-                            <a href=format!("/footballs?filter=topic&fid={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
+                            <a href=format!("/footballs?topic={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
                         }
                     }).collect::<Vec<_>>()}
                 </div>
