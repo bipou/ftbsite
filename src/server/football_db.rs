@@ -68,6 +68,11 @@ struct IdOnly {
     id: RecordId,
 }
 
+#[derive(Debug, Deserialize, SurrealValue)]
+struct RelFootballId {
+    football_id: RecordId,
+}
+
 // ── Conversions ────────────────────────────────────────────────────────────────
 
 fn line_into(d: FootballLineDoc) -> FootballLine {
@@ -291,17 +296,20 @@ pub async fn get_footballs_by_topic(
 
     // Fetch distinct football_ids linked to this topic
     let mut rel_res = get_db()
-        .query("SELECT VALUE football_id FROM topics_rel WHERE topic_id = $tid AND football_id IS NOT NONE")
+        .query(
+            "SELECT football_id FROM topics_rel WHERE topic_id = $tid AND football_id IS NOT NONE",
+        )
         .bind(("tid", topic_rid.clone()))
         .await
         .map_err(|e| e.to_string())?;
-    let raw_ids: Vec<String> = rel_res.take(0).map_err(|e| e.to_string())?;
+    let rels: Vec<RelFootballId> = rel_res.take(0).map_err(|e| e.to_string())?;
 
     // Deduplicate
     let mut fids: Vec<String> = Vec::new();
-    for id in raw_ids {
-        if !fids.contains(&id) {
-            fids.push(id);
+    for r in &rels {
+        let fid = rid_str(&r.football_id);
+        if !fids.contains(&fid) {
+            fids.push(fid);
         }
     }
 
