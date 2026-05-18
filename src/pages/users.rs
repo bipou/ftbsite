@@ -12,14 +12,13 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
 use crate::models::{User, UsersResult};
+use crate::utils::common::Either3;
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
 const RISK_CLASS: &str = "text-xs text-gray-400 text-center mt-6";
 
-// ── Type alias ───────────────────────────────────────────────────────────
-
-type Either3<A, B, C> = Either<A, Either<B, C>>;
+// ── Server functions ───────────────────────────────────────────────────────────
 
 #[server]
 pub async fn get_users_page(from: i64) -> Result<UsersResult, ServerFnError> {

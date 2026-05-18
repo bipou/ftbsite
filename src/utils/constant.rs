@@ -2,7 +2,6 @@
 pub const NO_UNDERLINE: &str = "no-underline";
 pub const HOVER_NO_UNDERLINE: &str = "hover:no-underline";
 pub const HOVER_UNDERLINE: &str = "hover:underline";
-pub const BADGE_BLUE: &str = "badge-blue";
 pub const BADGE_BLUE_NO_UL: &str = "badge-blue no-underline";
 pub const BADGE_GRAY: &str = "badge-gray";
 pub const BADGE_GRAY_NO_UL: &str = "badge-gray no-underline";

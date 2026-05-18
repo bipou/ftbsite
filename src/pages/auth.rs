@@ -7,12 +7,8 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, Nav};
+use crate::utils::common::{Either3, Either5, Either6};
 use crate::utils::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
-
-// ── Type alias ───────────────────────────────────────────────────────────
-type Either5<A, B, C, D, E> = Either<A, Either<B, Either<C, Either<D, E>>>>;
-type Either6<A, B, C, D, E, F> = Either<A, Either<B, Either<C, Either<D, Either<E, F>>>>>;
-type Either3<A, B, C> = Either<A, Either<B, C>>;
 
 // ── Topic input component ────────────────────────────────────────────────
 

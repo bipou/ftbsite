@@ -1,5 +1,6 @@
 use crate::i18n::{Locale, t, use_i18n};
 use crate::models::Football;
+use crate::utils::common::Either3;
 use crate::utils::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
     HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
@@ -27,8 +28,6 @@ fn status_badge(status: i8) -> &'static str {
         _ => "—",
     }
 }
-
-type Either3<A, B, C> = Either<A, Either<B, C>>;
 
 #[component]
 fn CatBadge(

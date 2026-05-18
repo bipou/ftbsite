@@ -9,6 +9,7 @@ use crate::components::{FootballCard, Footer, Nav, Pagination};
 use crate::models::{Category, FootballsResult};
 
 use crate::page_title;
+use crate::utils::common::Either3;
 use crate::utils::constant::{EMPTY, GRID_3, WIDE};
 
 // ── Server functions ──────────────────────────────────────────────────────────
@@ -62,10 +63,6 @@ pub async fn get_footballs_page(
     };
     res.map_err(|e| ServerFnError::new(e.to_string()))
 }
-
-// ── Three-way Either aliases ──────────────────────────────────────────────────
-
-type Either3<A, B, C> = Either<A, Either<B, C>>;
 
 // ── Page component ────────────────────────────────────────────────────────────
 

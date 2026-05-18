@@ -9,15 +9,11 @@ use crate::app::use_auth;
 use crate::components::{Footer, Nav, Pagination};
 use crate::models::FootballsResult;
 
+use crate::utils::common::{Either3, Either5};
 use crate::utils::constant::{
     ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, H1, HOVER_SHADOW, HOVER_UNDERLINE, MAIN,
     NO_UNDERLINE,
 };
-
-// ── Type aliases ─────────────────────────────────────────────────────────────
-
-type Either3<A, B, C> = Either<A, Either<B, C>>;
-type Either5<A, B, C, D, E> = Either<A, Either<B, Either<C, Either<D, E>>>>;
 
 // ── Server functions ──────────────────────────────────────────────────────────
 

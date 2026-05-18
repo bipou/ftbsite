@@ -1,4 +1,11 @@
 use crate::models::PageInfo;
+use leptos::either::Either;
+
+// ── Either type aliases ──────────────────────────────────────────────────
+
+pub type Either3<A, B, C> = Either<A, Either<B, C>>;
+pub type Either5<A, B, C, D, E> = Either<A, Either<B, Either<C, Either<D, E>>>>;
+pub type Either6<A, B, C, D, E, F> = Either<A, Either<B, Either<C, Either<D, Either<E, F>>>>>;
 
 // ── Page title macros ────────────────────────────────────────────────────
 
@@ -33,8 +40,6 @@ pub fn make_page_info(from: i64, ps: i64, total: u64) -> PageInfo {
         current_page: from as u32,
         total_pages: tp,
         total_count: total,
-        first_cursor: String::new(),
-        last_cursor: String::new(),
         has_previous: from > 1,
         has_next: (from as u32) < tp,
     }
