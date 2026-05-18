@@ -73,7 +73,7 @@ pub fn UsersPage() -> impl IntoView {
                                     let initial = u.username.chars().next().unwrap_or('?');
                                     let updated = u.updated_at.clone();
                                     view! {
-                                        <a href=url class=CARD_BLOCK_NO_UL>
+                                        <a href=url target="_blank" rel="noopener noreferrer" class=CARD_BLOCK_NO_UL>
                                             <div class="flex items-start gap-3">
                                                 <div class="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold text-2xl shrink-0 mt-1">
                                                     {initial.to_string()}
