@@ -14,17 +14,6 @@ struct TopicDoc {
     quotes: i64,
 }
 
-#[derive(Debug, Deserialize, SurrealValue)]
-struct RelTopicId {
-    topic_id: RecordId,
-}
-
-#[derive(Debug, Deserialize, SurrealValue)]
-#[allow(dead_code)]
-struct RelId {
-    id: RecordId,
-}
-
 // ── Conversion ─────────────────────────────────────────────────────────────────
 
 fn into_topic(d: TopicDoc) -> Topic {
@@ -45,17 +34,17 @@ pub async fn get_topic_by_id(rid: &RecordId) -> Result<Option<Topic>, String> {
 pub async fn get_topics_by_football_id(football_rid: &RecordId) -> Result<Vec<Topic>, String> {
     let mut res = get_db()
         .query(
-            "SELECT topic_id FROM topics_rel WHERE football_id = $fid AND football_id IS NOT NONE",
+            "SELECT VALUE topic_id FROM topics_rel WHERE football_id = $fid AND football_id IS NOT NONE",
         )
         .bind(("fid", football_rid.clone()))
         .await
         .map_err(|e| e.to_string())?;
-    let rels: Vec<RelTopicId> = res.take(0).map_err(|e| e.to_string())?;
+    let topic_rids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
 
     // Deduplicate topic ids
     let mut tids: Vec<String> = Vec::new();
-    for r in &rels {
-        let tid = rid_str(&r.topic_id);
+    for rid in &topic_rids {
+        let tid = rid_str(rid);
         if !tids.contains(&tid) {
             tids.push(tid);
         }
@@ -78,15 +67,15 @@ pub async fn get_topics_by_football_id(football_rid: &RecordId) -> Result<Vec<To
 
 pub async fn get_keywords_by_user_id(user_rid: &RecordId) -> Result<Vec<Topic>, String> {
     let mut res = get_db()
-        .query("SELECT topic_id FROM topics_rel WHERE user_id = $uid AND football_id IS NONE")
+        .query("SELECT VALUE topic_id FROM topics_rel WHERE user_id = $uid AND football_id IS NONE")
         .bind(("uid", user_rid.clone()))
         .await
         .map_err(|e| e.to_string())?;
-    let rels: Vec<RelTopicId> = res.take(0).map_err(|e| e.to_string())?;
+    let topic_rids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
 
     let mut tids: Vec<String> = Vec::new();
-    for r in &rels {
-        let tid = rid_str(&r.topic_id);
+    for rid in &topic_rids {
+        let tid = rid_str(rid);
         if !tids.contains(&tid) {
             tids.push(tid);
         }
@@ -108,15 +97,15 @@ pub async fn get_keywords_by_user_id(user_rid: &RecordId) -> Result<Vec<Topic>, 
 
 pub async fn get_topics_by_user_id(user_rid: &RecordId) -> Result<Vec<Topic>, String> {
     let mut res = get_db()
-        .query("SELECT topic_id FROM topics_rel WHERE user_id = $uid")
+        .query("SELECT VALUE topic_id FROM topics_rel WHERE user_id = $uid")
         .bind(("uid", user_rid.clone()))
         .await
         .map_err(|e| e.to_string())?;
-    let rels: Vec<RelTopicId> = res.take(0).map_err(|e| e.to_string())?;
+    let topic_rids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
 
     let mut tids: Vec<String> = Vec::new();
-    for r in &rels {
-        let tid = rid_str(&r.topic_id);
+    for rid in &topic_rids {
+        let tid = rid_str(rid);
         if !tids.contains(&tid) {
             tids.push(tid);
         }
@@ -185,14 +174,14 @@ pub async fn link_topics_to_user(user_id: &str, topic_ids: Vec<String>) -> Resul
 
         // Check if relation already exists
         let mut res = get_db()
-            .query("SELECT id FROM topics_rel WHERE user_id = $uid AND topic_id = $tid AND football_id IS NONE")
+            .query("SELECT VALUE id FROM topics_rel WHERE user_id = $uid AND topic_id = $tid AND football_id IS NONE")
             .bind(("uid", user_rid.clone()))
             .bind(("tid", topic_rid.clone()))
             .await
             .map_err(|e| e.to_string())?;
-        let rels: Vec<RelId> = res.take(0).map_err(|e| e.to_string())?;
+        let rel_ids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
 
-        if rels.is_empty() {
+        if rel_ids.is_empty() {
             get_db()
                 .query("CREATE topics_rel CONTENT { user_id: $uid, topic_id: $tid }")
                 .bind(("uid", user_rid.clone()))

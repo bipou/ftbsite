@@ -63,16 +63,6 @@ struct CountResult {
     count: u64,
 }
 
-#[derive(Debug, Deserialize, SurrealValue)]
-struct IdOnly {
-    id: RecordId,
-}
-
-#[derive(Debug, Deserialize, SurrealValue)]
-struct RelFootballId {
-    football_id: RecordId,
-}
-
 // ── Conversions ────────────────────────────────────────────────────────────────
 
 fn line_into(d: FootballLineDoc) -> FootballLine {
@@ -212,11 +202,11 @@ pub async fn get_football_by_id(rid: &RecordId) -> Result<Option<Football>, Stri
 
 pub async fn get_random_football_id() -> Result<Option<String>, String> {
     let mut res = get_db()
-        .query("SELECT id FROM footballs WHERE status >= 1 ORDER BY rand() LIMIT 1")
+        .query("SELECT VALUE id FROM footballs WHERE status >= 1 ORDER BY rand() LIMIT 1")
         .await
         .map_err(|e| e.to_string())?;
-    let docs: Vec<IdOnly> = res.take(0).map_err(|e| e.to_string())?;
-    Ok(docs.into_iter().next().map(|d| rid_str(&d.id)))
+    let ids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
+    Ok(ids.into_iter().next().map(|id| rid_str(&id)))
 }
 
 pub async fn get_footballs(
@@ -297,17 +287,17 @@ pub async fn get_footballs_by_topic(
     // Fetch distinct football_ids linked to this topic
     let mut rel_res = get_db()
         .query(
-            "SELECT football_id FROM topics_rel WHERE topic_id = $tid AND football_id IS NOT NONE",
+            "SELECT VALUE football_id FROM topics_rel WHERE topic_id = $tid AND football_id IS NOT NONE",
         )
         .bind(("tid", topic_rid.clone()))
         .await
         .map_err(|e| e.to_string())?;
-    let rels: Vec<RelFootballId> = rel_res.take(0).map_err(|e| e.to_string())?;
+    let fids_raw: Vec<RecordId> = rel_res.take(0).map_err(|e| e.to_string())?;
 
     // Deduplicate
     let mut fids: Vec<String> = Vec::new();
-    for r in &rels {
-        let fid = rid_str(&r.football_id);
+    for rid in &fids_raw {
+        let fid = rid_str(rid);
         if !fids.contains(&fid) {
             fids.push(fid);
         }
