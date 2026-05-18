@@ -1,8 +1,8 @@
 use crate::i18n::{Locale, t, use_i18n};
 use crate::models::Football;
 use crate::utils::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
-    ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
+    HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -28,14 +28,23 @@ fn status_badge(status: i8) -> &'static str {
     }
 }
 
+type Either3<A, B, C> = Either<A, Either<B, C>>;
+
 #[component]
-fn CatBadge(#[prop(into)] name: Signal<String>) -> impl IntoView {
+fn CatBadge(
+    #[prop(into)] name: Signal<String>,
+    #[prop(into)] kid: Option<String>,
+) -> impl IntoView {
     move || {
         let n = name.get();
         if n.is_empty() {
-            Either::Left(())
+            Either3::Left(())
+        } else if let Some(kid) = &kid {
+            Either3::Right(Either::Left(view! {
+                <a href=format!("/footballs?category={}", kid) class=BADGE_GRAY_NO_UL>{n}</a>
+            }))
         } else {
-            Either::Right(view! { <span class=BADGE_GRAY>{n}</span> })
+            Either3::Right(Either::Right(view! { <span class=BADGE_GRAY>{n}</span> }))
         }
     }
 }
@@ -138,6 +147,10 @@ pub fn FootballCard(football: Football) -> impl IntoView {
         HOVER_SHADOW,
         status_class(football.status)
     );
+    let cat_kid = football
+        .category
+        .as_ref()
+        .map(|c| crate::utils::common::record_key(&c.id).to_string());
     let cat_name = Memo::new(move |_| {
         football
             .category
@@ -164,7 +177,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
 
             <div class=format!("text-sm {} mb-3 space-x-2", TEXT_SUBTLE)>
                 <span>{football.season}</span>
-                <CatBadge name=cat_name/>
+                <CatBadge name=cat_name kid=cat_kid/>
                 <span class="text-blue-500">{football.kick_off_at_mdhm8}</span>
             </div>
 
