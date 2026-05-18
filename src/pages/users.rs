@@ -73,13 +73,13 @@ pub fn UsersPage() -> impl IntoView {
                                     let initial = u.username.chars().next().unwrap_or('?');
                                     let updated = u.updated_at.clone();
                                     view! {
-                                        <a href=url target="_blank" rel="noopener noreferrer" class=CARD_BLOCK_NO_UL>
+                                        <div class=CARD_BLOCK_NO_UL>
                                             <div class="flex items-start gap-3">
                                                 <div class="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold text-2xl shrink-0 mt-1">
                                                     {initial.to_string()}
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <p class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate">{uname}</p>
+                                                    <a href=url target="_blank" rel="noopener noreferrer" class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate no-underline hover:underline hover:text-blue-600">{uname}</a>
                                                     <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated}</p>
                                                     {if !u.keywords.is_empty() {
                                                         Either::Left(view! {
@@ -98,7 +98,7 @@ pub fn UsersPage() -> impl IntoView {
                                                     }}
                                                 </div>
                                             </div>
-                                        </a>
+                                        </div>
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>

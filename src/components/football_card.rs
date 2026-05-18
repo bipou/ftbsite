@@ -164,12 +164,16 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             })
             .unwrap_or_default()
     });
+    let url = format!(
+        "/footballs/{}",
+        crate::utils::common::record_key(&football.id)
+    );
     let topics = football.topics;
 
     view! {
         <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
-                <a href=format!("/footballs/{}", crate::utils::common::record_key(&football.id)) target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 no-underline text-base leading-tight">
+                <a href=url target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
                     {football.home_team} " vs " {football.away_team}
                 </a>
                 <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(football.status)}</span>
