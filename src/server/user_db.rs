@@ -7,18 +7,8 @@ use crate::server::{auth as auth_mod, db::get_db, topic_db};
 use crate::utils::common::{record_key, rid_str};
 use crate::utils::constant;
 
-// ── helpers ──────────────────────────────────────────────────────────────
-
-fn render_md(md: &str) -> String {
-    use pulldown_cmark::{Options, Parser, html};
-    let mut opts = Options::empty();
-    opts.insert(Options::ENABLE_TABLES);
-    opts.insert(Options::ENABLE_TASKLISTS);
-    opts.insert(Options::ENABLE_SMART_PUNCTUATION);
-    let mut out = String::new();
-    html::push_html(&mut out, Parser::new_ext(md, opts));
-    out
-}
+// 复用 server::markdown 模块的渲染函数
+use crate::server::markdown::render_md;
 
 // ── document structs ─────────────────────────────────────────────────────
 

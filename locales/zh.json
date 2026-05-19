@@ -75,6 +75,9 @@
   "register_exist": "用户名或邮箱已存在",
   "register_success": "{{ username }}，注册成功。 \n请查阅邮件，激活账户。",
 
+  "md_preview": "预览",
+  "md_source": "源码",
+
   "captcha_label": "安全验证",
   "captcha_placeholder": "输入算式结果",
   "captcha_invalid": "答案错误，请重试",

@@ -75,6 +75,9 @@
   "register_exist": "Username or Email already exists",
   "register_success": "{{ username }}, registration successful. \nPlease check your email to activate your account.",
 
+  "md_preview": "Preview",
+  "md_source": "Source",
+
   "captcha_label": "Security check",
   "captcha_placeholder": "Enter the result",
   "captcha_invalid": "Incorrect answer, please try again",

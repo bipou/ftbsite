@@ -6,7 +6,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
-use crate::components::{Footer, Nav};
+use crate::components::{Footer, MarkdownEditor, Nav};
 use crate::utils::common::{Either3, Either5, Either6};
 use crate::utils::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
 
@@ -642,9 +642,7 @@ pub fn RegisterPage() -> impl IntoView {
                                     {move || if i18n.get_locale().to_string() == "zh" { "（支持markdown语法）" } else { "(supports Markdown syntax)" }}
                                 </span>
                             </label>
-                            <textarea name="introduction" rows="4" class="form-input">
-                                "## About Me \n我关注足球数据与计算。"
-                            </textarea>
+                            <MarkdownEditor name="introduction" rows=4 value="## About Me\n我关注足球数据与计算。".to_string() />
                         </div>
                         </div>
                     </CaptchaGateRegister>
