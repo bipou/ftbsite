@@ -7,7 +7,7 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, MarkdownEditor, Nav};
-use crate::utils::common::{Either3, Either5, Either6};
+use crate::utils::common::{Either3, Either6};
 use crate::utils::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
 
 // ── Topic input component ────────────────────────────────────────────────
@@ -157,7 +157,7 @@ pub async fn register(
     captcha_answer: String,
 ) -> Result<String, ServerFnError> {
     use crate::server::{captcha, email as email_mod, user_db};
-    use crate::utils::common::{into_rid, record_key};
+    use crate::utils::common::{into_rid, move_uploads, record_key};
 
     if captcha::verify_token(&captcha_token, &captcha_answer).is_none() {
         return Err(ServerFnError::new("captcha_invalid"));
@@ -173,6 +173,9 @@ pub async fn register(
     if !has_upper || !has_lower || !has_digit {
         return Err(ServerFnError::new("register_password_weak"));
     }
+
+    // 将 markdown 中 /uploads/tmp/images/ 图片 rename 到 /uploads/active/images/
+    let introduction = move_uploads(&introduction)?;
 
     let data = user_db::RegisterData {
         username,
@@ -478,15 +481,17 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
             {move || action.value().get().and_then(|r| r.err()).map(|e| {
                 let raw = e.to_string();
                 if raw.contains("captcha_invalid") {
-                    Either5::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, captcha_invalid)}</p> })
+                    Either6::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, captcha_invalid)}</p> })
                 } else if raw.contains("register_password_mismatch") {
-                    Either5::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_password_mismatch)}</p> }))
+                    Either6::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_password_mismatch)}</p> }))
                 } else if raw.contains("register_password_weak") {
-                    Either5::Right(Either::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_password_weak)}</p> })))
+                    Either6::Right(Either::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_password_weak)}</p> })))
                 } else if raw.contains("register_exist") {
-                    Either5::Right(Either::Right(Either::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_exist)}</p> }))))
+                    Either6::Right(Either::Right(Either::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, register_exist)}</p> }))))
+                } else if raw.contains("upload_failed") {
+                    Either6::Right(Either::Right(Either::Right(Either::Right(Either::Left(view! { <p class="text-red-500 text-sm text-center">{move || t!(i18n, upload_failed)}</p> })))))
                 } else {
-                    Either5::Right(Either::Right(Either::Right(Either::Right(view! { <p class="text-red-500 text-sm text-center">{raw}</p> }))))
+                    Either6::Right(Either::Right(Either::Right(Either::Right(Either::Right(view! { <p class="text-red-500 text-sm text-center">{raw}</p> })))))
                 }
             })}
         </ActionForm>

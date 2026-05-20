@@ -77,6 +77,7 @@
 
   "md_preview": "Preview",
   "md_source": "Source",
+  "upload_failed": "Image upload failed, please retry",
 
   "captcha_label": "Security check",
   "captcha_placeholder": "Enter the result",

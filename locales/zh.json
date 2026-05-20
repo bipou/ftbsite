@@ -77,6 +77,7 @@
 
   "md_preview": "预览",
   "md_source": "源码",
+  "upload_failed": "图片上传失败，请重试",
 
   "captcha_label": "安全验证",
   "captcha_placeholder": "输入算式结果",

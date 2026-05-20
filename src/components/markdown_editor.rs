@@ -3,7 +3,7 @@ use leptos::html::{Input, Textarea};
 use leptos::prelude::*;
 
 use crate::i18n::{t, use_i18n};
-use crate::server_fns::{PreviewMd, UploadImage};
+use crate::utils::common::{PreviewMd, UploadImage, get_upload_nonce};
 
 #[component]
 pub fn MarkdownEditor(
@@ -25,6 +25,10 @@ pub fn MarkdownEditor(
             set_markdown.set(value.get());
         }
     });
+
+    // 获取上传 nonce（一次性，30分钟有效）
+    let nonce_res = Resource::new(|| (), |_| async move { get_upload_nonce().await.ok() });
+    let nonce = move || nonce_res.get().flatten().unwrap_or_default();
 
     // 预览
     let preview_action = ServerAction::<PreviewMd>::new();
@@ -49,7 +53,14 @@ pub fn MarkdownEditor(
 
     Effect::new(move |_| {
         if let Some((data_url, filename)) = upload_trigger.get() {
-            upload_action.dispatch(UploadImage { data_url, filename });
+            let n = nonce();
+            if !n.is_empty() {
+                upload_action.dispatch(UploadImage {
+                    data_url,
+                    _filename: filename,
+                    nonce: n,
+                });
+            }
             set_upload_trigger.set(None);
         }
     });
