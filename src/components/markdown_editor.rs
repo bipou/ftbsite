@@ -101,16 +101,18 @@ pub fn MarkdownEditor(
                         select_file(file_input_ref, set_upload_trigger);
                     }
                 />
-                <button type="button"
-                    class="cursor-pointer"
-                    style="font-size:1.1rem;border:0;background:transparent;padding:0;line-height:1"
-                    on:click=move |_| {
-                        if let Some(input) = file_input_ref.get() {
-                            input.click();
-                        }
-                    }>
-                    "🖼️"
-                </button>
+                <Show when=move || !show_preview.get()>
+                    <button type="button"
+                        class="cursor-pointer"
+                        style="font-size:1.1rem;border:0;background:transparent;padding:0;line-height:1"
+                        on:click=move |_| {
+                            if let Some(input) = file_input_ref.get() {
+                                input.click();
+                            }
+                        }>
+                        "🖼️"
+                    </button>
+                </Show>
             </div>
 
             // 编辑模式
