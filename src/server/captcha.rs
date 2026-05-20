@@ -2,7 +2,7 @@ use aws_lc_rs::hmac::{Key, sign};
 use aws_lc_rs::rand;
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 
-use crate::share::constant;
+use crate::shared::constant;
 
 const CAPTCHA_EXPIRY: u64 = 300; // 5 分钟
 

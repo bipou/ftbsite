@@ -1,5 +1,5 @@
 use crate::i18n::{Locale, td_string};
-use crate::share::constant;
+use crate::shared::constant;
 use lettre::{
     Message, SmtpTransport, Transport, message::header::ContentType,
     transport::smtp::authentication::Credentials,

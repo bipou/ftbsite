@@ -1,11 +1,11 @@
-use crate::share::common;
+use crate::shared::common;
 use serde::Deserialize;
 use surrealdb::types::{Datetime, RecordId, SurrealValue};
 
 use crate::models::{AuthUser, User, UserSummary, UsersResult};
 use crate::server::{auth as auth_mod, db::get_db, topic_db};
-use crate::share::common::{record_key, rid_str};
-use crate::share::constant;
+use crate::shared::common::{record_key, rid_str};
+use crate::shared::constant;
 
 // 复用 server::markdown 模块的渲染函数
 use crate::server::markdown::render_md;
