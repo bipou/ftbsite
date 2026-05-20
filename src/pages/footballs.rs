@@ -9,8 +9,8 @@ use crate::components::{FootballCard, Footer, Nav, Pagination};
 use crate::models::{Category, FootballsResult};
 
 use crate::page_title;
-use crate::utils::common::Either3;
-use crate::utils::constant::{EMPTY, GRID_3, WIDE};
+use crate::shared::common::Either3;
+use crate::shared::constant::{EMPTY, GRID_3, WIDE};
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -47,7 +47,7 @@ pub async fn get_footballs_page(
     filter_id: String,
 ) -> Result<FootballsResult, ServerFnError> {
     use crate::server::football_db;
-    use crate::utils::common::into_rid;
+    use crate::shared::common::into_rid;
     let res = match filter.as_str() {
         "picks" => football_db::get_footballs(from, 3, 4).await,
         "hot" => football_db::get_footballs(from, 2, 4).await,
@@ -144,7 +144,7 @@ pub fn FootballsPage() -> impl IntoView {
                         {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
                             view! {
                                 {cats.into_iter().map(|cat| {
-                                    let kid = crate::utils::common::record_key(&cat.id).to_string();
+                                    let kid = crate::shared::common::record_key(&cat.id).to_string();
                                     let url = format!("/footballs?category={}", kid);
                                     let cat_name = if i18n.get_locale() == Locale::zh { cat.name_zh.clone() } else { cat.name_en.clone() };
                                     view! {

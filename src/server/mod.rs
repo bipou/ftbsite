@@ -6,4 +6,5 @@ pub mod email;
 pub mod football_db;
 pub mod markdown;
 pub mod topic_db;
+pub mod upload;
 pub mod user_db;

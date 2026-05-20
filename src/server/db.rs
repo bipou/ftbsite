@@ -1,4 +1,4 @@
-use crate::utils::constant;
+use crate::share::constant;
 use std::sync::OnceLock;
 use surrealdb::Surreal;
 use surrealdb::engine::remote::ws::{Client, Ws};

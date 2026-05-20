@@ -1,9 +1,9 @@
 use crate::i18n::{Locale, t, use_i18n};
-use crate::site_title;
-use crate::utils::constant::{
+use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, SECTION_H2,
     TEXT_XS_MUTED,
 };
+use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -15,7 +15,7 @@ use crate::models::Football;
 #[server]
 pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, ServerFnError> {
     use crate::server::football_db;
-    use crate::utils::common::into_rid;
+    use crate::shared::common::into_rid;
     let rid = into_rid(&id, "footballs");
     let _ = football_db::increment_hits(&rid).await;
     football_db::get_football_by_id(&rid)
@@ -218,7 +218,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
                 <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}</p>
                 <div class=FLEX_WRAP_GAP>
                     {topics.iter().map(|t| {
-                        let kid = crate::utils::common::record_key(&t.id).to_string();
+                        let kid = crate::shared::common::record_key(&t.id).to_string();
                         view! {
                             <a href=format!("/footballs?topic={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
                         }

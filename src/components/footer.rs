@@ -1,6 +1,6 @@
 use crate::i18n::t;
 use crate::i18n::use_i18n;
-use crate::utils::constant::{BG_CARD, TEXT_SUBTLE, WIDE};
+use crate::shared::constant::{BG_CARD, TEXT_SUBTLE, WIDE};
 use leptos::prelude::*;
 
 #[component]

@@ -4,7 +4,7 @@ pub mod app;
 pub mod components;
 pub mod models;
 pub mod pages;
-pub mod utils;
+pub mod shared;
 
 #[cfg(feature = "ssr")]
 pub mod server;

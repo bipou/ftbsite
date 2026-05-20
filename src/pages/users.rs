@@ -1,9 +1,9 @@
 use crate::i18n::t;
 use crate::page_title;
-use crate::site_title;
-use crate::utils::constant::{
+use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY_NO_UL, EMPTY, FLEX_WRAP_GAP, GRID_3, H1, MAIN, WIDE,
 };
+use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -12,7 +12,7 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
 use crate::models::{User, UsersResult};
-use crate::utils::common::Either3;
+use crate::shared::common::Either3;
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
@@ -84,7 +84,7 @@ pub fn UsersPage() -> impl IntoView {
                                                         Either::Left(view! {
                                                             <div class="flex flex-wrap gap-1 mt-1">
                                                                 {u.keywords.iter().take(8).map(|t| {
-                                                                    let kid = crate::utils::common::record_key(&t.id).to_string();
+                                                                    let kid = crate::shared::common::record_key(&t.id).to_string();
                                                                     let url = format!("/footballs?topic={}", kid);
                                                                     view! {
                                                                         <a href=url class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{t.name.clone()}</a>
@@ -147,7 +147,7 @@ fn KeywordsTopics(
                             <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, features_topics)}</p>
                             <div class={FLEX_WRAP_GAP}>
                                 {keywords.iter().map(|t| {
-                                    let kid = crate::utils::common::record_key(&t.id).to_string();
+                                    let kid = crate::shared::common::record_key(&t.id).to_string();
                                     let url = format!("/footballs?topic={}", kid);
                                     view! {
                                         <a href=url class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
@@ -165,7 +165,7 @@ fn KeywordsTopics(
                             <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, related_topics)}</p>
                             <div class={FLEX_WRAP_GAP}>
                                 {topics.iter().map(|t| {
-                                    let kid = crate::utils::common::record_key(&t.id).to_string();
+                                    let kid = crate::shared::common::record_key(&t.id).to_string();
                                     let url = format!("/footballs?topic={}", kid);
                                     view! {
                                         <a href=url class=BADGE_GRAY_NO_UL>

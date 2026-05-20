@@ -3,7 +3,7 @@ use leptos::html::{Input, Textarea};
 use leptos::prelude::*;
 
 use crate::i18n::{t, use_i18n};
-use crate::utils::common::{PreviewMd, UploadImage, get_upload_nonce};
+use crate::shared::fns::{GetUploadNonce, PreviewMd, UploadImage};
 
 #[component]
 pub fn MarkdownEditor(
@@ -16,9 +16,8 @@ pub fn MarkdownEditor(
     let (show_preview, set_show_preview) = signal(false);
     let textarea_ref = NodeRef::<Textarea>::new();
     let file_input_ref = NodeRef::<Input>::new();
-    let textarea_id = RwSignal::new(format!("md-ed-{name}"));
 
-    // 仅在外部 value 变化时同步（编辑已有内容回填），不追踪 markdown
+    // 仅在外部 value 变化时同步（回填编辑中的内容），不追踪 markdown
     Effect::new(move |_| {
         let changed = value.with(|v| markdown.with_untracked(|m| v != m));
         if changed {
@@ -26,9 +25,11 @@ pub fn MarkdownEditor(
         }
     });
 
-    // 获取上传 nonce（一次性，30分钟有效）
-    let nonce_res = Resource::new(|| (), |_| async move { get_upload_nonce().await.ok() });
-    let nonce = move || nonce_res.get().flatten().unwrap_or_default();
+    // 预取上传 nonce（组件挂载时请求一次，30 分钟有效）
+    let nonce_action = ServerAction::<GetUploadNonce>::new();
+    Effect::new(move |_| {
+        nonce_action.dispatch(GetUploadNonce {});
+    });
 
     // 预览
     let preview_action = ServerAction::<PreviewMd>::new();
@@ -51,28 +52,34 @@ pub fn MarkdownEditor(
     let upload_action = ServerAction::<UploadImage>::new();
     let (upload_trigger, set_upload_trigger) = signal(None::<(String, String)>);
 
+    // 监听 trigger + nonce，两者都就绪才 dispatch
     Effect::new(move |_| {
-        if let Some((data_url, filename)) = upload_trigger.get() {
-            let n = nonce();
-            if !n.is_empty() {
-                upload_action.dispatch(UploadImage {
-                    data_url,
-                    _filename: filename,
-                    nonce: n,
-                });
-            }
+        let trigger = upload_trigger.get();
+        let n = nonce_action
+            .value()
+            .get()
+            .and_then(|r| r.ok())
+            .unwrap_or_default();
+        if let (Some((data_url, filename)), true) = (trigger, !n.is_empty()) {
+            upload_action.dispatch(UploadImage {
+                data_url,
+                _filename: filename,
+                nonce: n,
+            });
             set_upload_trigger.set(None);
         }
     });
 
-    // 上传成功 → 在光标处插入 markdown 图片语法
+    // 上传成功 → 追加图片语法到 markdown 信号，prop:value 自动同步到 textarea
     Effect::new(move |_| {
         if let Some(Ok(url)) = upload_action.value().get() {
             let md = format!("![图片]({url})");
-            textarea_id.with(|id| insert_at_cursor(id, &md));
-            if let Some(el) = textarea_ref.get() {
-                set_markdown.set(el.value());
-            }
+            set_markdown.update(|v| {
+                if !v.is_empty() && !v.ends_with('\n') {
+                    v.push('\n');
+                }
+                v.push_str(&md);
+            });
         }
     });
 
@@ -106,10 +113,10 @@ pub fn MarkdownEditor(
                 </button>
             </div>
 
-            // 源码模式：显示 textarea
+            // 编辑模式
             <Show when=move || !show_preview.get() fallback=|| ()>
                 <textarea
-                    id=textarea_id
+                    id=format!("md-ed-{name}")
                     rows=rows
                     class="form-input"
                     node_ref=textarea_ref
@@ -120,14 +127,14 @@ pub fn MarkdownEditor(
                 </textarea>
             </Show>
 
-            // 预览模式：显示渲染结果
+            // 预览模式
             <Show when=move || show_preview.get() fallback=|| ()>
                 <article class="card p-4 prose-sm"
                     inner_html=move || preview_html.get()>
                 </article>
             </Show>
 
-            // 始终提交 markdown 源码到表单
+            // 表单隐藏域：始终提交最新 markdown 源码
             <input type="hidden" name=name value=move || markdown.get() />
         </div>
     }
@@ -135,60 +142,40 @@ pub fn MarkdownEditor(
 
 // ── 辅助函数 ──────────────────────────────────────────────────────────────────
 
-fn insert_at_cursor(textarea_id: &str, text: &str) {
-    #[cfg(feature = "hydrate")]
-    {
-        use wasm_bindgen::JsCast;
-        if let Some(el) = document().get_element_by_id(textarea_id) {
-            if let Some(raw) = el.dyn_ref::<web_sys::HtmlTextAreaElement>() {
-                let start = raw.selection_start().ok().flatten().unwrap_or(0) as usize;
-                let end = raw.selection_end().ok().flatten().unwrap_or(0) as usize;
-                let mut v = raw.value();
-                let s = start.min(v.len());
-                let e = end.min(v.len());
-                v.replace_range(s..e, text);
-                raw.set_value(&v);
-                let pos = (start + text.len()) as u32;
-                raw.set_selection_start(Some(pos)).ok();
-                raw.set_selection_end(Some(pos)).ok();
-            }
-        }
-    }
-    #[cfg(not(feature = "hydrate"))]
-    {
-        let _ = (textarea_id, text);
-    }
-}
-
+/// 读取用户选择的图片文件并转为 data URL，通过 set_trigger 通知上传流程
 fn select_file(file_input: NodeRef<Input>, set_trigger: WriteSignal<Option<(String, String)>>) {
     #[cfg(feature = "hydrate")]
     {
         use wasm_bindgen::JsCast;
         use web_sys::{FileReader, HtmlInputElement};
 
-        if let Some(input) = file_input.get() {
-            let html_el: &web_sys::HtmlElement = input.as_ref();
-            let raw: &HtmlInputElement = html_el.unchecked_ref();
-            if let Some(files) = raw.files() {
-                if let Some(file) = web_sys::FileList::item(&files, 0) {
-                    let filename = file.name();
-                    let reader = FileReader::new().unwrap();
-                    let reader_clone = reader.clone();
+        let Some(input) = file_input.get() else {
+            return;
+        };
+        let html_el: &web_sys::HtmlElement = input.as_ref();
+        let raw: &HtmlInputElement = html_el.unchecked_ref();
+        let Some(files) = raw.files() else { return };
+        let Some(file) = web_sys::FileList::item(&files, 0) else {
+            return;
+        };
 
-                    let onload =
-                        wasm_bindgen::closure::Closure::once_into_js(Box::new(move || {
-                            if let Ok(result) = reader_clone.result() {
-                                if let Some(data_url) = result.as_string() {
-                                    set_trigger.set(Some((data_url, filename)));
-                                }
-                            }
-                        }));
+        let filename = file.name();
+        let reader = FileReader::new().unwrap();
+        let reader_clone = reader.clone();
 
-                    reader.set_onload(Some(onload.unchecked_ref()));
-                    let _ = reader.read_as_data_url(&file);
+        let onload = wasm_bindgen::closure::Closure::once_into_js(Box::new(move || {
+            if let Ok(result) = reader_clone.result() {
+                if let Some(data_url) = result.as_string() {
+                    set_trigger.set(Some((data_url, filename)));
                 }
             }
-        }
+        }));
+
+        reader.set_onload(Some(onload.unchecked_ref()));
+        let _ = reader.read_as_data_url(&file);
+
+        // 重置以便重复选择同一文件
+        raw.set_value("");
     }
     #[cfg(not(feature = "hydrate"))]
     {

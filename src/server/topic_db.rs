@@ -1,4 +1,4 @@
-use crate::utils::common::{into_rid, rid_str};
+use crate::share::common::{into_rid, rid_str};
 use serde::Deserialize;
 use surrealdb::types::{RecordId, SurrealValue};
 

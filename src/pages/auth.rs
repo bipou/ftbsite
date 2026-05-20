@@ -7,8 +7,8 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, MarkdownEditor, Nav};
-use crate::utils::common::{Either3, Either6};
-use crate::utils::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
+use crate::shared::common::{Either3, Either6};
+use crate::shared::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
 
 // ── Topic input component ────────────────────────────────────────────────
 
@@ -156,8 +156,9 @@ pub async fn register(
     captcha_token: String,
     captcha_answer: String,
 ) -> Result<String, ServerFnError> {
+    use crate::server::upload::move_uploads;
     use crate::server::{captcha, email as email_mod, user_db};
-    use crate::utils::common::{into_rid, move_uploads, record_key};
+    use crate::shared::common::{into_rid, record_key};
 
     if captcha::verify_token(&captcha_token, &captcha_answer).is_none() {
         return Err(ServerFnError::new("captcha_invalid"));
@@ -207,7 +208,7 @@ pub async fn register(
 #[server]
 pub async fn activate_user(user_id: String) -> Result<Option<String>, ServerFnError> {
     use crate::server::user_db;
-    use crate::utils::common::into_rid;
+    use crate::shared::common::into_rid;
     let rid = into_rid(&user_id, "users");
     user_db::activate_user(&rid)
         .await
@@ -217,7 +218,7 @@ pub async fn activate_user(user_id: String) -> Result<Option<String>, ServerFnEr
 #[server]
 pub async fn resend_activation(user_id: String, lang: String) -> Result<(), ServerFnError> {
     use crate::server::{email as email_mod, user_db};
-    use crate::utils::common::into_rid;
+    use crate::shared::common::into_rid;
     let rid = into_rid(&user_id, "users");
     let (email, username) = user_db::get_user_email_username(&rid)
         .await

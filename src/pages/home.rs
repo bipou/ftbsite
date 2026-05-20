@@ -9,7 +9,7 @@ use crate::components::{FootballCard, Footer, Nav};
 use crate::i18n::use_i18n;
 use crate::models::Football;
 
-use crate::utils::constant::{GRID_3, HOVER_UNDERLINE, TEXT_SUBTLE, WIDE};
+use crate::shared::constant::{GRID_3, HOVER_UNDERLINE, TEXT_SUBTLE, WIDE};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HomeData {

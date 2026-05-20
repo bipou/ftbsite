@@ -1,6 +1,6 @@
 use crate::i18n::{t, use_i18n};
 use crate::models::PageInfo;
-use crate::utils::constant::{FLEX_BETWEEN, TEXT_SUBTLE};
+use crate::shared::constant::{FLEX_BETWEEN, TEXT_SUBTLE};
 use leptos::either::Either;
 use leptos::prelude::*;
 

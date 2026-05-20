@@ -4,7 +4,7 @@ use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, deco
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
 
-use crate::utils::constant;
+use crate::share::constant;
 
 static PBKDF2_ALG: pbkdf2::Algorithm = pbkdf2::PBKDF2_HMAC_SHA256;
 const CRED_LEN: usize = digest::SHA256_OUTPUT_LEN;

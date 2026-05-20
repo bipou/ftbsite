@@ -9,8 +9,8 @@ use crate::app::use_auth;
 use crate::components::{Footer, Nav, Pagination};
 use crate::models::FootballsResult;
 
-use crate::utils::common::{Either3, Either5};
-use crate::utils::constant::{
+use crate::shared::common::{Either3, Either5};
+use crate::shared::constant::{
     ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, H1, HOVER_SHADOW, HOVER_UNDERLINE, MAIN,
     NO_UNDERLINE,
 };
@@ -28,7 +28,7 @@ pub async fn get_admin_footballs(from: i64) -> Result<FootballsResult, ServerFnE
 #[server]
 pub async fn admin_update_status(football_id: String, status: i8) -> Result<(), ServerFnError> {
     use crate::server::football_db;
-    use crate::utils::common::into_rid;
+    use crate::shared::common::into_rid;
     let rid = into_rid(&football_id, "footballs");
     football_db::update_football_status(&rid, status)
         .await
@@ -136,7 +136,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                             view! {
                                                 <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                     <div class="flex-1 min-w-0">
-                                                        <a href=format!("/footballs/{}", crate::utils::common::record_key(&f.id))
+                                                        <a href=format!("/footballs/{}", crate::shared::common::record_key(&f.id))
                                                            class=format!("font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 {} text-sm", NO_UNDERLINE)>
                                                                {f.home_team.clone()} " vs " {f.away_team.clone()}
                                                         </a>

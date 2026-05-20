@@ -1,7 +1,7 @@
 use crate::i18n::{Locale, t, use_i18n};
 use crate::models::Football;
-use crate::utils::common::Either3;
-use crate::utils::constant::{
+use crate::shared::common::Either3;
+use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
     HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
@@ -149,7 +149,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     let cat_kid = football
         .category
         .as_ref()
-        .map(|c| crate::utils::common::record_key(&c.id).to_string());
+        .map(|c| crate::shared::common::record_key(&c.id).to_string());
     let cat_name = Memo::new(move |_| {
         football
             .category
@@ -165,7 +165,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     });
     let url = format!(
         "/footballs/{}",
-        crate::utils::common::record_key(&football.id)
+        crate::shared::common::record_key(&football.id)
     );
     let topics = football.topics;
 
@@ -191,7 +191,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
                 <div class="flex flex-wrap gap-1">
                     {topics.iter().map(|t| {
-                        let kid = crate::utils::common::record_key(&t.id).to_string();
+                        let kid = crate::shared::common::record_key(&t.id).to_string();
                         view! {
                             <a href=format!("/footballs?topic={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
                         }

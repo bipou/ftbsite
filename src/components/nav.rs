@@ -28,7 +28,7 @@ extern "C" {
     fn toggle_theme();
 }
 
-use crate::utils::constant::{BG_CARD, FLEX_BETWEEN, HOVER_NO_UNDERLINE, NO_UNDERLINE};
+use crate::shared::constant::{BG_CARD, FLEX_BETWEEN, HOVER_NO_UNDERLINE, NO_UNDERLINE};
 use leptos_i18n::Locale as LocaleTrait;
 
 // ── Sub-components ────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ fn Random() -> impl IntoView {
     let navigate = leptos_router::hooks::use_navigate();
     Effect::new(move |_| {
         if let Some(Ok(Some(id))) = random_action.value().get() {
-            let kid = crate::utils::common::record_key(&id).to_string();
+            let kid = crate::shared::common::record_key(&id).to_string();
             navigate(&format!("/footballs/{}", kid), Default::default());
         }
     });

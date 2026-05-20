@@ -1,6 +1,6 @@
 use crate::i18n::t;
+use crate::shared::constant::TEXT_SUBTLE;
 use crate::site_title;
-use crate::utils::constant::TEXT_SUBTLE;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
