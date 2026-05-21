@@ -70,16 +70,38 @@ pub fn MarkdownEditor(
         }
     });
 
-    // 上传成功 → 追加图片语法到 markdown 信号，prop:value 自动同步到 textarea
+    // 记录插入图片时的光标位置
+    let (cursor_pos, set_cursor_pos) = signal(usize::MAX);
+
+    // 上传成功 → 在光标位置插入图片语法
     Effect::new(move |_| {
         if let Some(Ok(url)) = upload_action.value().get() {
+            let cursor = cursor_pos.get_untracked();
             let md = format!("![图片]({url})");
             set_markdown.update(|v| {
-                if !v.is_empty() && !v.ends_with('\n') {
-                    v.push('\n');
+                if cursor < v.len() {
+                    // 在光标位置插入
+                    let prefix: String = v.chars().take(cursor).collect();
+                    let suffix: String = v.chars().skip(cursor).collect();
+                    let mut new_v = prefix;
+                    if !new_v.is_empty() && !new_v.ends_with('\n') {
+                        new_v.push('\n');
+                    }
+                    new_v.push_str(&md);
+                    if !suffix.is_empty() && !suffix.starts_with('\n') {
+                        new_v.push('\n');
+                    }
+                    new_v.push_str(&suffix);
+                    *v = new_v;
+                } else {
+                    // 光标无效（如未点击按钮）→ 追加到末尾
+                    if !v.is_empty() && !v.ends_with('\n') {
+                        v.push('\n');
+                    }
+                    v.push_str(&md);
                 }
-                v.push_str(&md);
             });
+            set_cursor_pos.set(usize::MAX); // 重置
         }
     });
 
@@ -106,6 +128,15 @@ pub fn MarkdownEditor(
                         class="cursor-pointer"
                         style="font-size:1.1rem;border:0;background:transparent;padding:0;line-height:1"
                         on:click=move |_| {
+                            // 捕获当前光标位置
+                            #[cfg(feature = "hydrate")]
+                            if let Some(ta) = textarea_ref.get() {
+                                let pos = ta.selection_start()
+                                    .ok()
+                                    .flatten()
+                                    .unwrap_or(0) as usize;
+                                set_cursor_pos.set(pos);
+                            }
                             if let Some(input) = file_input_ref.get() {
                                 input.click();
                             }
