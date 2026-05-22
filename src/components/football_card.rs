@@ -149,35 +149,35 @@ pub fn FootballCard(football: Football) -> impl IntoView {
         HOVER_SHADOW,
         status_class(football.status)
     );
-    let cat_kid = football
-        .category
-        .as_ref()
-        .map(|c| crate::shared::common::record_key(&c.id).to_string());
-    let cat_name = Memo::new(move |_| {
-        let loc = i18n.get_locale().to_string();
-        football
-            .category
-            .as_ref()
-            .and_then(|c| c.name.get(&loc).cloned())
-            .unwrap_or_default()
-    });
+    let title = football.match_title();
+    let season = football.season;
+    let kick_off = football.kick_off_at_mdhm8;
+    let status = football.status;
+    let hits = football.hits;
+    let topics = football.topics;
     let detail_path = format!(
         "/footballs/{}",
         crate::shared::common::record_key(&football.id)
     );
-    let topics = football.topics.clone();
-    let home_team = football.home_team.clone();
-    let away_team = football.away_team.clone();
-    let season = football.season.clone();
-    let kick_off = football.kick_off_at_mdhm8.clone();
+    let category = football.category;
+    let cat_kid = category
+        .as_ref()
+        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+    let cat_name = Memo::new(move |_| {
+        let loc = i18n.get_locale().to_string();
+        category
+            .as_ref()
+            .and_then(|c| c.name.get(&loc).cloned())
+            .unwrap_or_default()
+    });
 
     view! {
         <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
-                <LocaleA href=detail_path class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
-                    {home_team} " vs " {away_team}
+                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
+                    {title}
                 </LocaleA>
-                <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(football.status)}</span>
+                <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(status)}</span>
             </div>
 
             <div class=format!("text-sm {} mb-3 space-x-2", TEXT_SUBTLE)>
@@ -192,16 +192,16 @@ pub fn FootballCard(football: Football) -> impl IntoView {
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
                 <div class="flex flex-wrap gap-1">
-                    {topics.into_iter().map(|t| {
-                        let kid = crate::shared::common::record_key(&t.id).to_string();
+                    {topics.into_iter().map(|topic| {
+                        let kid = crate::shared::common::record_key(&topic.id).to_string();
                         let href = format!("/footballs?topic={}", kid);
-                        let name = t.name.clone();
+                        let name = topic.name;
                         view! {
                             <LocaleA href=href class=BADGE_BLUE_NO_UL>{name}</LocaleA>
                         }
                     }).collect::<Vec<_>>()}
                 </div>
-                <span class="text-sm text-gray-400">{move || t!(i18n, football_hits)} {football.hits}</span>
+                <span class="text-sm text-gray-400">{move || t!(i18n, football_hits)} {hits}</span>
             </div>
         </div>
     }

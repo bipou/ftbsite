@@ -48,6 +48,8 @@ pub fn LocaleA(
     #[prop(into)] href: String,
     #[prop(into, optional)] class: Option<String>,
     #[prop(optional)] on_click: Option<Callback<leptos::ev::MouseEvent>>,
+    #[prop(optional)] target: Option<&'static str>,
+    #[prop(optional)] rel: Option<&'static str>,
     children: Children,
 ) -> impl IntoView {
     let loc = use_locale_str();
@@ -56,6 +58,8 @@ pub fn LocaleA(
         <A
             href=full
             attr:class=class.unwrap_or_default()
+            attr:target=target.unwrap_or_default()
+            attr:rel=rel.unwrap_or_default()
             on:click=move |ev| {
                 if let Some(ref cb) = on_click {
                     cb.run(ev);

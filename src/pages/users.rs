@@ -11,7 +11,7 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
-use crate::models::{User, UsersResult};
+use crate::models::{User, UserSummary, UsersResult};
 use crate::shared::common::Either3;
 use crate::shared::locale::use_locale_str;
 
@@ -68,11 +68,10 @@ pub fn UsersPage() -> impl IntoView {
                         let pi = d.page_info.clone();
                         Either::Right(view! {
                             <div class={format!("{} mb-8", GRID_3)}>
-                                {d.items.into_iter().map(|u| {
-                                    let url = format!("/{}/users/{}", loc_str.get(), u.username);
-                                    let uname = u.username.to_string();
-                                    let initial = u.username.chars().next().unwrap_or('?');
-                                    let updated = u.updated_at.clone();
+                                {d.items.into_iter().map(|user| {
+                                    let UserSummary { username, updated_at, keywords, .. } = user;
+                                    let url = format!("/{}/users/{}", loc_str.get(), username);
+                                    let initial = username.chars().next().unwrap_or('?');
                                     view! {
                                         <div class=CARD_BLOCK_NO_UL>
                                             <div class="flex items-start gap-3">
@@ -80,16 +79,17 @@ pub fn UsersPage() -> impl IntoView {
                                                     {initial.to_string()}
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <a href=url target="_blank" rel="noopener noreferrer" class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate no-underline hover:underline hover:text-blue-600">{uname}</a>
-                                                    <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated}</p>
-                                                    {if !u.keywords.is_empty() {
+                                                    <a href=url target="_blank" rel="noopener noreferrer" class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate no-underline hover:underline hover:text-blue-600">{username}</a>
+                                                    <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated_at}</p>
+                                                    {if !keywords.is_empty() {
                                                         Either::Left(view! {
                                                             <div class="flex flex-wrap gap-1 mt-1">
-                                                                {u.keywords.iter().take(8).map(|t| {
-                                                                    let kid = crate::shared::common::record_key(&t.id).to_string();
+                                                                {keywords.iter().take(8).map(|topic| {
+                                                                    let kid = crate::shared::common::record_key(&topic.id).to_string();
                                                                     let url = format!("/{}/footballs?topic={}", loc_str.get(), kid);
+                                                                    let name = topic.name.clone();
                                                                     view! {
-                                                                        <a href=url class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{t.name.clone()}</a>
+                                                                        <a href=url class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{name}</a>
                                                                     }
                                                                 }).collect::<Vec<_>>()}
                                                             </div>
@@ -212,14 +212,10 @@ pub fn UserProfilePage() -> impl IntoView {
                         </div>
                     })),
                     Ok(Some(user)) => {
-                        let created_at = user.created_at.clone();
-                        let updated_at = user.updated_at.clone();
-                        let uname = user.username.to_string();
-                        let title = format!("{} – {}", uname, site_title!(i18n));
-                        let initial = user.username.chars().next().unwrap_or('?');
-                        let intro_html = user.introduction_html.clone();
-                        let keywords = user.keywords.clone();
-                        let topics = user.topics.clone();
+                        let User { username, created_at, updated_at, introduction_html, keywords, topics, .. } = user;
+                        let intro_html = introduction_html;
+                        let initial = username.chars().next().unwrap_or('?');
+                        let title = format!("{} – {}", username, site_title!(i18n));
                         Either3::Right(Either::Right(view! {
                             <Title text=title/>
 
@@ -229,7 +225,7 @@ pub fn UserProfilePage() -> impl IntoView {
                                         {initial.to_string()}
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{uname}</h1>
+                                        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{username}</h1>
                                         <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, registration_time)} {created_at}</p>
                                         <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated_at}</p>
                                     </div>

@@ -7,7 +7,7 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::app::use_auth;
 use crate::components::{Footer, Nav, Pagination};
-use crate::models::FootballsResult;
+use crate::models::{Football, FootballsResult};
 
 use crate::shared::common::{Either3, Either5};
 use crate::shared::constant::{
@@ -134,18 +134,21 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                 let pi = d.page_info.clone();
                                 Either3::Right(Either::<_, ()>::Left(view! {
                                     <div class="space-y-3 mb-8">
-                                        {d.items.into_iter().map(|f| {
+                                        {d.items.into_iter().map(|football| {
+                                            let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, .. } = football;
+                                            let url = format!("/{}/footballs/{}", loc_str.get(), crate::shared::common::record_key(&id));
+                                            let title = format!("{} vs {}", home_team, away_team);
                                             view! {
                                                 <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                     <div class="flex-1 min-w-0">
-                                                        <a href=format!("/{}/footballs/{}", loc_str.get(), crate::shared::common::record_key(&f.id))
+                                                        <a href=url
                                                            class=format!("font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 {} text-sm", NO_UNDERLINE)>
-                                                               {f.home_team.clone()} " vs " {f.away_team.clone()}
+                                                               {title}
                                                         </a>
                                                         <p class="text-xs text-gray-400 mt-1">
-                                                            {f.season.clone()} " · " {f.kick_off_at_mdhm8.clone()}
+                                                            {season} " · " {kick_off_at_mdhm8}
                                                             " · Status: "
-                                                            <span class="font-medium text-gray-600">{f.status}</span>
+                                                            <span class="font-medium text-gray-600">{status}</span>
                                                         </p>
                                                     </div>
                                                     // Status action buttons
@@ -157,7 +160,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                                             (4, "status_both", "bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-300"),
                                                             (0, "status_hide", "bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200"),
                                                         ].into_iter().map(|(s, key, cls)| {
-                                                            let fid_val = f.id.to_string();
+                                                            let fid_val = id.to_string();
                                                             view! {
                                                                 <ActionForm action=update_action>
                                                                     <input type="hidden" name="football_id" value=fid_val/>
