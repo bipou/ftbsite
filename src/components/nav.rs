@@ -1,7 +1,7 @@
 use crate::app::use_auth;
 use crate::i18n::t;
 use crate::i18n::{Locale, td_string, use_i18n};
-use crate::shared::locale::{LocaleA, locale_href, use_locale_str};
+use crate::shared::locale::{LocaleA, use_locale_str};
 use leptos::either::Either;
 use leptos::prelude::*;
 
@@ -72,24 +72,9 @@ fn NavLeft() -> impl IntoView {
 #[component]
 fn Random() -> impl IntoView {
     let i18n = use_i18n();
-    let random_action =
-        Action::new(|_: &()| async move { crate::pages::footballs::get_random_id().await });
-    let navigate = use_navigate();
     let loc_str = use_locale_str();
-    Effect::new(move |_| {
-        if let Some(Ok(Some(id))) = random_action.value().get() {
-            let kid = crate::shared::common::record_key(&id).to_string();
-            let url = locale_href(&loc_str.get(), &format!("/footballs/{}", kid));
-            navigate(&url, Default::default());
-        }
-    });
     view! {
-        <a
-            href="javascript:void(0)"
-            on:click=move |ev| {
-                ev.prevent_default();
-                random_action.dispatch(());
-            }
+        <a href=move || format!("/{}/rand", loc_str.get()) target="_blank" rel="noopener noreferrer"
             class=format!("text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors {}", NO_UNDERLINE)
         >
             {move || t!(i18n, rand)}

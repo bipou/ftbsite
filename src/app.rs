@@ -98,10 +98,12 @@ pub fn App() -> impl IntoView {
                 <Router>
                     <SetLocaleFromUrl/>
                     <Routes fallback=|| view! { <NotFound/> }>
+                        <Route path=path!("/")                            view=HomePage/>
                         <Route path=path!("/:locale/")                    view=HomePage/>
                         <Route path=path!("/:locale/register")            view=RegisterPage/>
                         <Route path=path!("/:locale/sign-in")             view=SignInPage/>
                         <Route path=path!("/:locale/sign-out")            view=SignOutPage/>
+                        <Route path=path!("/:locale/rand")                view=FootballDetailPage/>
                         <Route path=path!("/:locale/footballs")           view=FootballsPage/>
                         <Route path=path!("/:locale/footballs/:id")       view=FootballDetailPage/>
                         <Route path=path!("/:locale/users")               view=UsersPage/>
@@ -110,7 +112,6 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/admin")               view=AdminPage/>
                         <Route path=path!("/:locale/admin/footballs")     view=AdminFootballsPage/>
                         <Route path=path!("/:locale/admin/football/:id")  view=AdminFootballDetailPage/>
-                        <Route path=path!("/") view=HomePage/>
                     </Routes>
                 </Router>
             </Suspense>

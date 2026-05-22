@@ -252,7 +252,15 @@ pub fn FootballDetailPage() -> impl IntoView {
     let id = move || params.read().get("id").unwrap_or_default();
     let data = Resource::new_blocking(
         move || id(),
-        |id| async move { get_football_and_increment(id).await },
+        |mut id| async move {
+            if id.is_empty() {
+                id = crate::pages::footballs::get_random_id()
+                    .await?
+                    .map(|full_id| crate::shared::common::record_key(&full_id).to_string())
+                    .unwrap_or_default();
+            }
+            get_football_and_increment(id).await
+        },
     );
 
     view! {
