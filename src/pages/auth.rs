@@ -1,4 +1,4 @@
-use crate::i18n::{t, t_string, td_string, use_i18n};
+use crate::i18n::{t, t_display, td_string, use_i18n};
 use crate::page_title;
 use leptos::either::Either;
 use leptos::html::Input;
@@ -382,7 +382,7 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
     let (captcha_ok, set_captcha_ok) = signal(false);
     let (status_msg, set_status_msg) = signal(String::new());
     let answer_ref = NodeRef::<Input>::new();
-    let btn = Signal::derive(move || t_string!(i18n, register).to_string());
+    let btn = Signal::derive(move || t_display!(i18n, register).to_string());
 
     let captcha_res = Resource::new(|| (), |_| async move { get_captcha().await.ok() });
 
@@ -516,7 +516,7 @@ pub fn SignInPage() -> impl IntoView {
         }
     });
 
-    let btn = Signal::derive(move || t_string!(i18n, sign_in).to_string());
+    let btn = Signal::derive(move || t_display!(i18n, sign_in).to_string());
     let pending = Signal::derive(move || "Signing in...".to_string());
 
     view! {

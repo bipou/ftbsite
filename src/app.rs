@@ -86,8 +86,8 @@ pub fn use_auth() -> Option<AuthUser> {
 pub fn App() -> impl IntoView {
     provide_meta_context();
 
-    // Blocking: SSR waits until auth resolved before rendering any route.
-    let auth_res: AuthResource = Resource::new_blocking(|| (), |_| get_auth_user());
+    // Auth 资源：SSR 异步解析，不阻塞首屏渲染
+    let auth_res: AuthResource = Resource::new(|| (), |_| get_auth_user());
     provide_context(auth_res);
 
     view! {
@@ -129,7 +129,9 @@ fn SetLocaleFromUrl() -> impl IntoView {
         let first = path.trim_start_matches('/').split('/').next().unwrap_or("");
         if is_valid_locale(first) {
             if let Some(loc) = Locale::get_all().iter().find(|l| l.to_string() == first) {
-                i18n.set_locale(*loc);
+                if i18n.get_locale() != *loc {
+                    i18n.set_locale(*loc);
+                }
             }
         }
     });
