@@ -1,28 +1,21 @@
 // 语言工具模块：统一管理 URL 前缀、链接生成，全程不硬编码语言代码
+use crate::i18n::use_i18n;
 use leptos::prelude::*;
 use leptos_router::{components::A, hooks::use_params_map};
 
 use crate::i18n::Locale;
 use leptos_i18n::Locale as _;
 
-/// 从 URL 的 :locale 段获取当前语言字符串
-/// 仅在 <Router> 内部可用；无语言则以 default_locale() 回退
-pub fn use_locale_str() -> Memo<String> {
+/// 从 URL 的 :locale 段获取当前语言字符串；无则取 i18n 当前语言
+pub fn use_locale() -> Memo<String> {
     let params = use_params_map();
+    let i18n = use_i18n();
     Memo::new(move |_| {
         params
             .read()
             .get("locale")
-            .unwrap_or_else(|| default_locale().to_string())
+            .unwrap_or_else(|| i18n.get_locale().to_string())
     })
-}
-
-/// 默认语言代码 = Locale::get_all() 的第一项（由 build.rs 决定顺序）
-pub fn default_locale() -> Locale {
-    Locale::get_all()
-        .first()
-        .copied()
-        .expect("至少注册一种语言")
 }
 
 /// 语言代码列表
@@ -52,7 +45,7 @@ pub fn LocaleA(
     #[prop(optional)] rel: Option<&'static str>,
     children: Children,
 ) -> impl IntoView {
-    let loc = use_locale_str();
+    let loc = use_locale();
     let full = move || format!("/{}{}", loc.get(), href);
     view! {
         <A

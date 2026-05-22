@@ -14,7 +14,7 @@ use crate::shared::constant::{
     ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, H1, HOVER_SHADOW, HOVER_UNDERLINE, MAIN,
     NO_UNDERLINE,
 };
-use crate::shared::locale::use_locale_str;
+use crate::shared::locale::use_locale;
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ pub fn AdminPage() -> impl IntoView {
 #[component]
 pub fn AdminFootballsPage() -> impl IntoView {
     let i18n = use_i18n();
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     let auth = use_auth();
     let query = use_query_map();
     let from = move || {

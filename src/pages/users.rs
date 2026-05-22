@@ -13,7 +13,7 @@ use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
 use crate::models::{User, UserSummary, UsersResult};
 use crate::shared::common::Either3;
-use crate::shared::locale::use_locale_str;
+use crate::shared::locale::use_locale;
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
@@ -40,7 +40,7 @@ pub async fn get_user_profile(username: String) -> Result<Option<User>, ServerFn
 #[component]
 pub fn UsersPage() -> impl IntoView {
     let i18n = use_i18n();
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     let query = use_query_map();
     let from = move || {
         query

@@ -1,7 +1,7 @@
 use crate::app::use_auth;
 use crate::i18n::t;
 use crate::i18n::{Locale, td_string, use_i18n};
-use crate::shared::locale::{LocaleA, use_locale_str};
+use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
 
@@ -72,7 +72,7 @@ fn NavLeft() -> impl IntoView {
 #[component]
 fn Random() -> impl IntoView {
     let i18n = use_i18n();
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     view! {
         <a href=move || format!("/{}/rand", loc_str.get()) target="_blank" rel="noopener noreferrer"
             class=format!("text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors {}", NO_UNDERLINE)
@@ -88,7 +88,7 @@ fn LangDropdown() -> impl IntoView {
     let (open, set_open) = signal(false);
     let navigate = use_navigate();
     let nav = navigate.clone();
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     view! {
         <div class="relative inline-block">
             <button

@@ -1,5 +1,5 @@
 use crate::i18n::{t, use_i18n};
-use crate::shared::locale::use_locale_str;
+use crate::shared::locale::use_locale;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -70,7 +70,7 @@ pub async fn get_footballs_page(
 #[component]
 pub fn FootballsPage() -> impl IntoView {
     let i18n = use_i18n();
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     let query = use_query_map();
 
     // Reactive query params

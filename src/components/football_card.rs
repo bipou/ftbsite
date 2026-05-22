@@ -5,7 +5,7 @@ use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
     HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
-use crate::shared::locale::{LocaleA, use_locale_str};
+use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
 
@@ -35,7 +35,7 @@ fn CatBadge(
     #[prop(into)] name: Signal<Option<String>>,
     #[prop(into)] kid: Option<String>,
 ) -> impl IntoView {
-    let loc_str = use_locale_str();
+    let loc_str = use_locale();
     move || {
         let n = name.get();
         if n.is_none() {
