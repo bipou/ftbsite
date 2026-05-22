@@ -15,7 +15,7 @@ use crate::models::AuthUser;
 use crate::pages::{
     admin::{AdminFootballDetailPage, AdminFootballsPage, AdminPage},
     auth::{RegisterPage, SignInPage, SignOutPage, UserActivatePage},
-    football::FootballDetailPage,
+    football::{FootballDetailPage, RandomRedirect},
     footballs::FootballsPage,
     home::HomePage,
     users::{UserProfilePage, UsersPage},
@@ -103,7 +103,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/register")            view=RegisterPage/>
                         <Route path=path!("/:locale/sign-in")             view=SignInPage/>
                         <Route path=path!("/:locale/sign-out")            view=SignOutPage/>
-                        <Route path=path!("/:locale/rand")                view=FootballDetailPage/>
+                        <Route path=path!("/:locale/rand")                view=RandomRedirect/>
                         <Route path=path!("/:locale/footballs")           view=FootballsPage/>
                         <Route path=path!("/:locale/footballs/:id")       view=FootballDetailPage/>
                         <Route path=path!("/:locale/users")               view=UsersPage/>

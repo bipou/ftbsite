@@ -202,7 +202,7 @@ pub async fn get_football_by_id(rid: &RecordId) -> Result<Option<Football>, Stri
 
 pub async fn get_random_football_id() -> Result<Option<String>, String> {
     let mut res = get_db()
-        .query("SELECT VALUE id FROM footballs WHERE status >= 1 ORDER BY rand() LIMIT 1")
+        .query("SELECT VALUE id FROM footballs WHERE status >= 1 AND kick_off_at >= time::now() - 1d ORDER BY rand() LIMIT 1")
         .await
         .map_err(|e| e.to_string())?;
     let ids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;

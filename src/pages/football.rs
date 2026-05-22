@@ -247,15 +247,7 @@ pub fn FootballDetailPage() -> impl IntoView {
     let id = move || params.read().get("id").unwrap_or_default();
     let data = Resource::new_blocking(
         move || id(),
-        |mut id| async move {
-            if id.is_empty() {
-                id = crate::pages::footballs::get_random_id()
-                    .await?
-                    .map(|full_id| crate::shared::common::record_key(&full_id).to_string())
-                    .unwrap_or_default();
-            }
-            get_football_and_increment(id).await
-        },
+        |id| async move { get_football_and_increment(id).await },
     );
 
     view! {
@@ -282,4 +274,47 @@ pub fn FootballDetailPage() -> impl IntoView {
         </main>
         <Footer/>
     }
+}
+
+/// /rand → 302 跳转到随机球赛详情
+#[component]
+pub fn RandomRedirect() -> impl IntoView {
+    let params = use_params_map();
+    let locale = params.read().get("locale").unwrap_or_default();
+
+    let redirect = Resource::new_blocking(
+        move || locale.clone(),
+        |locale| async move { redirect_to_random_football(locale).await },
+    );
+
+    view! {
+        <Suspense fallback=|| view! { <div></div> }>
+            {move || { let _ = redirect.get(); view! { <div></div> } }}
+        </Suspense>
+    }
+}
+
+#[server]
+async fn redirect_to_random_football(locale: String) -> Result<(), ServerFnError> {
+    use crate::server::football_db;
+    use crate::shared::common::record_key;
+    use axum::http::{HeaderValue, StatusCode, header};
+    use leptos_axum::ResponseOptions;
+
+    let url = match football_db::get_random_football_id().await {
+        Ok(Some(full_id)) => {
+            let kid = record_key(&full_id);
+            format!("/{}/footballs/{}", locale, kid)
+        }
+        _ => format!("/{}/footballs", locale),
+    };
+
+    let resp = expect_context::<ResponseOptions>();
+    resp.set_status(StatusCode::FOUND);
+    resp.insert_header(
+        header::LOCATION,
+        HeaderValue::from_str(&url).map_err(|e| ServerFnError::new(e.to_string()))?,
+    );
+
+    Ok(())
 }
