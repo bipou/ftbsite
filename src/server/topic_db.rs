@@ -154,7 +154,7 @@ pub async fn create_topics_from_names(names: &str) -> Result<Vec<String>, String
             // Create new topic
             let mut res = get_db()
                 .query("CREATE topics CONTENT { name: $name, quotes: 1 }")
-                .bind(("name", name.clone()))
+                .bind(("name", name))
                 .await
                 .map_err(|e| e.to_string())?;
             let new_docs: Vec<TopicDoc> = res.take(0).map_err(|e| e.to_string())?;

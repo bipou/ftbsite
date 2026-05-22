@@ -55,12 +55,8 @@ pub fn MarkdownEditor(
     // 监听 trigger + nonce，两者都就绪才 dispatch
     Effect::new(move |_| {
         let trigger = upload_trigger.get();
-        let n = nonce_action
-            .value()
-            .get()
-            .and_then(|r| r.ok())
-            .unwrap_or_default();
-        if let (Some((data_url, filename)), true) = (trigger, !n.is_empty()) {
+        let n = nonce_action.value().get().and_then(|r| r.ok());
+        if let (Some((data_url, filename)), Some(n)) = (trigger, n.filter(|n| !n.is_empty())) {
             upload_action.dispatch(UploadImage {
                 data_url,
                 _filename: filename,

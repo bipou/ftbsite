@@ -314,11 +314,13 @@ pub async fn get_footballs_by_topic(
         });
     }
 
-    // Build IN list (ids are record-id strings like "footballs:xxx")
-    let id_list: Vec<String> = page_fids.iter().map(|id| format!("{}", id)).collect();
     let q = format!(
         "SELECT * FROM footballs WHERE id IN [{}] AND status >= 1 ORDER BY kick_off_at DESC",
-        id_list.join(",")
+        page_fids
+            .iter()
+            .map(|id| format!("{}", id))
+            .collect::<Vec<_>>()
+            .join(",")
     );
 
     let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;

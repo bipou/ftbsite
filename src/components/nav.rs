@@ -87,6 +87,7 @@ fn LangDropdown() -> impl IntoView {
     let i18n = use_i18n();
     let (open, set_open) = signal(false);
     let navigate = use_navigate();
+    let nav = navigate.clone();
     let loc_str = use_locale_str();
     view! {
         <div class="relative inline-block">
@@ -110,7 +111,7 @@ fn LangDropdown() -> impl IntoView {
                     view! {
                         <button
                             on:click={
-                                let navigate = navigate.clone();
+                                let navigate = nav.clone();
                                 let new_loc = new_loc.clone();
                                 let old = loc_str.get();
                                 let path = leptos_router::hooks::use_location().pathname.get();

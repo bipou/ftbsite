@@ -39,10 +39,13 @@ pub async fn get_categories_by_levels(levels: &[u8]) -> Result<Vec<Category>, St
     if levels.is_empty() {
         return Ok(vec![]);
     }
-    let lvls: Vec<String> = levels.iter().map(|l| l.to_string()).collect();
     let q = format!(
         "SELECT * FROM categories WHERE level IN [{}] ORDER BY level ASC",
-        lvls.join(",")
+        levels
+            .iter()
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
     );
     let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
     let docs: Vec<CategoryDoc> = res.take(0).map_err(|e| e.to_string())?;

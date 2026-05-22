@@ -28,12 +28,7 @@ fn MatchHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let title_text = format!("{} vs {} – {}", f.home_team, f.away_team, site_title!(i18n));
     let loc = i18n.get_locale().to_string();
-    let cat = Memo::new(move |_| {
-        f.category
-            .as_ref()
-            .and_then(|c| c.name.get(&loc).cloned())
-            .unwrap_or_default()
-    });
+    let cat = Memo::new(move |_| f.category.as_ref().and_then(|c| c.name.get(&loc).cloned()));
     view! {
         <Title text=title_text/>
         <div class=CARD_SECTION>
@@ -44,8 +39,8 @@ fn MatchHeader(f: Football) -> impl IntoView {
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
                         <span>{move || t!(i18n, football_season)} " " {f.season}</span>
-                        {move || if !cat.get().is_empty() {
-                            Either::Left(view! { <span class=BADGE_GRAY>{cat.get()}</span> })
+                        {move || if cat.get().is_some() {
+                            Either::Left(view! { <span class=BADGE_GRAY>{cat.get().unwrap_or_default()}</span> })
                         } else {
                             Either::Right(())
                         }}

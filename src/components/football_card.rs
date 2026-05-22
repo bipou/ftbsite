@@ -32,21 +32,23 @@ fn status_badge(status: i8) -> &'static str {
 
 #[component]
 fn CatBadge(
-    #[prop(into)] name: Signal<String>,
+    #[prop(into)] name: Signal<Option<String>>,
     #[prop(into)] kid: Option<String>,
 ) -> impl IntoView {
     let loc_str = use_locale_str();
     move || {
         let n = name.get();
-        if n.is_empty() {
+        if n.is_none() {
             Either3::Left(())
         } else if let Some(kid) = &kid {
             let href = format!("/{}/footballs?category={}", loc_str.get(), kid);
             Either3::Right(Either::Left(view! {
-                <a href=href class=BADGE_GRAY_NO_UL>{n}</a>
+                <a href=href class=BADGE_GRAY_NO_UL>{n.unwrap_or_default()}</a>
             }))
         } else {
-            Either3::Right(Either::Right(view! { <span class=BADGE_GRAY>{n}</span> }))
+            Either3::Right(Either::Right(
+                view! { <span class=BADGE_GRAY>{n.unwrap_or_default()}</span> },
+            ))
         }
     }
 }
@@ -165,10 +167,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
         .map(|c| crate::shared::common::record_key(&c.id).to_string());
     let cat_name = Memo::new(move |_| {
         let loc = i18n.get_locale().to_string();
-        category
-            .as_ref()
-            .and_then(|c| c.name.get(&loc).cloned())
-            .unwrap_or_default()
+        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
     });
 
     view! {
