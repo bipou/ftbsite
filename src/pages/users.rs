@@ -50,7 +50,7 @@ pub fn UsersPage() -> impl IntoView {
             .unwrap_or(1i64)
     };
 
-    let data = Resource::new(move || from(), |f| async move { get_users_page(f).await });
+    let data = Resource::new_blocking(move || from(), |f| async move { get_users_page(f).await });
 
     view! {
         <Title text=move || page_title!(i18n, users_list)/>

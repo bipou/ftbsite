@@ -92,7 +92,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
             .unwrap_or(1i64)
     };
 
-    let data = Resource::new(
+    let data = Resource::new_blocking(
         move || from(),
         |f| async move { get_admin_footballs(f).await },
     );

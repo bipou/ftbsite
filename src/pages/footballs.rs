@@ -105,7 +105,7 @@ pub fn FootballsPage() -> impl IntoView {
 
     let cats_res = Resource::new(|| (), |_| get_sidebar_categories());
 
-    let footballs_res = Resource::new(
+    let footballs_res = Resource::new_blocking(
         move || (from(), filter(), filter_id()),
         |(f, fi, fid)| async move { get_footballs_page(f, fi, fid).await },
     );
