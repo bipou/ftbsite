@@ -1,14 +1,16 @@
 use crate::i18n::t;
 use crate::shared::constant::TEXT_SUBTLE;
+use crate::shared::locale::{LocaleA, is_valid_locale};
 use crate::site_title;
 use leptos::prelude::*;
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
     components::{Route, Router, Routes},
+    hooks::use_location,
     path,
 };
 
-use crate::i18n::{I18nContextProvider, use_i18n};
+use crate::i18n::{I18nContextProvider, Locale, use_i18n};
 use crate::models::AuthUser;
 use crate::pages::{
     admin::{AdminFootballDetailPage, AdminFootballsPage, AdminPage},
@@ -18,11 +20,12 @@ use crate::pages::{
     home::HomePage,
     users::{UserProfilePage, UsersPage},
 };
+use leptos_i18n::Locale as _;
 
 pub fn shell(options: leptos::config::LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
-        <html lang="en">
+        <html>
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -93,24 +96,43 @@ pub fn App() -> impl IntoView {
         <I18nContextProvider>
             <Suspense fallback=|| view! { <LoadingFallback/> }>
                 <Router>
+                    <SetLocaleFromUrl/>
                     <Routes fallback=|| view! { <NotFound/> }>
-                        <Route path=path!("/")                    view=HomePage/>
-                        <Route path=path!("/register")            view=RegisterPage/>
-                        <Route path=path!("/sign-in")             view=SignInPage/>
-                        <Route path=path!("/sign-out")            view=SignOutPage/>
-                        <Route path=path!("/footballs")           view=FootballsPage/>
-                        <Route path=path!("/footballs/:id")       view=FootballDetailPage/>
-                        <Route path=path!("/users")               view=UsersPage/>
-                        <Route path=path!("/users/:username")     view=UserProfilePage/>
-                        <Route path=path!("/users/:id/activate")  view=UserActivatePage/>
-                        <Route path=path!("/admin")               view=AdminPage/>
-                        <Route path=path!("/admin/footballs")     view=AdminFootballsPage/>
-                        <Route path=path!("/admin/football/:id")  view=AdminFootballDetailPage/>
+                        <Route path=path!("/:locale/")                    view=HomePage/>
+                        <Route path=path!("/:locale/register")            view=RegisterPage/>
+                        <Route path=path!("/:locale/sign-in")             view=SignInPage/>
+                        <Route path=path!("/:locale/sign-out")            view=SignOutPage/>
+                        <Route path=path!("/:locale/footballs")           view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/:id")       view=FootballDetailPage/>
+                        <Route path=path!("/:locale/users")               view=UsersPage/>
+                        <Route path=path!("/:locale/users/:username")     view=UserProfilePage/>
+                        <Route path=path!("/:locale/users/:id/activate")  view=UserActivatePage/>
+                        <Route path=path!("/:locale/admin")               view=AdminPage/>
+                        <Route path=path!("/:locale/admin/footballs")     view=AdminFootballsPage/>
+                        <Route path=path!("/:locale/admin/football/:id")  view=AdminFootballDetailPage/>
+                        <Route path=path!("/") view=HomePage/>
                     </Routes>
                 </Router>
             </Suspense>
         </I18nContextProvider>
     }
+}
+
+/// 监听 URL 首个路径段，自动设置/切换语言
+#[component]
+fn SetLocaleFromUrl() -> impl IntoView {
+    let i18n = use_i18n();
+    let location = use_location();
+
+    Effect::new(move |_| {
+        let path = location.pathname.get();
+        let first = path.trim_start_matches('/').split('/').next().unwrap_or("");
+        if is_valid_locale(first) {
+            if let Some(loc) = Locale::get_all().iter().find(|l| l.to_string() == first) {
+                i18n.set_locale(*loc);
+            }
+        }
+    });
 }
 
 #[component]
@@ -122,7 +144,7 @@ fn NotFound() -> impl IntoView {
             <div class="text-center space-y-4 p-8">
                 <h1 class="text-7xl font-bold text-blue-600">"404"</h1>
                 <p class={format!("text-xl {}", TEXT_SUBTLE)}>{move || t!(i18n, error_404)}</p>
-                <a href="/" class="btn-primary inline-block mt-4">{move || t!(i18n, go_home)}</a>
+                <LocaleA href="/" class="btn-primary inline-block mt-4">{move || t!(i18n, go_home)}</LocaleA>
             </div>
         </div>
     }

@@ -120,7 +120,6 @@ pub async fn sign_in(
         HeaderValue::from_str(&cookie).map_err(|e| ServerFnError::new(e.to_string()))?,
     );
 
-    leptos_axum::redirect("/footballs");
     Ok(())
 }
 
@@ -138,7 +137,6 @@ pub async fn sign_out() -> Result<(), ServerFnError> {
         HeaderValue::from_str(&cookie).map_err(|e| ServerFnError::new(e.to_string()))?,
     );
 
-    leptos_axum::redirect("/");
     Ok(())
 }
 
@@ -175,7 +173,7 @@ pub async fn register(
         return Err(ServerFnError::new("register_password_weak"));
     }
 
-    // 将 markdown 中 /uploads/tmp/images/ 图片 rename 到 /uploads/active/images/
+    // 将 markdown 中 /uploads/tmp/imgs/ 图片 rename 到 /uploads/active/imgs/
     let introduction = move_uploads(&introduction)?;
 
     let data = user_db::RegisterData {
@@ -504,6 +502,7 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
 #[component]
 pub fn SignInPage() -> impl IntoView {
     let i18n = use_i18n();
+    let loc = i18n.get_locale().to_string();
     let action = ServerAction::<SignIn>::new();
     let navigate = leptos_router::hooks::use_navigate();
     let auth_res = use_context::<crate::app::AuthResource>();
@@ -513,7 +512,7 @@ pub fn SignInPage() -> impl IntoView {
             if let Some(ref res) = auth_res {
                 res.refetch();
             }
-            navigate("/footballs", Default::default());
+            navigate(&format!("/{}/footballs", loc), Default::default());
         }
     });
 
@@ -558,9 +557,12 @@ pub fn SignInPage() -> impl IntoView {
 
 #[component]
 pub fn SignOutPage() -> impl IntoView {
+    let i18n = use_i18n();
     let action = ServerAction::<SignOut>::new();
     let navigate = leptos_router::hooks::use_navigate();
     let auth_res = use_context::<crate::app::AuthResource>();
+
+    let loc = i18n.get_locale().to_string();
 
     Effect::new(move |_| {
         action.dispatch(SignOut {});
@@ -570,7 +572,7 @@ pub fn SignOutPage() -> impl IntoView {
             if let Some(ref res) = auth_res {
                 res.refetch();
             }
-            navigate("/", Default::default());
+            navigate(&format!("/{}/", loc), Default::default());
         }
     });
 
@@ -644,9 +646,6 @@ pub fn RegisterPage() -> impl IntoView {
                         <div>
                             <label class="form-label">
                                 {move || t!(i18n, register_intro)}
-                                <span class="text-xs text-gray-400 ml-1">
-                                    {move || if i18n.get_locale().to_string() == "zh" { "（支持markdown语法）" } else { "(supports Markdown syntax)" }}
-                                </span>
                             </label>
                             <MarkdownEditor name="introduction" rows=4 value="## About Me\n我关注足球数据与计算。".to_string() />
                         </div>
@@ -665,19 +664,16 @@ pub fn RegisterPage() -> impl IntoView {
                         <div class="modal-card">
                             <div class="modal-icon">"✓"</div>
                             <p class="modal-text">
-                                <span class="modal-username">{move || reg_username.get()}</span>
                                 {move || {
                                     let name = reg_username.get();
-                                    let full = td_string!(i18n.get_locale(), register_success, username = &name);
-                                    let comma = full.find('，').or_else(|| full.find(',')).unwrap_or(full.len());
-                                    full[comma..].to_string()
+                                    td_string!(i18n.get_locale(), register_success, username = &name)
                                 }}
                             </p>
                             <div class="modal-actions">
-                                <a href="/sign-in" class="btn-primary modal-btn">
+                                <a href=move || format!("/{}/sign-in", i18n.get_locale().to_string()) class="btn-primary modal-btn">
                                     {move || t!(i18n, register_go_sign_in)}
                                 </a>
-                                <a href="/" class="modal-btn-primary">
+                                <a href=move || format!("/{}/", i18n.get_locale().to_string()) class="modal-btn-primary">
                                     {move || t!(i18n, go_home)}
                                 </a>
                             </div>

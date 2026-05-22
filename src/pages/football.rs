@@ -1,4 +1,4 @@
-use crate::i18n::{Locale, t, use_i18n};
+use crate::i18n::{t, use_i18n};
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, SECTION_H2,
     TEXT_XS_MUTED,
@@ -27,16 +27,11 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 fn MatchHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let title_text = format!("{} vs {} – {}", f.home_team, f.away_team, site_title!(i18n));
+    let loc = i18n.get_locale().to_string();
     let cat = Memo::new(move |_| {
         f.category
             .as_ref()
-            .map(|c| {
-                if i18n.get_locale() == Locale::zh {
-                    c.name_zh.clone()
-                } else {
-                    c.name_en.clone()
-                }
-            })
+            .and_then(|c| c.name.get(&loc).cloned())
             .unwrap_or_default()
     });
     view! {

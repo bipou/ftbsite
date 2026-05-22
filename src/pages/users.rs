@@ -13,6 +13,7 @@ use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
 use crate::models::{User, UsersResult};
 use crate::shared::common::Either3;
+use crate::shared::locale::use_locale_str;
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
@@ -39,6 +40,7 @@ pub async fn get_user_profile(username: String) -> Result<Option<User>, ServerFn
 #[component]
 pub fn UsersPage() -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale_str();
     let query = use_query_map();
     let from = move || {
         query
@@ -67,7 +69,7 @@ pub fn UsersPage() -> impl IntoView {
                         Either::Right(view! {
                             <div class={format!("{} mb-8", GRID_3)}>
                                 {d.items.into_iter().map(|u| {
-                                    let url = format!("/users/{}", u.username);
+                                    let url = format!("/{}/users/{}", loc_str.get(), u.username);
                                     let uname = u.username.to_string();
                                     let initial = u.username.chars().next().unwrap_or('?');
                                     let updated = u.updated_at.clone();
@@ -85,7 +87,7 @@ pub fn UsersPage() -> impl IntoView {
                                                             <div class="flex flex-wrap gap-1 mt-1">
                                                                 {u.keywords.iter().take(8).map(|t| {
                                                                     let kid = crate::shared::common::record_key(&t.id).to_string();
-                                                                    let url = format!("/footballs?topic={}", kid);
+                                                                    let url = format!("/{}/footballs?topic={}", loc_str.get(), kid);
                                                                     view! {
                                                                         <a href=url class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{t.name.clone()}</a>
                                                                     }
@@ -101,7 +103,7 @@ pub fn UsersPage() -> impl IntoView {
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>
-                            <Pagination page_info=pi base_url="/users".to_string()/>
+                            <Pagination page_info=pi base_url=format!("/{}/users", loc_str.get())/>
                         })
                     }
                 })}

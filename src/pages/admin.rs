@@ -14,6 +14,7 @@ use crate::shared::constant::{
     ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, H1, HOVER_SHADOW, HOVER_UNDERLINE, MAIN,
     NO_UNDERLINE,
 };
+use crate::shared::locale::use_locale_str;
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ pub fn AdminPage() -> impl IntoView {
 #[component]
 pub fn AdminFootballsPage() -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale_str();
     let auth = use_auth();
     let query = use_query_map();
     let from = move || {
@@ -136,7 +138,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                             view! {
                                                 <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                     <div class="flex-1 min-w-0">
-                                                        <a href=format!("/footballs/{}", crate::shared::common::record_key(&f.id))
+                                                        <a href=format!("/{}/footballs/{}", loc_str.get(), crate::shared::common::record_key(&f.id))
                                                            class=format!("font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 {} text-sm", NO_UNDERLINE)>
                                                                {f.home_team.clone()} " vs " {f.away_team.clone()}
                                                         </a>
@@ -177,7 +179,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                             }
                                         }).collect::<Vec<_>>()}
                                     </div>
-                                    <Pagination page_info=pi base_url="/admin/footballs".to_string()/>
+                                    <Pagination page_info=pi base_url=format!("/{}/admin/footballs", loc_str.get())/>
                                 }))
                             }
                         })}

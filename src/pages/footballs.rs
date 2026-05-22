@@ -1,4 +1,5 @@
-use crate::i18n::{Locale, t, use_i18n};
+use crate::i18n::{t, use_i18n};
+use crate::shared::locale::use_locale_str;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -69,6 +70,7 @@ pub async fn get_footballs_page(
 #[component]
 pub fn FootballsPage() -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale_str();
     let query = use_query_map();
 
     // Reactive query params
@@ -128,15 +130,15 @@ pub fn FootballsPage() -> impl IntoView {
                     <span class="text-sm text-gray-400 dark:text-gray-500 shrink-0 mr-1">
                         {move || t!(i18n, footballs_filter_category)}
                     </span>
-                    <a href="/footballs"
+                    <a href=move || format!("/{}/footballs", loc_str.get())
                        class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                         {move || t!(i18n, all)}
                     </a>
-                    <a href="/footballs?picks"
+                    <a href=move || format!("/{}/footballs?picks", loc_str.get())
                         class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
                         {move || t!(i18n, status_picks)}
                     </a>
-                    <a href="/footballs?hot"
+                    <a href=move || format!("/{}/footballs?hot", loc_str.get())
                         class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
                         {move || t!(i18n, status_hot)}
                     </a>
@@ -145,8 +147,8 @@ pub fn FootballsPage() -> impl IntoView {
                             view! {
                                 {cats.into_iter().map(|cat| {
                                     let kid = crate::shared::common::record_key(&cat.id).to_string();
-                                    let url = format!("/footballs?category={}", kid);
-                                    let cat_name = if i18n.get_locale() == Locale::zh { cat.name_zh.clone() } else { cat.name_en.clone() };
+                                    let url = format!("/{}/footballs?category={}", loc_str.get(), kid);
+                                    let cat_name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
                                     view! {
                                         <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
                                             {cat_name}
@@ -173,9 +175,9 @@ pub fn FootballsPage() -> impl IntoView {
                         Ok(data) => {
                             let pi = data.page_info.clone();
                             let base = match filter().as_str() {
-                                "topic" | "category" => format!("/footballs?{}={}", filter(), filter_id()),
-                                "picks" | "hot" => format!("/footballs?{}", filter()),
-                                _ => "/footballs".to_string(),
+                                "topic" | "category" => format!("/{}/footballs?{}={}", loc_str.get(), filter(), filter_id()),
+                                "picks" | "hot" => format!("/{}/footballs?{}", loc_str.get(), filter()),
+                                _ => format!("/{}/footballs", loc_str.get()),
                             };
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {

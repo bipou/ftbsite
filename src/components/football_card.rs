@@ -1,10 +1,11 @@
-use crate::i18n::{Locale, t, use_i18n};
+use crate::i18n::{t, use_i18n};
 use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
     HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
+use crate::shared::locale::{LocaleA, use_locale_str};
 use leptos::either::Either;
 use leptos::prelude::*;
 
@@ -34,13 +35,15 @@ fn CatBadge(
     #[prop(into)] name: Signal<String>,
     #[prop(into)] kid: Option<String>,
 ) -> impl IntoView {
+    let loc_str = use_locale_str();
     move || {
         let n = name.get();
         if n.is_empty() {
             Either3::Left(())
         } else if let Some(kid) = &kid {
+            let href = format!("/{}/footballs?category={}", loc_str.get(), kid);
             Either3::Right(Either::Left(view! {
-                <a href=format!("/footballs?category={}", kid) class=BADGE_GRAY_NO_UL>{n}</a>
+                <a href=href class=BADGE_GRAY_NO_UL>{n}</a>
             }))
         } else {
             Either3::Right(Either::Right(view! { <span class=BADGE_GRAY>{n}</span> }))
@@ -151,37 +154,36 @@ pub fn FootballCard(football: Football) -> impl IntoView {
         .as_ref()
         .map(|c| crate::shared::common::record_key(&c.id).to_string());
     let cat_name = Memo::new(move |_| {
+        let loc = i18n.get_locale().to_string();
         football
             .category
             .as_ref()
-            .map(|c| {
-                if i18n.get_locale() == Locale::zh {
-                    c.name_zh.clone()
-                } else {
-                    c.name_en.clone()
-                }
-            })
+            .and_then(|c| c.name.get(&loc).cloned())
             .unwrap_or_default()
     });
-    let url = format!(
+    let detail_path = format!(
         "/footballs/{}",
         crate::shared::common::record_key(&football.id)
     );
-    let topics = football.topics;
+    let topics = football.topics.clone();
+    let home_team = football.home_team.clone();
+    let away_team = football.away_team.clone();
+    let season = football.season.clone();
+    let kick_off = football.kick_off_at_mdhm8.clone();
 
     view! {
         <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
-                <a href=url target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
-                    {football.home_team} " vs " {football.away_team}
-                </a>
+                <LocaleA href=detail_path class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
+                    {home_team} " vs " {away_team}
+                </LocaleA>
                 <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(football.status)}</span>
             </div>
 
             <div class=format!("text-sm {} mb-3 space-x-2", TEXT_SUBTLE)>
-                <span>{football.season}</span>
+                <span>{season}</span>
                 <CatBadge name=cat_name kid=cat_kid/>
-                <span class="text-blue-500">{football.kick_off_at_mdhm8}</span>
+                <span class="text-blue-500">{kick_off}</span>
             </div>
 
             <OddsSection odds=football.il_odds/>
@@ -190,10 +192,12 @@ pub fn FootballCard(football: Football) -> impl IntoView {
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
                 <div class="flex flex-wrap gap-1">
-                    {topics.iter().map(|t| {
+                    {topics.into_iter().map(|t| {
                         let kid = crate::shared::common::record_key(&t.id).to_string();
+                        let href = format!("/footballs?topic={}", kid);
+                        let name = t.name.clone();
                         view! {
-                            <a href=format!("/footballs?topic={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
+                            <LocaleA href=href class=BADGE_BLUE_NO_UL>{name}</LocaleA>
                         }
                     }).collect::<Vec<_>>()}
                 </div>

@@ -1,5 +1,6 @@
 use crate::shared::common::rid_str;
 use serde::Deserialize;
+use std::collections::HashMap;
 use surrealdb::types::{RecordId, SurrealValue};
 
 use crate::models::Category;
@@ -8,21 +9,14 @@ use crate::server::db::get_db;
 #[derive(Debug, Deserialize, SurrealValue)]
 struct CategoryDoc {
     id: RecordId,
-    name: NameDoc,
+    name: HashMap<String, String>,
     level: u8,
-}
-
-#[derive(Debug, Deserialize, SurrealValue)]
-struct NameDoc {
-    zh: String,
-    en: String,
 }
 
 fn into_category(d: CategoryDoc) -> Category {
     Category {
         id: rid_str(&d.id),
-        name_zh: d.name.zh,
-        name_en: d.name.en,
+        name: d.name,
         level: d.level,
     }
 }

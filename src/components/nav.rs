@@ -1,10 +1,9 @@
+use crate::app::use_auth;
 use crate::i18n::t;
+use crate::i18n::{Locale, td_string, use_i18n};
+use crate::shared::locale::{LocaleA, locale_href, use_locale_str};
 use leptos::either::Either;
 use leptos::prelude::*;
-use leptos_router::components::A;
-
-use crate::app::use_auth;
-use crate::i18n::{Locale, td_string, use_i18n};
 
 #[cfg(feature = "hydrate")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -30,17 +29,16 @@ extern "C" {
 
 use crate::shared::constant::{BG_CARD, FLEX_BETWEEN, HOVER_NO_UNDERLINE, NO_UNDERLINE};
 use leptos_i18n::Locale as LocaleTrait;
-
-// ── Sub-components ────────────────────────────────────────────────────────
+use leptos_router::hooks::use_navigate;
 
 #[component]
 fn Logo() -> impl IntoView {
     let i18n = use_i18n();
     view! {
         <span class="inline-flex items-center">
-            <A href="/" attr:class=format!("font-bold text-blue-600 dark:text-blue-400 text-2xl site-title {} {}", NO_UNDERLINE, HOVER_NO_UNDERLINE)>
+            <LocaleA href="/" class=format!("font-bold text-blue-600 dark:text-blue-400 text-2xl site-title {} {}", NO_UNDERLINE, HOVER_NO_UNDERLINE)>
                 {move || t!(i18n, site_name)}
-            </A>
+            </LocaleA>
             <a href="/doc" class="inline-flex items-center justify-center text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 h-6 px-2 ml-2 no-underline" target="_blank" rel="noopener noreferrer">
                 {move || t!(i18n, site_slogan)}
             </a>
@@ -52,12 +50,12 @@ fn Logo() -> impl IntoView {
 fn NavLinks() -> impl IntoView {
     let i18n = use_i18n();
     view! {
-        <A href="/footballs">
+        <LocaleA href="/footballs">
             {move || t!(i18n, nav_football)}
-        </A>
-        <A href="/users">
+        </LocaleA>
+        <LocaleA href="/users">
             {move || t!(i18n, nav_user)}
-        </A>
+        </LocaleA>
     }
 }
 
@@ -76,11 +74,13 @@ fn Random() -> impl IntoView {
     let i18n = use_i18n();
     let random_action =
         Action::new(|_: &()| async move { crate::pages::footballs::get_random_id().await });
-    let navigate = leptos_router::hooks::use_navigate();
+    let navigate = use_navigate();
+    let loc_str = use_locale_str();
     Effect::new(move |_| {
         if let Some(Ok(Some(id))) = random_action.value().get() {
             let kid = crate::shared::common::record_key(&id).to_string();
-            navigate(&format!("/footballs/{}", kid), Default::default());
+            let url = locale_href(&loc_str.get(), &format!("/footballs/{}", kid));
+            navigate(&url, Default::default());
         }
     });
     view! {
@@ -101,6 +101,8 @@ fn Random() -> impl IntoView {
 fn LangDropdown() -> impl IntoView {
     let i18n = use_i18n();
     let (open, set_open) = signal(false);
+    let navigate = use_navigate();
+    let loc_str = use_locale_str();
     view! {
         <div class="relative inline-block">
             <button
@@ -119,9 +121,21 @@ fn LangDropdown() -> impl IntoView {
                     if open.get() { "" } else { "hidden" })
             >
                 {Locale::get_all().iter().map(|&locale| {
+                    let new_loc = locale.to_string();
                     view! {
                         <button
-                            on:click=move |_| { i18n.set_locale(locale); set_open.set(false); }
+                            on:click={
+                                let navigate = navigate.clone();
+                                let new_loc = new_loc.clone();
+                                let old = loc_str.get();
+                                let path = leptos_router::hooks::use_location().pathname.get();
+                                let rest = path.strip_prefix(&format!("/{}", old)).unwrap_or(&path).to_string();
+                                move |_| {
+                                    i18n.set_locale(locale);
+                                    navigate(&format!("/{}{}", new_loc, rest), Default::default());
+                                    set_open.set(false);
+                                }
+                            }
                             class=move || if i18n.get_locale() == locale { "lang-active" } else { "" }
                         >
                             {td_string!(locale, lang)}
@@ -162,30 +176,28 @@ fn AuthSection() -> impl IntoView {
                 <span class="text-gray-700 dark:text-gray-200 font-medium hidden sm:inline text-base">
                     {user.username}
                 </span>
-                <A href="/sign-out" attr:class=format!("text-sm text-gray-500 hover:text-red-500 {}", NO_UNDERLINE)>
+                <LocaleA href="/sign-out" class=format!("text-sm text-gray-500 hover:text-red-500 {}", NO_UNDERLINE)>
                     {move || t!(i18n, sign_out)}
-                </A>
+                </LocaleA>
             })
         } else {
             Either::Right(view! {
-                <A href="/sign-in" attr:class="nav-links text-sm">
+                <LocaleA href="/sign-in" class="nav-links text-sm">
                     {move || t!(i18n, sign_in)}
-                </A>
-                <A href="/register" attr:class="nav-links text-sm">
+                </LocaleA>
+                <LocaleA href="/register" class="nav-links text-sm">
                     {move || t!(i18n, register)}
-                </A>
+                </LocaleA>
             })
         }
     }
 }
 
-// ── Hamburger menu (small screens) ────────────────────────────────────────
-
 #[component]
 fn HamburgerMenu() -> impl IntoView {
     let (open, set_open) = signal(false);
     let i18n = use_i18n();
-    let close = move |_| set_open.set(false);
+    let close = Callback::new(move |_: leptos::ev::MouseEvent| set_open.set(false));
 
     view! {
         <div class="sm:hidden">
@@ -214,12 +226,13 @@ fn HamburgerMenu() -> impl IntoView {
                 style="right:1rem"
             >
                 <div class="px-4 py-3 flex flex-col gap-2">
-                    <div class="nav-links flex flex-col gap-2"><A href="/footballs" on:click=close>
-                        {move || t!(i18n, nav_football)}
-                    </A>
-                    <A href="/users" on:click=close>
-                        {move || t!(i18n, nav_user)}
-                    </A>
+                    <div class="nav-links flex flex-col gap-2">
+                        <LocaleA href="/footballs" on_click=close>
+                            {move || t!(i18n, nav_football)}
+                        </LocaleA>
+                        <LocaleA href="/users" on_click=close>
+                            {move || t!(i18n, nav_user)}
+                        </LocaleA>
                     </div>
                     <Random/>
                 </div>
@@ -232,18 +245,18 @@ fn HamburgerMenu() -> impl IntoView {
                                 <span class="text-gray-700 dark:text-gray-200 font-medium text-base">
                                     {user.username}
                                 </span>
-                                <A href="/sign-out" on:click=close attr:class="hm-signout text-sm hover:text-red-500">
+                                <LocaleA href="/sign-out" on_click=close class="hm-signout text-sm hover:text-red-500">
                                     {move || t!(i18n, sign_out)}
-                                </A>
+                                </LocaleA>
                             })
                         } else {
                             Either::Right(view! { <div class="nav-links text-sm flex flex-col gap-2">
-                                <A href="/sign-in" on:click=close>
+                                <LocaleA href="/sign-in" on_click=close>
                                     {move || t!(i18n, sign_in)}
-                                </A>
-                                <A href="/register" on:click=close>
+                                </LocaleA>
+                                <LocaleA href="/register" on_click=close>
                                     {move || t!(i18n, register)}
-                                </A>
+                                </LocaleA>
                             </div> })
                         }
                     }}
@@ -252,8 +265,6 @@ fn HamburgerMenu() -> impl IntoView {
         </div>
     }
 }
-
-// ── Right side of the nav bar ─────────────────────────────────────────────
 
 #[component]
 fn NavRight() -> impl IntoView {
@@ -269,8 +280,6 @@ fn NavRight() -> impl IntoView {
         </div>
     }
 }
-
-// ── Main Nav ──────────────────────────────────────────────────────────────
 
 #[component]
 pub fn Nav() -> impl IntoView {

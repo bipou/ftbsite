@@ -26,7 +26,7 @@ pub fn verify_nonce(nonce: &str) -> Result<(), ServerFnError> {
 
 // ── 图片上传 ─────────────────────────────────────────────────────────────
 
-/// 解析 data URL 并写入 tmp/images/，返回访问路径
+/// 解析 data URL 并写入 tmp/imgs/，返回访问路径
 pub fn save_upload(data_url: &str) -> Result<String, ServerFnError> {
     use base64::Engine;
     use base64::engine::general_purpose::STANDARD;
@@ -67,17 +67,17 @@ pub fn save_upload(data_url: &str) -> Result<String, ServerFnError> {
     f.write_all(&bytes)
         .map_err(|_| ServerFnError::new("upload_failed"))?;
 
-    Ok(format!("/uploads/tmp/images/{fname}"))
+    Ok(format!("/uploads/tmp/imgs/{fname}"))
 }
 
-/// 将 markdown 中 /uploads/tmp/images/xxx 文件 rename 到 active 目录，并替换 URL 路径
+/// 将 markdown 中 /uploads/tmp/imgs/xxx 文件 rename 到 active 目录，并替换 URL 路径
 pub fn move_uploads(md: &str) -> Result<String, ServerFnError> {
     let dest_dir = uploads_active_dir();
     std::fs::create_dir_all(&dest_dir).map_err(|_| ServerFnError::new("upload_failed"))?;
 
     let tmp_dir = uploads_tmp_dir();
-    let from = "/uploads/tmp/images/";
-    let to = "/uploads/active/images/";
+    let from = "/uploads/tmp/imgs/";
+    let to = "/uploads/active/imgs/";
 
     let mut result = md.to_string();
     let mut search_from = 0;
@@ -109,9 +109,9 @@ fn uploads_tmp_dir() -> std::path::PathBuf {
             std::path::PathBuf::from(root)
                 .join("uploads")
                 .join("tmp")
-                .join("images")
+                .join("imgs")
         })
-        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/tmp/images"))
+        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/tmp/imgs"))
 }
 
 fn uploads_active_dir() -> std::path::PathBuf {
@@ -120,7 +120,7 @@ fn uploads_active_dir() -> std::path::PathBuf {
             std::path::PathBuf::from(root)
                 .join("uploads")
                 .join("active")
-                .join("images")
+                .join("imgs")
         })
-        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/active/images"))
+        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/active/imgs"))
 }
