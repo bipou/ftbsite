@@ -14,7 +14,7 @@ use crate::shared::constant::{
     ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, H1, HOVER_SHADOW, HOVER_UNDERLINE, MAIN,
     NO_UNDERLINE,
 };
-use crate::shared::locale::use_locale;
+use crate::shared::locale::{LocaleA, use_locale};
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ pub fn AdminPage() -> impl IntoView {
                 Either::Left(view! {
                     <div class=EMPTY>
                         <p class="text-gray-500 mb-4">"Please sign in to access the admin area."</p>
-                        <a href="/sign-in" class="btn-primary">"Sign In"</a>
+                        <LocaleA href="/sign-in" class="btn-primary">"Sign In"</LocaleA>
                     </div>
                 })
             } else {
@@ -60,14 +60,14 @@ pub fn AdminPage() -> impl IntoView {
                         {move || t!(i18n, admin_dashboard)}
                     </h1>
                     <div class=GRID_2>
-                        <a href="/admin/footballs" class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)>
+                        <LocaleA href="/admin/footballs" class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)>
                             <h2 class="text-lg font-semibold text-blue-600 mb-2">"⚽ " {move || t!(i18n, admin_footballs)}</h2>
                             <p class="text-sm text-gray-500">"Manage football match status and visibility."</p>
-                        </a>
-                        <a href="/users" class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)>
+                        </LocaleA>
+                        <LocaleA href="/users" class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)>
                             <h2 class="text-lg font-semibold text-blue-600 mb-2">"👥 Users"</h2>
                             <p class="text-sm text-gray-500">"View and manage registered users."</p>
-                        </a>
+                        </LocaleA>
                     </div>
                 })
             }}
@@ -105,7 +105,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
             {if auth.is_none() {
                 Either::Left(view! {
                     <div class=EMPTY>
-                        <a href="/sign-in" class="btn-primary">"Sign In Required"</a>
+                        <LocaleA href="/sign-in" class="btn-primary">"Sign In Required"</LocaleA>
                     </div>
                 })
             } else {
@@ -210,16 +210,16 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
             {if auth.is_none() {
                 Either::Left(view! {
                     <div class=EMPTY>
-                        <a href="/sign-in" class="btn-primary">"Sign In Required"</a>
+                        <LocaleA href="/sign-in" class="btn-primary">"Sign In Required"</LocaleA>
                     </div>
                 })
             } else {
                 let detail_url = move || format!("/footballs/{}", id());
                 Either::Right(view! {
                     <div class="flex items-center gap-4 mb-6">
-                        <a href="/admin/footballs" class="text-sm text-gray-500 hover:text-blue-600">
+                        <LocaleA href="/admin/footballs" class="text-sm text-gray-500 hover:text-blue-600">
                             "← Back to admin list"
-                        </a>
+                        </LocaleA>
                         <a href=detail_url class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
                             "Public view →"
                         </a>

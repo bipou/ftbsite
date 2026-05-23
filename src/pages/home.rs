@@ -10,6 +10,7 @@ use crate::i18n::use_i18n;
 use crate::models::Football;
 
 use crate::shared::constant::{GRID_3, HOVER_UNDERLINE, TEXT_SUBTLE, WIDE};
+use crate::shared::locale::LocaleA;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HomeData {
@@ -52,9 +53,9 @@ fn TodaySection(footballs: Vec<Football>) -> impl IntoView {
                 })
             }}
             <div class="mt-4 text-right">
-                <a href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
+                <LocaleA href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
                     {move || t!(i18n, more)}
-                </a>
+                </LocaleA>
             </div>
         </section>
     }
@@ -83,9 +84,9 @@ fn YesterdaySection(footballs: Vec<Football>) -> impl IntoView {
                 })
             }}
             <div class="mt-4 text-right">
-                <a href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
+                <LocaleA href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
                     {move || t!(i18n, more)}
-                </a>
+                </LocaleA>
             </div>
         </section>
     }

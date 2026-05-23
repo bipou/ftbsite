@@ -9,6 +9,7 @@ use leptos_router::hooks::use_params_map;
 use crate::components::{Footer, MarkdownEditor, Nav};
 use crate::shared::common::{Either3, Either6};
 use crate::shared::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
+use crate::shared::locale::LocaleA;
 
 // ── Topic input component ────────────────────────────────────────────────
 
@@ -545,7 +546,7 @@ pub fn SignInPage() -> impl IntoView {
 
                 <p class="mt-4 text-sm text-center text-gray-500">
                     {move || t!(i18n, sign_in_new_user)} " "
-                    <a href="/register" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, sign_in_create_account)}</a>
+                    <LocaleA href="/register" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, sign_in_create_account)}</LocaleA>
                 </p>
             </div>
         </main>
@@ -655,7 +656,7 @@ pub fn RegisterPage() -> impl IntoView {
 
                 <p class="mt-4 text-sm text-center text-gray-500">
                     {move || t!(i18n, register_have_account)} " "
-                    <a href="/sign-in" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, register_go_sign_in)}</a>
+                    <LocaleA href="/sign-in" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, register_go_sign_in)}</LocaleA>
                 </p>
 
                 // 成功弹框
@@ -723,7 +724,7 @@ pub fn UserActivatePage() -> impl IntoView {
                                 {move || t!(i18n, user_activated)}
                             </h1>
                             <p class="text-gray-600 mb-4">{username}</p>
-                            <a href="/sign-in" class="btn-primary">"Sign In →"</a>
+                            <LocaleA href="/sign-in" class="btn-primary">"Sign In →"</LocaleA>
                         })),
                         Ok(None) => Either3::Right(Either::Right(view! {
                             <Show when=move || !resent.get() fallback=move || view! {

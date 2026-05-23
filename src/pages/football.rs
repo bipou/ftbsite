@@ -11,6 +11,7 @@ use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, Nav};
 use crate::models::Football;
+use crate::shared::locale::LocaleA;
 
 #[server]
 pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, ServerFnError> {
@@ -265,7 +266,7 @@ pub fn FootballDetailPage() -> impl IntoView {
                     Ok(None) => DetailResult::Right(Either::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500">"Football match not found."</p>
-                            <a href="/footballs" class="btn-primary mt-4 inline-block">"Back to list"</a>
+                            <LocaleA href="/footballs" class="btn-primary mt-4 inline-block">{move || t!(i18n, go_list)}</LocaleA>
                         </div>
                     })),
                     Ok(Some(f)) => DetailResult::Right(Either::Right(view! { <FootballDetail f=f/> })),
