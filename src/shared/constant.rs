@@ -8,7 +8,6 @@ pub const BADGE_GRAY_NO_UL: &str = "badge-gray no-underline";
 pub const BADGE_GREEN: &str = "badge-green";
 pub const BADGE_RED: &str = "badge-red";
 pub const ITALIC: &str = "italic";
-pub const ITALIC_XS: &str = "text-xs text-gray-400 italic";
 
 // ── Shared utility class combinations ────────────────────────────────────
 pub const TEXT_MUTED: &str = "text-gray-600 dark:text-gray-300";
@@ -24,6 +23,7 @@ pub const HOVER_SHADOW: &str = "hover:shadow-md transition-shadow";
 pub const EMPTY: &str = "text-center py-16";
 pub const CARD_SECTION: &str = "card p-6 mb-6";
 pub const H1: &str = "text-xl font-bold text-gray-800 dark:text-gray-100 mb-6";
+pub const NO_DATA: &str = "text-xl text-gray-800 dark:text-gray-100 mb-4";
 pub const SECTION_H2: &str = "text-base font-semibold text-gray-700 dark:text-gray-200 mb-4";
 pub const FLEX_WRAP_GAP: &str = "flex flex-wrap gap-2";
 pub const ALERT_SUCCESS: &str = "text-green-500 text-sm mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-2";
@@ -31,8 +31,6 @@ pub const ALERT_ERROR: &str = "text-red-500 text-sm mb-4 bg-red-50 dark:bg-red-9
 
 // ── Nav link patterns ─────────────────────────────────────────────────────
 pub const NAV_LINK: &str = "text-gray-600 dark:text-gray-300 hover:text-blue-600 no-underline";
-pub const NAV_LINK_SM: &str =
-    "text-sm text-gray-600 dark:text-gray-300 hover:text-blue-600 no-underline";
 
 // ── Config (SSR only) ──────────────────────────────────────────────────────
 #[cfg(feature = "ssr")]

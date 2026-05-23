@@ -9,7 +9,7 @@ use crate::components::{FootballCard, Footer, Nav};
 use crate::i18n::use_i18n;
 use crate::models::Football;
 
-use crate::shared::constant::{GRID_3, HOVER_UNDERLINE, TEXT_SUBTLE, WIDE};
+use crate::shared::constant::{EMPTY, GRID_3, HOVER_UNDERLINE, NO_DATA, TEXT_SUBTLE, WIDE};
 use crate::shared::locale::LocaleA;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,7 +41,9 @@ fn TodaySection(footballs: Vec<Football>) -> impl IntoView {
             </h2>
             {if footballs.is_empty() {
                 Either::Left(view! {
-                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_data)}</p>
+                    <div class=EMPTY>
+                        <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                    </div>
                 })
             } else {
                 Either::Right(view! {
@@ -72,7 +74,9 @@ fn YesterdaySection(footballs: Vec<Football>) -> impl IntoView {
             </h2>
             {if footballs.is_empty() {
                 Either::Left(view! {
-                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_data)}</p>
+                    <div class=EMPTY>
+                        <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                    </div>
                 })
             } else {
                 Either::Right(view! {

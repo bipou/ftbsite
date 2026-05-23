@@ -1,7 +1,7 @@
 use crate::i18n::{t, use_i18n};
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, SECTION_H2,
-    TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, NO_DATA,
+    SECTION_H2, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -265,8 +265,8 @@ pub fn FootballDetailPage() -> impl IntoView {
                     }),
                     Ok(None) => DetailResult::Right(Either::Left(view! {
                         <div class=EMPTY>
-                            <p class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">{move || t!(i18n, no_data)}</p>
-                            <LocaleA href="/footballs" class="btn-primary mt-4 inline-block">{move || t!(i18n, go_list)}</LocaleA>
+                            <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                            <LocaleA href="/footballs" class="btn-primary">{move || t!(i18n, go_list)}</LocaleA>
                         </div>
                     })),
                     Ok(Some(f)) => DetailResult::Right(Either::Right(view! { <FootballDetail f=f/> })),

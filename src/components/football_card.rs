@@ -3,7 +3,7 @@ use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
-    HOVER_SHADOW, ITALIC, ITALIC_XS, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
+    HOVER_SHADOW, ITALIC, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
 use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
@@ -128,7 +128,7 @@ fn OverSection(over: Option<crate::models::FootballOver>) -> impl IntoView {
     let i18n = use_i18n();
     match over {
         None => Either::Left(view! {
-            <p class=ITALIC_XS>{move || t!(i18n, not_full)}</p>
+            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
         }),
         Some(ov) => Either::Right(view! {
             <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">

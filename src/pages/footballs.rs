@@ -11,7 +11,7 @@ use crate::models::{Category, FootballsResult};
 
 use crate::page_title;
 use crate::shared::common::Either3;
-use crate::shared::constant::{EMPTY, GRID_3, WIDE};
+use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, WIDE};
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -181,9 +181,9 @@ pub fn FootballsPage() -> impl IntoView {
                             };
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {
-                                    <p class=format!("text-gray-400 {}", EMPTY)>
-                                        {move || t!(i18n, no_data)}
-                                    </p>
+                                    <div class=EMPTY>
+                                        <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                                    </div>
                                 }))
                             } else {
                                 Either3::Right(Either::Right(view! {

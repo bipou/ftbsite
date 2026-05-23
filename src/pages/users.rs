@@ -1,7 +1,7 @@
 use crate::i18n::t;
 use crate::page_title;
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY_NO_UL, EMPTY, FLEX_WRAP_GAP, GRID_3, H1, MAIN, WIDE,
+    BADGE_BLUE_NO_UL, BADGE_GRAY_NO_UL, EMPTY, FLEX_WRAP_GAP, GRID_3, H1, MAIN, NO_DATA, WIDE,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -207,7 +207,7 @@ pub fn UserProfilePage() -> impl IntoView {
                     }),
                     Ok(None) => Either3::Right(Either::Left(view! {
                         <div class={EMPTY}>
-                            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">{move || t!(i18n, no_data)}</h1>
+                            <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
                             <LocaleA href="/users" class="btn-primary">{move || t!(i18n, go_list)}</LocaleA>
                         </div>
                     })),
