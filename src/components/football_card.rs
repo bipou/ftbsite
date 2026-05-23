@@ -173,7 +173,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     view! {
         <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
-                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-base leading-tight truncate">
+                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight truncate">
                     {title}
                 </LocaleA>
                 <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(status)}</span>
@@ -196,7 +196,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                         let href = format!("/footballs?topic={}", kid);
                         let name = topic.name;
                         view! {
-                            <LocaleA href=href class=BADGE_BLUE_NO_UL>{name}</LocaleA>
+                            <LocaleA href=href class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{name}</LocaleA>
                         }
                     }).collect::<Vec<_>>()}
                 </div>
