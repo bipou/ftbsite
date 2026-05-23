@@ -15,6 +15,7 @@
 
   "loading": "加载中...",
   "error_404": "页面未找到",
+  "no_data": "无数据",
   "go_home": "回首页",
   "go_list": "回列表",
 
@@ -34,7 +35,6 @@
   "football_over": "赛事结果：",
   "not_calc": "尚未计算",
   "not_full": "尚未全场",
-  "no_match": "无球赛",
 
   "register": "注册",
   "sign_in": "签入",

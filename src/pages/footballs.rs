@@ -182,7 +182,7 @@ pub fn FootballsPage() -> impl IntoView {
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {
                                     <p class=format!("text-gray-400 {}", EMPTY)>
-                                        {move || t!(i18n, no_match)}
+                                        {move || t!(i18n, no_data)}
                                     </p>
                                 }))
                             } else {

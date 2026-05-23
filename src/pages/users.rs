@@ -13,7 +13,7 @@ use crate::components::{Footer, Nav, Pagination};
 use crate::i18n::use_i18n;
 use crate::models::{User, UserSummary, UsersResult};
 use crate::shared::common::Either3;
-use crate::shared::locale::use_locale;
+use crate::shared::locale::{LocaleA, use_locale};
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
@@ -207,8 +207,8 @@ pub fn UserProfilePage() -> impl IntoView {
                     }),
                     Ok(None) => Either3::Right(Either::Left(view! {
                         <div class={EMPTY}>
-                            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">User not found</h1>
-                            <a href="/users" class="btn-primary">Back to users</a>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">{move || t!(i18n, no_data)}</h1>
+                            <LocaleA href="/users" class="btn-primary">{move || t!(i18n, go_list)}</LocaleA>
                         </div>
                     })),
                     Ok(Some(user)) => {

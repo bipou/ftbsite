@@ -41,7 +41,7 @@ fn TodaySection(footballs: Vec<Football>) -> impl IntoView {
             </h2>
             {if footballs.is_empty() {
                 Either::Left(view! {
-                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_match)}</p>
+                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_data)}</p>
                 })
             } else {
                 Either::Right(view! {
@@ -72,7 +72,7 @@ fn YesterdaySection(footballs: Vec<Football>) -> impl IntoView {
             </h2>
             {if footballs.is_empty() {
                 Either::Left(view! {
-                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_match)}</p>
+                    <p class="text-gray-400 text-sm py-4 text-center">{move || t!(i18n, no_data)}</p>
                 })
             } else {
                 Either::Right(view! {

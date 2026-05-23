@@ -265,7 +265,7 @@ pub fn FootballDetailPage() -> impl IntoView {
                     }),
                     Ok(None) => DetailResult::Right(Either::Left(view! {
                         <div class=EMPTY>
-                            <p class="text-gray-500">"Football match not found."</p>
+                            <p class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">{move || t!(i18n, no_data)}</p>
                             <LocaleA href="/footballs" class="btn-primary mt-4 inline-block">{move || t!(i18n, go_list)}</LocaleA>
                         </div>
                     })),

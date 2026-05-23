@@ -15,6 +15,7 @@
 
   "loading": "Loading...",
   "error_404": "Page not found",
+  "no_data": "No Data",
   "go_home": "Go Home",
   "go_list": "Back to list",
 
@@ -34,7 +35,6 @@
   "football_over": "Football over:",
   "not_calc": "Not calculated",
   "not_full": "Not full time",
-  "no_match": "No matches",
 
   "register": "Register",
   "sign_in": "Sign in",
