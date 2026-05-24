@@ -17,7 +17,6 @@ use crate::shared::locale::{LocaleA, use_locale};
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
 const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
-const RISK_CLASS: &str = "text-xs text-gray-400 text-center mt-6";
 
 // ── Server functions ───────────────────────────────────────────────────────────
 
@@ -234,10 +233,6 @@ pub fn UserProfilePage() -> impl IntoView {
 
                             <IntroSection intro_html=intro_html/>
                             <KeywordsTopics keywords=keywords topics=topics/>
-
-                            <p class=RISK_CLASS>
-                                {move || t!(i18n, user_warn)}
-                            </p>
                         }))
                     }
                 })}

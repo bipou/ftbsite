@@ -1,7 +1,7 @@
 use crate::i18n::{t, use_i18n};
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, NO_DATA,
-    SECTION_H2, TEXT_XS_MUTED,
+    SECTION_H2, TEXT_WARN, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -228,12 +228,14 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let result_tg = f.result_tg;
     let result_gd = f.result_gd;
     view! {
+        <p class={format!("{} text-center mb-4", TEXT_WARN)}>
+            {move || t!(i18n, site_warn)}
+        </p>
         <MatchHeader f=header_f/>
         <OverDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
         <CalcsTable calcs=calcs/>
         <OddsTable odds=odds/>
         <DetailTopicsSection topics=topics/>
-        <p class="text-xs text-red-400 text-center mt-4">{move || t!(i18n, site_warn)}</p>
     }
 }
 

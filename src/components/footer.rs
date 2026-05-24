@@ -1,6 +1,6 @@
 use crate::i18n::t;
 use crate::i18n::use_i18n;
-use crate::shared::constant::{BG_CARD, TEXT_SUBTLE, WIDE};
+use crate::shared::constant::{BG_CARD, TEXT_SUBTLE, TEXT_WARN, WIDE};
 use leptos::prelude::*;
 
 #[component]
@@ -20,7 +20,7 @@ pub fn Footer() -> impl IntoView {
             //     (adsbygoogle = window.adsbygoogle || []).push({});
             // </script>
             <div class={format!("{} text-center text-sm {} space-y-2", WIDE, TEXT_SUBTLE)}>
-                <p class="text-xs text-red-500">
+                <p class=TEXT_WARN>
                     {move || t!(i18n, site_warn)}
                 </p>
                 <p>

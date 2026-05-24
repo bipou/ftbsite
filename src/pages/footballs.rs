@@ -1,4 +1,4 @@
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::locale::use_locale;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -9,9 +9,8 @@ use serde::{Deserialize, Serialize};
 use crate::components::{FootballCard, Footer, Nav, Pagination};
 use crate::models::{Category, FootballsResult};
 
-use crate::page_title;
-use crate::shared::common::Either3;
-use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, WIDE};
+use crate::shared::common::{Either3, record_key};
+use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_WARN, WIDE};
 
 // ── Server functions ──────────────────────────────────────────────────────────
 
@@ -110,20 +109,52 @@ pub fn FootballsPage() -> impl IntoView {
         |(f, fi, fid)| async move { get_footballs_page(f, fi, fid).await },
     );
 
-    let filter_label = move || match filter().as_str() {
-        "picks" => Either3::Left(t!(i18n, status_picks)),
-        "hot" => Either3::Right(Either::Left(t!(i18n, status_hot))),
-        _ => Either3::Right(Either::Right(t!(i18n, footballs_list))),
+    // h1 和页面标题的筛选后缀，统一定义
+    let heading_suffix = move || match filter().as_str() {
+        "picks" => format!(" | {}", t_display!(i18n, status_picks)),
+        "hot" => format!(" | {}", t_display!(i18n, status_hot)),
+        "topic" | "category" => {
+            let fid = filter_id();
+            if fid.is_empty() {
+                String::new()
+            } else {
+                cats_res
+                    .get()
+                    .and_then(|r| r.ok())
+                    .and_then(|cats| {
+                        cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
+                            let name = c.name.get(&loc_str.get()).cloned().unwrap_or_default();
+                            format!(" | {}", name)
+                        })
+                    })
+                    .unwrap_or_default()
+            }
+        }
+        _ => String::new(),
+    };
+
+    // 页面标题：footballs_list | 筛选名 – site_name | site_slogan
+    let title_text = move || {
+        format!(
+            "{}{} – {} | {}",
+            t_display!(i18n, footballs_list),
+            heading_suffix(),
+            t_display!(i18n, site_name),
+            t_display!(i18n, site_slogan),
+        )
     };
 
     view! {
-        <Title text=move || page_title!(i18n, footballs_list)/>
+        <Title text=title_text/>
         <Nav/>
         <main class=WIDE>
+            <p class={format!("{} text-center mb-2", TEXT_WARN)}>
+                {move || t!(i18n, site_warn)}
+            </p>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                {filter_label}
+                {move || t!(i18n, footballs_list)}
+                {heading_suffix}
             </h1>
-
             // ── Horizontal category filter bar ───────────────────────────
             <div class="mb-6">
                 <nav class="cat-bar flex flex-wrap items-center gap-x-2 gap-y-1">

@@ -13,6 +13,7 @@ pub const ITALIC: &str = "italic";
 pub const TEXT_MUTED: &str = "text-gray-600 dark:text-gray-300";
 pub const TEXT_SUBTLE: &str = "text-gray-500 dark:text-gray-400";
 pub const TEXT_XS_MUTED: &str = "text-xs text-gray-400";
+pub const TEXT_WARN: &str = "text-xs text-red-400 dark:text-red-500";
 pub const FLEX_BETWEEN: &str = "flex items-center justify-between";
 pub const BG_CARD: &str = "bg-white dark:bg-gray-800";
 pub const MAIN: &str = "max-w-4xl mx-auto px-4 py-8";

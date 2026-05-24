@@ -9,7 +9,9 @@ use crate::components::{FootballCard, Footer, Nav};
 use crate::i18n::use_i18n;
 use crate::models::Football;
 
-use crate::shared::constant::{EMPTY, GRID_3, HOVER_UNDERLINE, NO_DATA, TEXT_SUBTLE, WIDE};
+use crate::shared::constant::{
+    EMPTY, GRID_3, HOVER_UNDERLINE, NO_DATA, TEXT_SUBTLE, TEXT_WARN, WIDE,
+};
 use crate::shared::locale::LocaleA;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -111,7 +113,7 @@ pub fn HomePage() -> impl IntoView {
                         {move || t!(i18n, site_intro)}
                     </a>
                 </p>
-                <p class="text-xs text-red-400 dark:text-red-500 mt-3 max-w-2xl mx-auto">
+                <p class={format!("{} mt-3 max-w-2xl mx-auto", TEXT_WARN)}>
                     {move || t!(i18n, site_warn)}
                 </p>
             </div>
