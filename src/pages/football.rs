@@ -158,9 +158,9 @@ fn OverDetail(football_over: Option<crate::models::FootballOver>) -> impl IntoVi
                 Some(ov) => Either::Right(view! {
                     <div class="flex items-center gap-6 text-base">
                         <span class="font-semibold text-gray-800 dark:text-gray-100">{move || t!(i18n, football_over)}</span>
-                        <span>{move || t!(i18n, football_s)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.s}</span></span>
-                        <span>{move || t!(i18n, football_wdl)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.wdl}</span></span>
-                        <span>{move || t!(i18n, football_tg)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.tg}</span></span>
+                        <span>{move || t!(i18n, football_s)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.s}</span></span>
+                        <span>{move || t!(i18n, football_wdl)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.wdl}</span></span>
+                        <span>{move || t!(i18n, football_tg)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.tg}</span></span>
                     </div>
                 }),
             }}
