@@ -9,8 +9,6 @@
   "nav_football": "Football Calculation",
   "nav_user": "Football Fans",
   "rand": "Random glance",
-  "odds": "Odds",
-  "calc": "Calculation",
   "more": "More ...",
 
   "loading": "Loading...",
@@ -18,6 +16,11 @@
   "no_data": "No Data",
   "go_home": "Go Home",
   "go_list": "Back to list",
+
+  "calc": "Calculation:",
+  "odds": "Odds:",
+  "not_calc": "Not calculated",
+  "not_full": "Not full time",
 
   "footballs_today": "Today's Latest Calculations",
   "footballs_yesterday": "Yesterday's Calculations Review",
@@ -33,8 +36,6 @@
   "football_tg": "total goals",
   "football_gd": "goal diff",
   "football_over": "Football over:",
-  "not_calc": "Not calculated",
-  "not_full": "Not full time",
 
   "register": "Register",
   "sign_in": "Sign in",

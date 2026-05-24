@@ -35,14 +35,19 @@ struct FootballDoc {
     #[serde(default)]
     stars: i64,
     status: i8,
+    /// 正式赛果各字段，未完成则为 None
+    s: Option<String>,
+    wdl: Option<u8>,
+    tg: Option<u8>,
+    gd: Option<i8>,
 }
 
 #[derive(Debug, Deserialize, SurrealValue)]
 struct FootballLineDoc {
     id: RecordId,
-    win: String,
-    draw: String,
-    loss: String,
+    win: f32,
+    draw: f32,
+    loss: f32,
     created_at: Sdt,
 }
 
@@ -139,8 +144,11 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         il_odds: il_pair(lines.clone()),
         all_odds: lines,
         il_calc_over: il_pair(overs.clone()),
-        all_calc_over: overs.clone(),
-        football_over: overs.into_iter().last(),
+        all_calc_over: overs,
+        result_s: doc.s,
+        result_wdl: doc.wdl,
+        result_tg: doc.tg,
+        result_gd: doc.gd,
         category,
         topics,
     })

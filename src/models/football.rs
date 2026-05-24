@@ -7,12 +7,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FootballLine {
     pub id: String,
-    /// 主胜赔率
-    pub win: String,
-    /// 平局赔率
-    pub draw: String,
-    /// 客胜赔率
-    pub loss: String,
+    /// 主胜赔率（正小数，2位，恒正）
+    pub win: f32,
+    /// 平局赔率（恒正）
+    pub draw: f32,
+    /// 客胜赔率（恒正）
+    pub loss: f32,
     pub created_at: String,
 }
 
@@ -61,8 +61,14 @@ pub struct Football {
     pub il_calc_over: Vec<FootballOver>,
     /// 计算全量记录（详情页用）
     pub all_calc_over: Vec<FootballOver>,
-    /// 赛后正式结果，取最后一条
-    pub football_over: Option<FootballOver>,
+    /// 正式赛果——比分，如 "3:1"（footballs 表直存，未完成则为 None）
+    pub result_s: Option<String>,
+    /// 正式赛果——胜平负（3=胜 / 1=平 / 0=负）
+    pub result_wdl: Option<u8>,
+    /// 正式赛果——总进球（≥0）
+    pub result_tg: Option<u8>,
+    /// 正式赛果——净胜球（可负）
+    pub result_gd: Option<i8>,
     pub category: Option<Category>,
     pub topics: Vec<Topic>,
 }

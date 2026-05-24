@@ -9,8 +9,6 @@
   "nav_football": "足球计算",
   "nav_user": "足球迷",
   "rand": "随意一瞥",
-  "odds": "赔率",
-  "calc": "计算",
   "more": "更多 ...",
 
   "loading": "加载中...",
@@ -19,6 +17,11 @@
   "go_home": "回首页",
   "go_list": "回列表",
 
+  "calc": "计算：",
+  "odds": "赔率：",
+  "not_calc": "尚未计算",
+  "not_full": "尚未全场",
+  
   "footballs_today": "今日最新计算",
   "footballs_yesterday": "昨日计算复盘",
   "football_init_odds": "初始赔率：",
@@ -33,8 +36,6 @@
   "football_tg": "总进球",
   "football_gd": "净胜球",
   "football_over": "赛事结果：",
-  "not_calc": "尚未计算",
-  "not_full": "尚未全场",
 
   "register": "注册",
   "sign_in": "签入",

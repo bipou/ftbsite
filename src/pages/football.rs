@@ -90,9 +90,9 @@ fn OddsTable(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
                     <tbody>
                         {odds.into_iter().map(|o| view! {
                             <tr class="table-row">
-                                <td class="px-4 py-2">{o.win}</td>
-                                <td class="px-4 py-2">{o.draw}</td>
-                                <td class="px-4 py-2">{o.loss}</td>
+                                <td class="px-4 py-2">{format!("{:.2}", o.win)}</td>
+                                <td class="px-4 py-2">{format!("{:.2}", o.draw)}</td>
+                                <td class="px-4 py-2">{format!("{:.2}", o.loss)}</td>
                                 <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{o.created_at}</td>
                             </tr>
                         }).collect::<Vec<_>>()}
@@ -147,21 +147,45 @@ fn CalcsTable(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
 }
 
 #[component]
-fn OverDetail(football_over: Option<crate::models::FootballOver>) -> impl IntoView {
+fn OverDetail(
+    #[prop(into)] s: Option<String>,
+    #[prop(into)] wdl: Option<u8>,
+    #[prop(into)] tg: Option<u8>,
+    #[prop(into)] gd: Option<i8>,
+) -> impl IntoView {
     let i18n = use_i18n();
     view! {
         <div class=CARD_SECTION>
-            {match football_over {
-                None => Either::Left(view! {
+            <h2 class=SECTION_H2>{move || t!(i18n, football_over)}</h2>
+            {match (&s, &wdl, &tg, &gd) {
+                (Some(s), Some(wdl), Some(tg), Some(gd)) => {
+                    let s = s.clone();
+                    let wdl = wdl.clone();
+                    let tg = *tg;
+                    let gd = *gd;
+                    Either::Right(view! {
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                                <tr>
+                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_s)}</th>
+                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_wdl)}</th>
+                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_tg)}</th>
+                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_gd)}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="table-row">
+                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{s}</td>
+                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{wdl}</td>
+                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{tg}</td>
+                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{gd}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    })
+                }
+                _ => Either::Left(view! {
                     <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_full)}</p>
-                }),
-                Some(ov) => Either::Right(view! {
-                    <div class="flex items-center gap-6 text-base">
-                        <span class="font-semibold text-gray-800 dark:text-gray-100">{move || t!(i18n, football_over)}</span>
-                        <span>{move || t!(i18n, football_s)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.s}</span></span>
-                        <span>{move || t!(i18n, football_wdl)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.wdl}</span></span>
-                        <span>{move || t!(i18n, football_tg)} " " <span class="font-semibold text-blue-600 dark:text-blue-400">{ov.tg}</span></span>
-                    </div>
                 }),
             }}
         </div>
@@ -194,13 +218,18 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
 fn FootballDetail(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let header_f = f.clone();
-    let odds = f.all_odds;
-    let calcs = f.all_calc_over;
+    let mut odds = f.all_odds;
+    odds.reverse();
+    let mut calcs = f.all_calc_over;
+    calcs.reverse();
     let topics = f.topics;
-    let football_over = f.football_over;
+    let result_s = f.result_s;
+    let result_wdl = f.result_wdl;
+    let result_tg = f.result_tg;
+    let result_gd = f.result_gd;
     view! {
         <MatchHeader f=header_f/>
-        <OverDetail football_over=football_over/>
+        <OverDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
         <CalcsTable calcs=calcs/>
         <OddsTable odds=odds/>
         <DetailTopicsSection topics=topics/>
