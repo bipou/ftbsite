@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 // ── 赔率（footballs_lines 表）────────────────────────────────────────────
 // 同一球赛可有多行，按 created_at ASC 排列。
 // il_pair 取首尾：第一条 = 初始赔率，最后一条 = 最新赔率（赛前更新）。
-// kind 字段当前恒为 0，应用层未启用其区分逻辑，预留。
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FootballLine {
     pub id: String,
@@ -14,14 +13,12 @@ pub struct FootballLine {
     pub draw: String,
     /// 客胜赔率
     pub loss: String,
-    pub kind: u8,
     pub created_at: String,
 }
 
 // ── 计算 / 赛果（footballs_overs 表）─────────────────────────────────────
-// kind = 0 → 赛前预测。kind = 1 → 赛后实际结果。
-// kind=0 多条时，il_pair 取首尾：第一条 = 初始计算，最后一条 = 赛前最新。
-// kind=1 取最后一条即为正式赛果。
+// 同一球赛可有多行，按 created_at ASC 排列。
+// il_pair 取首尾：第一条 = 初始计算，最后一条 = 最新。
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FootballOver {
     pub id: String,
@@ -33,7 +30,6 @@ pub struct FootballOver {
     pub tg: String,
     /// 净胜球，如 "+1"
     pub gd: String,
-    pub kind: u8,
     pub created_at: String,
 }
 
@@ -55,11 +51,17 @@ pub struct Football {
     pub stars: u64,
     /// Status: 4=both,3=picks,2=hot,1=published,0=draft,-1=deleted
     pub status: i8,
-    /// 赛前赔率（kind=0），il_pair 取首尾：[初始, 最新]
+    /// 赛前赔率，il_pair 取首尾：[初始, 最新]
+    /// il = Initial/Last，即历史序列首尾对
     pub il_odds: Vec<FootballLine>,
-    /// 赛前计算（kind=0），il_pair 取首尾：[初始, 最新]
+    /// 赔率全量记录（详情页用）
+    pub all_odds: Vec<FootballLine>,
+    /// 赛前计算，il_pair 取首尾：[初始, 最新]
+    /// il = Initial/Last
     pub il_calc_over: Vec<FootballOver>,
-    /// 赛后正式结果（kind=1），取最后一条
+    /// 计算全量记录（详情页用）
+    pub all_calc_over: Vec<FootballOver>,
+    /// 赛后正式结果，取最后一条
     pub football_over: Option<FootballOver>,
     pub category: Option<Category>,
     pub topics: Vec<Topic>,

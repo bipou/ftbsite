@@ -69,7 +69,7 @@ fn OddsSection(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
         <div class="text-xs space-y-1 mb-2">
             {init.map(|o| view! {
                 <div class="flex items-center gap-2">
-                    <span class="text-gray-400 w-20 shrink-0">{move || t!(i18n, football_init_odds)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_odds)}</span>
                     <span class=BADGE_GREEN>{move || t!(i18n, football_win)} " " {o.win}</span>
                     <span class=BADGE_GRAY>{move || t!(i18n, football_draw)} " " {o.draw}</span>
                     <span class=BADGE_RED>{move || t!(i18n, football_loss)} " " {o.loss}</span>
@@ -77,7 +77,7 @@ fn OddsSection(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
             })}
             {last.and_then(|o| if odds.len() > 1 { Some(view! {
                 <div class="flex items-center gap-2">
-                    <span class="text-gray-400 w-20 shrink-0">{move || t!(i18n, football_last_odds)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_odds)}</span>
                     <span class=BADGE_GREEN>{move || t!(i18n, football_win)} " " {o.win}</span>
                     <span class=BADGE_GRAY>{move || t!(i18n, football_draw)} " " {o.draw}</span>
                     <span class=BADGE_RED>{move || t!(i18n, football_loss)} " " {o.loss}</span>
@@ -99,7 +99,7 @@ fn CalcsSection(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
         <div class="text-xs space-y-1 mb-2 border-t border-gray-100 dark:border-gray-700 pt-2">
             {init.map(|c| view! {
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-gray-400 w-20 shrink-0">{move || t!(i18n, football_init_calc)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_calc)}</span>
                     <span class=TEXT_MUTED>
                         {move || t!(i18n, football_s)} ": " {c.s}
                         " | " {move || t!(i18n, football_wdl)} ": " {c.wdl}
@@ -110,7 +110,7 @@ fn CalcsSection(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
             })}
             {last.and_then(|c| if calcs.len() > 1 { Some(view! {
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-gray-400 w-20 shrink-0">{move || t!(i18n, football_last_calc)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_calc)}</span>
                     <span class=TEXT_MUTED>
                         {move || t!(i18n, football_s)} ": " {c.s}
                         " | " {move || t!(i18n, football_wdl)} ": " {c.wdl}
@@ -132,7 +132,7 @@ fn OverSection(over: Option<crate::models::FootballOver>) -> impl IntoView {
         }),
         Some(ov) => Either::Right(view! {
             <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-                <span class="text-gray-400">{move || t!(i18n, football_over)}</span>
+                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_over)}</span>
                 <span class="font-semibold text-blue-700 dark:text-blue-300">
                     {move || t!(i18n, football_s)} ": " {ov.s}
                     " | " {move || t!(i18n, football_wdl)} ": " {ov.wdl}

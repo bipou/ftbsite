@@ -43,7 +43,6 @@ struct FootballLineDoc {
     win: String,
     draw: String,
     loss: String,
-    kind: u8,
     created_at: Sdt,
 }
 
@@ -54,7 +53,6 @@ struct FootballOverDoc {
     wdl: String,
     tg: String,
     gd: String,
-    kind: u8,
     created_at: Sdt,
 }
 
@@ -71,7 +69,6 @@ fn line_into(d: FootballLineDoc) -> FootballLine {
         win: d.win,
         draw: d.draw,
         loss: d.loss,
-        kind: d.kind,
         created_at: common::ymdhmsz8(&d.created_at),
     }
 }
@@ -83,7 +80,6 @@ fn over_into(d: FootballOverDoc) -> FootballOver {
         wdl: d.wdl,
         tg: d.tg,
         gd: d.gd,
-        kind: d.kind,
         created_at: common::ymdhmsz8(&d.created_at),
     }
 }
@@ -98,22 +94,20 @@ fn il_pair<T: Clone>(v: Vec<T>) -> Vec<T> {
 
 // ── Internal fetchers ──────────────────────────────────────────────────────────
 
-async fn fetch_lines(rid: &RecordId, kind: u8) -> Result<Vec<FootballLine>, String> {
+async fn fetch_lines(rid: &RecordId) -> Result<Vec<FootballLine>, String> {
     let mut res = get_db()
-        .query("SELECT * FROM footballs_lines WHERE football_id = $fid AND kind = $kind ORDER BY created_at ASC")
+        .query("SELECT * FROM footballs_lines WHERE football_id = $fid ORDER BY created_at ASC")
         .bind(("fid", rid.clone()))
-        .bind(("kind", kind))
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballLineDoc> = res.take(0).map_err(|e| e.to_string())?;
     Ok(docs.into_iter().map(line_into).collect())
 }
 
-async fn fetch_overs(rid: &RecordId, kind: u8) -> Result<Vec<FootballOver>, String> {
+async fn fetch_overs(rid: &RecordId) -> Result<Vec<FootballOver>, String> {
     let mut res = get_db()
-        .query("SELECT * FROM footballs_overs WHERE football_id = $fid AND kind = $kind ORDER BY created_at ASC")
+        .query("SELECT * FROM footballs_overs WHERE football_id = $fid ORDER BY created_at ASC")
         .bind(("fid", rid.clone()))
-        .bind(("kind", kind))
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballOverDoc> = res.take(0).map_err(|e| e.to_string())?;
@@ -124,9 +118,8 @@ async fn fetch_overs(rid: &RecordId, kind: u8) -> Result<Vec<FootballOver>, Stri
 
 async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let fid = rid_str(&doc.id);
-    let lines = fetch_lines(&doc.id, 0).await?;
-    let calcs = fetch_overs(&doc.id, 0).await?;
-    let officials = fetch_overs(&doc.id, 1).await?;
+    let lines = fetch_lines(&doc.id).await?;
+    let overs = fetch_overs(&doc.id).await?;
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
 
@@ -143,9 +136,11 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         hits: doc.hits.max(0) as u64,
         stars: doc.stars.max(0) as u64,
         status: doc.status,
-        il_odds: il_pair(lines),
-        il_calc_over: il_pair(calcs),
-        football_over: officials.into_iter().last(),
+        il_odds: il_pair(lines.clone()),
+        all_odds: lines,
+        il_calc_over: il_pair(overs.clone()),
+        all_calc_over: overs.clone(),
+        football_over: overs.into_iter().last(),
         category,
         topics,
     })

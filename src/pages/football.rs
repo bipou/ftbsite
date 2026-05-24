@@ -74,41 +74,28 @@ fn OddsTable(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
             </div>
         });
     }
-    let init = odds.first().cloned();
-    let last = odds.last().cloned();
     Either::Right(view! {
         <div class=CARD_SECTION>
-            <h2 class=SECTION_H2>"Odds"</h2>
+            <h2 class=SECTION_H2>{move || t!(i18n, odds)}</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
                         <tr>
-                            <th class="px-4 py-2">"Kind"</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_win)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_draw)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_loss)}</th>
-                            <th class="px-4 py-2">"Time"</th>
+                            <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {init.map(|o| view! {
+                        {odds.into_iter().map(|o| view! {
                             <tr class="table-row">
-                                <td class="px-4 py-2 text-gray-500">{move || t!(i18n, football_init_odds)}</td>
-                                <td class="px-4 py-2 font-medium text-green-600">{o.win}</td>
-                                <td class="px-4 py-2 font-medium text-gray-600">{o.draw}</td>
-                                <td class="px-4 py-2 font-medium text-red-600">{o.loss}</td>
+                                <td class="px-4 py-2">{o.win}</td>
+                                <td class="px-4 py-2">{o.draw}</td>
+                                <td class="px-4 py-2">{o.loss}</td>
                                 <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{o.created_at}</td>
                             </tr>
-                        })}
-                        {last.and_then(|o| if odds.len() > 1 { Some(view! {
-                            <tr class="table-row">
-                                <td class="px-4 py-2 text-gray-500">{move || t!(i18n, football_last_odds)}</td>
-                                <td class="px-4 py-2 font-medium text-green-600">{o.win}</td>
-                                <td class="px-4 py-2 font-medium text-gray-600">{o.draw}</td>
-                                <td class="px-4 py-2 font-medium text-red-600">{o.loss}</td>
-                                <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{o.created_at}</td>
-                            </tr>
-                        }) } else { None })}
+                        }).collect::<Vec<_>>()}
                     </tbody>
                 </table>
             </div>
@@ -128,8 +115,6 @@ fn CalcsTable(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
             </div>
         });
     }
-    let init = calcs.first().cloned();
-    let last = calcs.last().cloned();
     Either::Right(view! {
         <div class=CARD_SECTION>
             <h2 class=SECTION_H2>{move || t!(i18n, calc)}</h2>
@@ -137,35 +122,23 @@ fn CalcsTable(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
                 <table class="w-full text-sm text-left">
                     <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500">
                         <tr>
-                            <th class="px-4 py-2">"Kind"</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_s)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_wdl)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_tg)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_gd)}</th>
-                            <th class="px-4 py-2">"Time"</th>
+                            <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {init.map(|c| view! {
+                        {calcs.into_iter().map(|c| view! {
                             <tr class="table-row">
-                                <td class="px-4 py-2 text-gray-500">"Initial"</td>
-                                <td class="px-4 py-2 font-medium">{c.s}</td>
+                                <td class="px-4 py-2">{c.s}</td>
                                 <td class="px-4 py-2">{c.wdl}</td>
                                 <td class="px-4 py-2">{c.tg}</td>
                                 <td class="px-4 py-2">{c.gd}</td>
                                 <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{c.created_at}</td>
                             </tr>
-                        })}
-                        {last.and_then(|c| if calcs.len() > 1 { Some(view! {
-                            <tr class="table-row">
-                                <td class="px-4 py-2 text-gray-500">"Latest"</td>
-                                <td class="px-4 py-2 font-medium">{c.s}</td>
-                                <td class="px-4 py-2">{c.wdl}</td>
-                                <td class="px-4 py-2">{c.tg}</td>
-                                <td class="px-4 py-2">{c.gd}</td>
-                                <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{c.created_at}</td>
-                            </tr>
-                        }) } else { None })}
+                        }).collect::<Vec<_>>()}
                     </tbody>
                 </table>
             </div>
@@ -224,8 +197,8 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
 fn FootballDetail(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let header_f = f.clone();
-    let odds = f.il_odds.clone();
-    let calcs = f.il_calc_over.clone();
+    let odds = f.all_odds;
+    let calcs = f.all_calc_over;
     let topics = f.topics;
     let football_over = f.football_over;
     view! {
