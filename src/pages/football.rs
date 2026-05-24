@@ -151,19 +151,16 @@ fn OverDetail(football_over: Option<crate::models::FootballOver>) -> impl IntoVi
     let i18n = use_i18n();
     view! {
         <div class=CARD_SECTION>
-            <h2 class=SECTION_H2>{move || t!(i18n, football_over)}</h2>
             {match football_over {
                 None => Either::Left(view! {
                     <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_full)}</p>
                 }),
                 Some(ov) => Either::Right(view! {
-                    <div class="flex gap-6 flex-wrap text-sm">
-                        <div><span class="text-gray-500">{move || t!(i18n, football_s)} ": "</span>
-                            <span class="font-bold text-lg text-blue-700 dark:text-blue-300">{ov.s}</span></div>
-                        <div><span class="text-gray-500">{move || t!(i18n, football_wdl)} ": "</span>
-                            <span class="font-semibold">{ov.wdl}</span></div>
-                        <div><span class="text-gray-500">{move || t!(i18n, football_tg)} ": "</span>
-                            <span class="font-semibold">{ov.tg}</span></div>
+                    <div class="flex items-center gap-6 text-base">
+                        <span class="font-semibold text-gray-800 dark:text-gray-100">{move || t!(i18n, football_over)}</span>
+                        <span>{move || t!(i18n, football_s)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.s}</span></span>
+                        <span>{move || t!(i18n, football_wdl)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.wdl}</span></span>
+                        <span>{move || t!(i18n, football_tg)} " " <span class="font-semibold text-blue-700 dark:text-blue-300">{ov.tg}</span></span>
                     </div>
                 }),
             }}
@@ -203,9 +200,9 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let football_over = f.football_over;
     view! {
         <MatchHeader f=header_f/>
-        <OddsTable odds=odds/>
-        <CalcsTable calcs=calcs/>
         <OverDetail football_over=football_over/>
+        <CalcsTable calcs=calcs/>
+        <OddsTable odds=odds/>
         <DetailTopicsSection topics=topics/>
         <p class="text-xs text-red-400 text-center mt-4">{move || t!(i18n, site_warn)}</p>
     }
