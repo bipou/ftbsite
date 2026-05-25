@@ -7,7 +7,7 @@ use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 #[cfg(feature = "oth")]
 use crate::models::{Calc, Line};
 use crate::models::{
-    Football, FootballAnalysis, FootballsResult, FootballEvent, FootballStats, TeamLineup,
+    Football, FootballAnalysis, FootballEvent, FootballStats, FootballsResult, TeamLineup,
 };
 use crate::server::{analysis_db, category_db, db::get_db, topic_db};
 

@@ -35,7 +35,7 @@ fn analysis_into(d: AnalysisDoc) -> FootballAnalysis {
 }
 
 /// 获取某场比赛的所有分析文章
-pub async fn get_analyses_by_football_id(rid: &RecordId) -> Result<Vec<MatchAnalysis>, String> {
+pub async fn get_analyses_by_football_id(rid: &RecordId) -> Result<Vec<FootballAnalysis>, String> {
     let mut res = get_db()
         .query(
             "SELECT * FROM footballs_analyses WHERE football_id = $fid ORDER BY generated_at DESC",

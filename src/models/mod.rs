@@ -7,7 +7,8 @@ pub use category::Category;
 #[cfg(feature = "oth")]
 pub use football::{Calc, Line};
 pub use football::{
-    Football, FootballAnalysis, FootballsResult, LineupPlayer, FootballEvent, FootballStats, TeamLineup,
+    Football, FootballAnalysis, FootballEvent, FootballStats, FootballsResult, LineupPlayer,
+    TeamLineup,
 };
 pub use topic::Topic;
 pub use user::{AuthUser, User, UserSummary, UsersResult};
