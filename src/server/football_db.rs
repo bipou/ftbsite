@@ -4,8 +4,12 @@ use chrono::{Duration, FixedOffset, TimeZone, Timelike, Utc};
 use serde::Deserialize;
 use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 
-use crate::models::{Calc, Football, FootballsResult, Line};
-use crate::server::{category_db, db::get_db, topic_db};
+#[cfg(feature = "oth")]
+use crate::models::{Calc, Line};
+use crate::models::{
+    Football, FootballAnalysis, FootballsResult, FootballEvent, FootballStats, TeamLineup,
+};
+use crate::server::{analysis_db, category_db, db::get_db, topic_db};
 
 // ── Datetime formatters ────────────────────────────────────────────────────────
 
@@ -40,12 +44,23 @@ struct FootballDoc {
     wdl: Option<u8>,
     tg: Option<u8>,
     gd: Option<i8>,
+    #[cfg(feature = "oth")]
     #[serde(default)]
     lines: Vec<LineDoc>,
+    #[cfg(feature = "oth")]
     #[serde(default)]
     calcs: Vec<CalcDoc>,
+    #[serde(default)]
+    home_lineup: Option<TeamLineup>,
+    #[serde(default)]
+    away_lineup: Option<TeamLineup>,
+    #[serde(default)]
+    events: Vec<FootballEvent>,
+    #[serde(default)]
+    stats: Option<FootballStats>,
 }
 
+#[cfg(feature = "oth")]
 #[derive(Debug, Deserialize, SurrealValue)]
 struct LineDoc {
     win: f32,
@@ -54,6 +69,7 @@ struct LineDoc {
     created_at: Sdt,
 }
 
+#[cfg(feature = "oth")]
 #[derive(Debug, Deserialize, SurrealValue)]
 struct CalcDoc {
     s: String,
@@ -68,8 +84,9 @@ struct CountResult {
     count: u64,
 }
 
-// ── Conversions ────────────────────────────────────────────────────────────────
+// ── oth-only helpers ────────────────────────────────────────────────────────
 
+#[cfg(feature = "oth")]
 fn line_into(d: LineDoc) -> Line {
     Line {
         win: d.win,
@@ -79,6 +96,7 @@ fn line_into(d: LineDoc) -> Line {
     }
 }
 
+#[cfg(feature = "oth")]
 fn calc_into(d: CalcDoc) -> Calc {
     Calc {
         s: d.s,
@@ -89,7 +107,7 @@ fn calc_into(d: CalcDoc) -> Calc {
     }
 }
 
-/// 取数组首尾对 [first, last]
+#[cfg(feature = "oth")]
 fn il_pair<T: Clone>(v: &[T]) -> Vec<T> {
     match v.len() {
         0 => vec![],
@@ -102,10 +120,17 @@ fn il_pair<T: Clone>(v: &[T]) -> Vec<T> {
 
 async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let fid = rid_str(&doc.id);
+    #[cfg(feature = "oth")]
     let lines: Vec<Line> = doc.lines.into_iter().map(line_into).collect();
+    #[cfg(feature = "oth")]
     let calcs: Vec<Calc> = doc.calcs.into_iter().map(calc_into).collect();
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
+    let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;
+    let summary = analyses
+        .iter()
+        .find(|a| a.analysis_type == "post_match" && a.status == 1)
+        .map(|a| a.summary.clone());
 
     Ok(Football {
         id: fid,
@@ -120,10 +145,20 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         hits: doc.hits.max(0) as u64,
         stars: doc.stars.max(0) as u64,
         status: doc.status,
+        #[cfg(feature = "oth")]
         il_odds: il_pair(&lines),
+        #[cfg(feature = "oth")]
         all_odds: lines,
+        #[cfg(feature = "oth")]
         il_calcs: il_pair(&calcs),
+        #[cfg(feature = "oth")]
         all_calcs: calcs,
+        home_lineup: doc.home_lineup,
+        away_lineup: doc.away_lineup,
+        events: doc.events,
+        stats: doc.stats,
+        summary,
+        analyses,
         result_s: doc.s,
         result_wdl: doc.wdl,
         result_tg: doc.tg,

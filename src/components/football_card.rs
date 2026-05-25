@@ -2,9 +2,11 @@ use crate::i18n::{t, use_i18n};
 use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, BADGE_GREEN, BADGE_RED, FLEX_BETWEEN,
-    HOVER_SHADOW, ITALIC, TEXT_MUTED, TEXT_SUBTLE, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
+    TEXT_SUBTLE, TEXT_XS_MUTED,
 };
+#[cfg(feature = "oth")]
+use crate::shared::constant::{BADGE_GREEN, BADGE_RED, TEXT_MUTED};
 use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -54,6 +56,51 @@ fn CatBadge(
 }
 
 #[component]
+fn OverSection(
+    #[prop(into)] s: Option<String>,
+    #[prop(into)] wdl: Option<u8>,
+    #[prop(into)] tg: Option<u8>,
+) -> impl IntoView {
+    let i18n = use_i18n();
+    match (s, wdl, tg) {
+        (Some(s), Some(wdl), Some(tg)) => Either::Right(view! {
+            <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
+                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_over)}</span>
+                <span class="font-semibold text-blue-700 dark:text-blue-300">
+                    {move || t!(i18n, football_s)} ": " {s}
+                    " | " {move || t!(i18n, football_wdl)} ": " {wdl}
+                    " | " {move || t!(i18n, football_tg)} ": " {tg}
+                </span>
+            </div>
+        }),
+        _ => Either::Left(view! {
+            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
+        }),
+    }
+}
+
+#[allow(unused_variables)]
+fn render_card_extra(football: &Football) -> impl IntoView + use<> {
+    #[cfg(feature = "oth")]
+    {
+        let odds = football.il_odds.clone();
+        let calcs = football.il_calcs.clone();
+        view! {
+            <OddsSection odds=odds/>
+            <CalcsSection calcs=calcs/>
+        }
+        .into_view()
+    }
+    #[cfg(not(feature = "oth"))]
+    {
+        ().into_view()
+    }
+}
+
+// ── oth-only components ─────────────────────────────────────────────────────
+
+#[cfg(feature = "oth")]
+#[component]
 fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
@@ -87,6 +134,7 @@ fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     })
 }
 
+#[cfg(feature = "oth")]
 #[component]
 fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     let i18n = use_i18n();
@@ -124,43 +172,26 @@ fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
 }
 
 #[component]
-fn OverSection(
-    #[prop(into)] s: Option<String>,
-    #[prop(into)] wdl: Option<u8>,
-    #[prop(into)] tg: Option<u8>,
-) -> impl IntoView {
-    let i18n = use_i18n();
-    match (s, wdl, tg) {
-        (Some(s), Some(wdl), Some(tg)) => Either::Right(view! {
-            <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_over)}</span>
-                <span class="font-semibold text-blue-700 dark:text-blue-300">
-                    {move || t!(i18n, football_s)} ": " {s}
-                    " | " {move || t!(i18n, football_wdl)} ": " {wdl}
-                    " | " {move || t!(i18n, football_tg)} ": " {tg}
-                </span>
-            </div>
-        }),
-        _ => Either::Left(view! {
-            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
-        }),
-    }
-}
-
-#[component]
 pub fn FootballCard(football: Football) -> impl IntoView {
     let i18n = use_i18n();
+    let extra = render_card_extra(&football);
     let card_class = format!(
         "card p-4 {} {}",
         HOVER_SHADOW,
         status_class(football.status)
     );
-    let title = football.match_title();
+    let title = football.title();
     let season = football.season;
     let kick_off = football.kick_off_at_mdhm8;
     let status = football.status;
     let hits = football.hits;
     let topics = football.topics;
+    let summary = football.summary;
+    let summary_view = summary.map(|s| {
+        view! {
+            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-2">{s}</p>
+        }
+    });
     let detail_path = format!(
         "/footballs/{}",
         crate::shared::common::record_key(&football.id)
@@ -189,9 +220,9 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                 <span class="text-blue-500">{kick_off}</span>
             </div>
 
-            <OddsSection odds=football.il_odds/>
-            <CalcsSection calcs=football.il_calcs/>
+            {extra}
             <OverSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
+            {summary_view}
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
                 <div class="flex flex-wrap gap-1">

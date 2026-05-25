@@ -8,6 +8,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let out = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("i18n");
 
+    // 根据 feature 选择 locale 源目录，复制到 locales/ 供 leptos_i18n 读取
+    let src_dir = if std::env::var("CARGO_FEATURE_OTH").is_ok() {
+        "locales/oth"
+    } else {
+        "locales/cn"
+    };
+    for entry in fs::read_dir(src_dir)? {
+        let entry = entry?;
+        let dest = PathBuf::from("locales").join(entry.file_name());
+        fs::copy(entry.path(), &dest)?;
+    }
+
     let locales: Vec<String> = fs::read_dir("locales")?
         .filter_map(|e| e.ok())
         .map(|e| e.path())

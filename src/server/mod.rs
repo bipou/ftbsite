@@ -1,3 +1,4 @@
+pub mod analysis_db;
 pub mod auth;
 pub mod captcha;
 pub mod category_db;

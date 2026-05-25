@@ -34,6 +34,7 @@ pulldown-cmark = { version = "0.13", optional = true }
 leptos_i18n_build = "0.6"
 
 [features]
+oth = []
 hydrate = [
     "leptos/hydrate",
     "leptos_i18n/hydrate",

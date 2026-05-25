@@ -1,8 +1,8 @@
 use crate::models::{Category, PageInfo, Topic};
 use serde::{Deserialize, Serialize};
 
-// ── 赔率（footballs.lines 内嵌数组）────────────────────────────────────
-// 数组按时间顺序排列，首条 = 初始赔率，末条 = 最新赔率
+/// 赔率记录（footballs.lines 内嵌数组）—— 仅境外版
+#[cfg(feature = "oth")]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Line {
     pub win: f32,
@@ -11,8 +11,8 @@ pub struct Line {
     pub created_at: String,
 }
 
-// ── 计算（footballs.calcs 内嵌数组）────────────────────────────────────
-// 数组按时间顺序排列，首条 = 初始计算，末条 = 最新
+/// 计算记录（footballs.calcs 内嵌数组）—— 仅境外版
+#[cfg(feature = "oth")]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Calc {
     pub s: String,
@@ -20,6 +20,85 @@ pub struct Calc {
     pub tg: String,
     pub gd: String,
     pub created_at: String,
+}
+
+// ── 阵容 ────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct LineupPlayer {
+    pub number: u8,
+    pub name: String,
+    pub position: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct TeamLineup {
+    pub formation: String,
+    pub coach: Option<String>,
+    pub starters: Vec<LineupPlayer>,
+    pub substitutes: Vec<LineupPlayer>,
+}
+
+// ── 事件时间线 ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct FootballEvent {
+    pub minute: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extra: Option<u8>,
+    #[serde(rename = "type")]
+    pub event_type: String,
+    pub player: String,
+    pub team: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub assist: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub player_out: Option<String>,
+    pub note: String,
+}
+
+// ── 技术统计 ─────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct SideStats {
+    pub home: f32,
+    pub away: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct SideStatsInt {
+    pub home: u16,
+    pub away: u16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct FootballStats {
+    pub possession: SideStats,
+    pub shots: SideStatsInt,
+    pub shots_on_target: SideStatsInt,
+    pub corners: SideStatsInt,
+    pub fouls: SideStatsInt,
+    pub offsides: SideStatsInt,
+    pub yellow_cards: SideStatsInt,
+    pub red_cards: SideStatsInt,
+    pub passes: SideStatsInt,
+    pub pass_accuracy: SideStats,
+}
+
+// ── AI 分析文章 ─────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct FootballAnalysis {
+    pub id: String,
+    pub football_id: String,
+    pub summary: String,
+    pub content_md: String,
+    pub content_html: String,
+    pub analysis_type: String,
+    pub language: String,
+    pub model: String,
+    pub generated_at: String,
+    pub status: i8,
 }
 
 /// A football match with all resolved relations.
@@ -40,15 +119,6 @@ pub struct Football {
     pub stars: u64,
     /// Status: 4=both,3=picks,2=hot,1=published,0=draft,-1=deleted
     pub status: i8,
-    /// 赛前赔率，il_pair 取首尾：[初始, 最新]
-    /// il = Initial/Last，即历史序列首尾对
-    pub il_odds: Vec<Line>,
-    /// 赔率全量记录（详情页用）
-    pub all_odds: Vec<Line>,
-    /// 计算，il_pair 取首尾：[初始, 最新]
-    pub il_calcs: Vec<Calc>,
-    /// 计算全量记录（详情页用）
-    pub all_calcs: Vec<Calc>,
     /// 正式赛果——比分，如 "3:1"（footballs 表直存，未完成则为 None）
     pub result_s: Option<String>,
     /// 正式赛果——胜平负（3=胜 / 1=平 / 0=负）
@@ -57,12 +127,27 @@ pub struct Football {
     pub result_tg: Option<u8>,
     /// 正式赛果——净胜球（可负）
     pub result_gd: Option<i8>,
+    #[cfg(feature = "oth")]
+    pub il_odds: Vec<Line>,
+    #[cfg(feature = "oth")]
+    pub all_odds: Vec<Line>,
+    #[cfg(feature = "oth")]
+    pub il_calcs: Vec<Calc>,
+    #[cfg(feature = "oth")]
+    pub all_calcs: Vec<Calc>,
+    pub home_lineup: Option<TeamLineup>,
+    pub away_lineup: Option<TeamLineup>,
+    #[serde(default)]
+    pub events: Vec<FootballEvent>,
+    pub stats: Option<FootballStats>,
+    pub summary: Option<String>,
+    pub analyses: Vec<FootballAnalysis>,
     pub category: Option<Category>,
     pub topics: Vec<Topic>,
 }
 
 impl Football {
-    pub fn match_title(&self) -> String {
+    pub fn title(&self) -> String {
         format!("{} vs {}", self.home_team, self.away_team)
     }
 }

@@ -3,7 +3,7 @@
 
   "site_name": "BiPou",
   "site_slogan": "Football Data Lab",
-  "site_intro": "BiPou, Football Data Lab.\nRust full-stack isomorphic application, built with Leptos, SurrealDB, and Axum.",
+  "site_intro": "BiPou, Football Data Calculation Lab. \nRust full-stack isomorphic application, built with Leptos, SurrealDB, and Axum.",
   "site_warn": "For entertainment only. Not a reference.",
 
   "nav_football": "Fixtures",
@@ -17,10 +17,20 @@
   "go_home": "Go Home",
   "go_list": "Back to list",
 
+  "calc": "Calculation:",
+  "odds": "Odds:",
+  "not_calc": "Not calculated",
   "not_full": "Not full time",
 
   "footballs_today": "Today's Analysis",
   "footballs_yesterday": "Yesterday's Review",
+  "football_init_odds": "Initial odds:",
+  "football_last_odds": "Latest odds:",
+  "football_win": "win",
+  "football_draw": "draw",
+  "football_loss": "loss",
+  "football_init_calc": "Initial Calculation:",
+  "football_last_calc": "Latest Calculation:",
   "football_s": "score",
   "football_wdl": "wdl",
   "football_tg": "total goals",

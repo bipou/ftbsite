@@ -4,7 +4,11 @@ pub mod topic;
 pub mod user;
 
 pub use category::Category;
-pub use football::{Calc, Football, FootballsResult, Line};
+#[cfg(feature = "oth")]
+pub use football::{Calc, Line};
+pub use football::{
+    Football, FootballAnalysis, FootballsResult, LineupPlayer, FootballEvent, FootballStats, TeamLineup,
+};
 pub use topic::Topic;
 pub use user::{AuthUser, User, UserSummary, UsersResult};
 

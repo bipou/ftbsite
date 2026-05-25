@@ -1,15 +1,6 @@
 FROM rustlang/rust:nightly-slim AS builder
 
-# ARG HTTP_PROXY
-# ARG HTTPS_PROXY
-# ARG NO_PROXY
-
-# ENV http_proxy=$HTTP_PROXY \
-#     https_proxy=$HTTPS_PROXY \
-#     no_proxy=$NO_PROXY \
-#     HTTP_PROXY=$HTTP_PROXY \
-#     HTTPS_PROXY=$HTTPS_PROXY \
-#     NO_PROXY=$NO_PROXY
+ARG FEATURES=""
 
 RUN rustup target add wasm32-unknown-unknown \
     && apt-get update \
@@ -19,7 +10,11 @@ RUN rustup target add wasm32-unknown-unknown \
 
 WORKDIR /build
 COPY . .
-RUN cargo leptos build --release \
+RUN if [ -z "$FEATURES" ]; then \
+        cargo leptos build --release; \
+    else \
+        cargo leptos build --release --features "$FEATURES"; \
+    fi \
     && rm -rf /usr/local/cargo/registry \
     && rm -rf target/wasm32-unknown-unknown target/release/build target/release/deps target/release/incremental
 

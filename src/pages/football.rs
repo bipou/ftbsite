@@ -1,7 +1,7 @@
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, NO_DATA,
-    SECTION_H2, TEXT_WARN, TEXT_XS_MUTED,
+    SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -10,7 +10,7 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, Nav};
-use crate::models::Football;
+use crate::models::{Football, FootballEvent, FootballStats, TeamLineup};
 use crate::shared::locale::LocaleA;
 
 #[server]
@@ -25,7 +25,7 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 }
 
 #[component]
-fn MatchHeader(f: Football) -> impl IntoView {
+fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let title_text = format!("{} vs {} – {}", f.home_team, f.away_team, site_title!(i18n));
     let loc = i18n.get_locale().to_string();
@@ -62,6 +62,29 @@ fn MatchHeader(f: Football) -> impl IntoView {
     }
 }
 
+#[allow(unused_variables)]
+fn render_detail_extra(f: &Football) -> impl IntoView + use<> {
+    #[cfg(feature = "oth")]
+    {
+        let mut odds = f.all_odds.clone();
+        odds.reverse();
+        let mut calcs = f.all_calcs.clone();
+        calcs.reverse();
+        view! {
+            <CalcsTable calcs=calcs/>
+            <OddsTable odds=odds/>
+        }
+        .into_view()
+    }
+    #[cfg(not(feature = "oth"))]
+    {
+        ().into_view()
+    }
+}
+
+// ── oth-only components ─────────────────────────────────────────────────────
+
+#[cfg(feature = "oth")]
 #[component]
 fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
@@ -103,6 +126,7 @@ fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
     })
 }
 
+#[cfg(feature = "oth")]
 #[component]
 fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     let i18n = use_i18n();
@@ -142,6 +166,221 @@ fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
                     </tbody>
                 </table>
             </div>
+        </div>
+    })
+}
+
+// ── 阵容 ─────────────────────────────────────────────────────────────────
+
+fn event_icon(t: &str) -> String {
+    match t {
+        "goal" | "penalty_goal" => "⚽",
+        "own_goal" => "🅾",
+        "yellow_card" => "🟨",
+        "red_card" => "🟥",
+        "sub" => "🔄",
+        _ => "•",
+    }
+    .into()
+}
+
+#[component]
+fn LineupSection(home: Option<TeamLineup>, away: Option<TeamLineup>) -> impl IntoView {
+    let i18n = use_i18n();
+    if home.is_none() && away.is_none() {
+        return Either::Left(());
+    }
+    Either::Right(view! {
+        <div class=CARD_SECTION>
+            <h2 class=SECTION_H2>{move || t!(i18n, football_lineups)}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {home.map(|l| view! { <TeamView team=l/> })}
+                {away.map(|l| view! { <TeamView team=l/> })}
+            </div>
+        </div>
+    })
+}
+
+#[component]
+fn TeamView(team: TeamLineup) -> impl IntoView {
+    let i18n = use_i18n();
+    let formation = team.formation;
+    let coach = team.coach;
+    let starters = team.starters;
+    let subs = team.substitutes;
+    view! {
+        <div>
+            <div class="text-sm text-gray-500 mb-1">
+                {move || t!(i18n, football_formation)} ": " {formation}
+                {move || coach.as_ref().map(|c| view! {
+                    <span class="ml-2">
+                        {move || t!(i18n, football_coach)} ": " {c.clone()}
+                    </span>
+                })}
+            </div>
+            <div class="text-xs space-y-0.5">
+                {starters.into_iter().map(|p| view! {
+                    <div class="flex gap-2">
+                        <span class="w-6 text-right text-gray-400">{p.number}</span>
+                        <span>{p.name}</span>
+                        <span class="text-gray-400">{p.position}</span>
+                    </div>
+                }).collect::<Vec<_>>()}
+            </div>
+            {if !subs.is_empty() {
+                Either::Left(view! {
+                    <p class="text-xs text-gray-400 mt-2 mb-1">{move || t!(i18n, football_substitutes)}</p>
+                    <div class="text-xs space-y-0.5">
+                        {subs.into_iter().map(|p| view! {
+                            <div class="flex gap-2">
+                                <span class="w-6 text-right text-gray-400">{p.number}</span>
+                                <span>{p.name}</span>
+                                <span class="text-gray-400">{p.position}</span>
+                            </div>
+                        }).collect::<Vec<_>>()}
+                    </div>
+                })
+            } else {
+                Either::Right(())
+            }}
+        </div>
+    }
+}
+
+// ── 赛况时间线 ───────────────────────────────────────────────────────────
+
+#[component]
+fn EventsSection(events: Vec<FootballEvent>) -> impl IntoView {
+    let i18n = use_i18n();
+    if events.is_empty() {
+        return Either::Left(());
+    }
+    Either::Right(view! {
+        <div class=CARD_SECTION>
+            <h2 class=SECTION_H2>{move || t!(i18n, football_events)}</h2>
+            <div class="space-y-2">
+                {events.into_iter().map(|e| {
+                    let icon = event_icon(&e.event_type);
+                    let minute_str = match e.extra {
+                        Some(x) => format!("{}+{}'", e.minute, x),
+                        None => format!("{}'", e.minute),
+                    };
+                    let note = e.note;
+                    view! {
+                        <div class="flex items-start gap-3 text-sm">
+                            <span class="w-10 text-right text-gray-400 shrink-0">{minute_str}</span>
+                            <span class="w-5 text-center">{icon}</span>
+                            <span class=TEXT_MUTED>{note}</span>
+                        </div>
+                    }
+                }).collect::<Vec<_>>()}
+            </div>
+        </div>
+    })
+}
+
+// ── 技术统计 ─────────────────────────────────────────────────────────────
+
+#[component]
+fn StatsSection(stats: Option<FootballStats>) -> impl IntoView {
+    let i18n = use_i18n();
+    let s = match stats {
+        Some(s) => s,
+        None => return Either::Left(()),
+    };
+    let pos_label = t_display!(i18n, football_possession).to_string();
+    let shots_label = t_display!(i18n, football_stat_shots).to_string();
+    let sots_label = t_display!(i18n, football_stat_shots_on).to_string();
+    let corn_label = t_display!(i18n, football_stat_corners).to_string();
+    let foul_label = t_display!(i18n, football_stat_fouls).to_string();
+    let offs_label = t_display!(i18n, football_stat_offsides).to_string();
+    let yc_label = t_display!(i18n, football_stat_yellow_cards).to_string();
+    let rc_label = t_display!(i18n, football_stat_red_cards).to_string();
+    let pass_label = t_display!(i18n, football_stat_passes).to_string();
+    let pacc_label = t_display!(i18n, football_stat_pass_accuracy).to_string();
+    Either::Right(view! {
+        <div class=CARD_SECTION>
+            <h2 class=SECTION_H2>{move || t!(i18n, football_stats)}</h2>
+            <div class="space-y-2 text-sm">
+                <StatRow label=pos_label hv=s.possession.home av=s.possession.away pct=true/>
+                <StatRowInt label=shots_label hv=s.shots.home av=s.shots.away/>
+                <StatRowInt label=sots_label hv=s.shots_on_target.home av=s.shots_on_target.away/>
+                <StatRowInt label=corn_label hv=s.corners.home av=s.corners.away/>
+                <StatRowInt label=foul_label hv=s.fouls.home av=s.fouls.away/>
+                <StatRowInt label=offs_label hv=s.offsides.home av=s.offsides.away/>
+                <StatRowInt label=yc_label hv=s.yellow_cards.home av=s.yellow_cards.away/>
+                <StatRowInt label=rc_label hv=s.red_cards.home av=s.red_cards.away/>
+                <StatRowInt label=pass_label hv=s.passes.home av=s.passes.away/>
+                <StatRow label=pacc_label hv=s.pass_accuracy.home av=s.pass_accuracy.away pct=true/>
+            </div>
+        </div>
+    })
+}
+
+#[component]
+fn StatRow(
+    #[prop(into)] label: Signal<String>,
+    hv: f32,
+    av: f32,
+    #[prop(default = false)] pct: bool,
+) -> impl IntoView {
+    let hv_d = if pct {
+        format!("{hv:.1}%")
+    } else {
+        hv.to_string()
+    };
+    let av_d = if pct {
+        format!("{av:.1}%")
+    } else {
+        av.to_string()
+    };
+    let total = hv + av;
+    let hl = if total > 0.0 {
+        (hv / total * 100.0) as u8
+    } else {
+        50
+    };
+    view! {
+        <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-0.5">
+                <span>{hv_d}</span>
+                <span>{label}</span>
+                <span>{av_d}</span>
+            </div>
+            <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex">
+                <div class="h-full bg-blue-500" style=format!("width:{}%", hl)></div>
+                <div class="h-full bg-gray-400 dark:bg-gray-500" style=format!("width:{}%", 100 - hl)></div>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn StatRowInt(#[prop(into)] label: Signal<String>, hv: u16, av: u16) -> impl IntoView {
+    view! {
+        <StatRow label=label hv=hv as f32 av=av as f32 pct=false/>
+    }
+}
+
+// ── AI 分析 ──────────────────────────────────────────────────────────────
+
+#[component]
+fn AnalysisSection(analyses: Vec<crate::models::FootballAnalysis>) -> impl IntoView {
+    let i18n = use_i18n();
+    if analyses.is_empty() {
+        return Either::Left(());
+    }
+    Either::Right(view! {
+        <div class=CARD_SECTION>
+            <h2 class=SECTION_H2>{move || t!(i18n, football_analysis)}</h2>
+            <div class="prose prose-sm dark:prose-invert max-w-none">
+                {analyses.into_iter().map(|a| view! {
+                    <div class="mb-4">
+                        <div inner_html=a.content_html></div>
+                    </div>
+                }).collect::<Vec<_>>()}
+            </div>
+            <p class="text-xs text-gray-400 mt-4">{move || t!(i18n, football_ai_label)}</p>
         </div>
     })
 }
@@ -218,10 +457,12 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
 fn FootballDetail(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let header_f = f.clone();
-    let mut odds = f.all_odds;
-    odds.reverse();
-    let mut calcs = f.all_calcs;
-    calcs.reverse();
+    let extra = render_detail_extra(&f);
+    let home_lineup = f.home_lineup;
+    let away_lineup = f.away_lineup;
+    let events = f.events;
+    let stats = f.stats;
+    let analyses = f.analyses;
     let topics = f.topics;
     let result_s = f.result_s;
     let result_wdl = f.result_wdl;
@@ -231,10 +472,13 @@ fn FootballDetail(f: Football) -> impl IntoView {
         <p class={format!("{} text-center mb-4", TEXT_WARN)}>
             {move || t!(i18n, site_warn)}
         </p>
-        <MatchHeader f=header_f/>
+        <FootballHeader f=header_f/>
         <OverDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
-        <CalcsTable calcs=calcs/>
-        <OddsTable odds=odds/>
+        <LineupSection home=home_lineup away=away_lineup/>
+        <EventsSection events=events/>
+        <StatsSection stats=stats/>
+        {extra}
+        <AnalysisSection analyses=analyses/>
         <DetailTopicsSection topics=topics/>
     }
 }
