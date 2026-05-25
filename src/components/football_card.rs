@@ -54,7 +54,7 @@ fn CatBadge(
 }
 
 #[component]
-fn OddsSection(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
+fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
         return Either::Left(view! {
@@ -88,7 +88,7 @@ fn OddsSection(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
 }
 
 #[component]
-fn CalcsSection(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
+fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     let i18n = use_i18n();
     if calcs.is_empty() {
         return Either::Left(());
@@ -190,7 +190,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             </div>
 
             <OddsSection odds=football.il_odds/>
-            <CalcsSection calcs=football.il_calc_over/>
+            <CalcsSection calcs=football.il_calcs/>
             <OverSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>

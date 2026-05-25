@@ -4,7 +4,7 @@ use chrono::{Duration, FixedOffset, TimeZone, Timelike, Utc};
 use serde::Deserialize;
 use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 
-use crate::models::{Football, FootballLine, FootballOver, FootballsResult};
+use crate::models::{Calc, Football, FootballsResult, Line};
 use crate::server::{category_db, db::get_db, topic_db};
 
 // ── Datetime formatters ────────────────────────────────────────────────────────
@@ -40,11 +40,14 @@ struct FootballDoc {
     wdl: Option<u8>,
     tg: Option<u8>,
     gd: Option<i8>,
+    #[serde(default)]
+    lines: Vec<LineDoc>,
+    #[serde(default)]
+    calcs: Vec<CalcDoc>,
 }
 
 #[derive(Debug, Deserialize, SurrealValue)]
-struct FootballLineDoc {
-    id: RecordId,
+struct LineDoc {
     win: f32,
     draw: f32,
     loss: f32,
@@ -52,8 +55,7 @@ struct FootballLineDoc {
 }
 
 #[derive(Debug, Deserialize, SurrealValue)]
-struct FootballOverDoc {
-    id: RecordId,
+struct CalcDoc {
     s: String,
     wdl: String,
     tg: String,
@@ -68,9 +70,8 @@ struct CountResult {
 
 // ── Conversions ────────────────────────────────────────────────────────────────
 
-fn line_into(d: FootballLineDoc) -> FootballLine {
-    FootballLine {
-        id: rid_str(&d.id),
+fn line_into(d: LineDoc) -> Line {
+    Line {
         win: d.win,
         draw: d.draw,
         loss: d.loss,
@@ -78,9 +79,8 @@ fn line_into(d: FootballLineDoc) -> FootballLine {
     }
 }
 
-fn over_into(d: FootballOverDoc) -> FootballOver {
-    FootballOver {
-        id: rid_str(&d.id),
+fn calc_into(d: CalcDoc) -> Calc {
+    Calc {
         s: d.s,
         wdl: d.wdl,
         tg: d.tg,
@@ -89,42 +89,21 @@ fn over_into(d: FootballOverDoc) -> FootballOver {
     }
 }
 
-fn il_pair<T: Clone>(v: Vec<T>) -> Vec<T> {
+/// 取数组首尾对 [first, last]
+fn il_pair<T: Clone>(v: &[T]) -> Vec<T> {
     match v.len() {
         0 => vec![],
-        1 => v,
+        1 => vec![v[0].clone()],
         n => vec![v[0].clone(), v[n - 1].clone()],
     }
-}
-
-// ── Internal fetchers ──────────────────────────────────────────────────────────
-
-async fn fetch_lines(rid: &RecordId) -> Result<Vec<FootballLine>, String> {
-    let mut res = get_db()
-        .query("SELECT * FROM footballs_lines WHERE football_id = $fid ORDER BY created_at ASC")
-        .bind(("fid", rid.clone()))
-        .await
-        .map_err(|e| e.to_string())?;
-    let docs: Vec<FootballLineDoc> = res.take(0).map_err(|e| e.to_string())?;
-    Ok(docs.into_iter().map(line_into).collect())
-}
-
-async fn fetch_overs(rid: &RecordId) -> Result<Vec<FootballOver>, String> {
-    let mut res = get_db()
-        .query("SELECT * FROM footballs_overs WHERE football_id = $fid ORDER BY created_at ASC")
-        .bind(("fid", rid.clone()))
-        .await
-        .map_err(|e| e.to_string())?;
-    let docs: Vec<FootballOverDoc> = res.take(0).map_err(|e| e.to_string())?;
-    Ok(docs.into_iter().map(over_into).collect())
 }
 
 // ── Enrich ─────────────────────────────────────────────────────────────────────
 
 async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let fid = rid_str(&doc.id);
-    let lines = fetch_lines(&doc.id).await?;
-    let overs = fetch_overs(&doc.id).await?;
+    let lines: Vec<Line> = doc.lines.into_iter().map(line_into).collect();
+    let calcs: Vec<Calc> = doc.calcs.into_iter().map(calc_into).collect();
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
 
@@ -141,10 +120,10 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         hits: doc.hits.max(0) as u64,
         stars: doc.stars.max(0) as u64,
         status: doc.status,
-        il_odds: il_pair(lines.clone()),
+        il_odds: il_pair(&lines),
         all_odds: lines,
-        il_calc_over: il_pair(overs.clone()),
-        all_calc_over: overs,
+        il_calcs: il_pair(&calcs),
+        all_calcs: calcs,
         result_s: doc.s,
         result_wdl: doc.wdl,
         result_tg: doc.tg,

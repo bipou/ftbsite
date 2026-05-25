@@ -63,7 +63,7 @@ fn MatchHeader(f: Football) -> impl IntoView {
 }
 
 #[component]
-fn OddsTable(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
+fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
         return Either::Left(view! {
@@ -104,7 +104,7 @@ fn OddsTable(odds: Vec<crate::models::FootballLine>) -> impl IntoView {
 }
 
 #[component]
-fn CalcsTable(calcs: Vec<crate::models::FootballOver>) -> impl IntoView {
+fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     let i18n = use_i18n();
     if calcs.is_empty() {
         return Either::Left(view! {
@@ -220,7 +220,7 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let header_f = f.clone();
     let mut odds = f.all_odds;
     odds.reverse();
-    let mut calcs = f.all_calc_over;
+    let mut calcs = f.all_calcs;
     calcs.reverse();
     let topics = f.topics;
     let result_s = f.result_s;

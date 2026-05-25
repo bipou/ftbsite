@@ -4,7 +4,7 @@ pub mod topic;
 pub mod user;
 
 pub use category::Category;
-pub use football::{Football, FootballLine, FootballOver, FootballsResult};
+pub use football::{Calc, Football, FootballsResult, Line};
 pub use topic::Topic;
 pub use user::{AuthUser, User, UserSummary, UsersResult};
 
