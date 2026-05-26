@@ -7,7 +7,8 @@ use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 #[cfg(feature = "oth")]
 use crate::models::{Calc, Line};
 use crate::models::{
-    Football, FootballAnalysis, FootballEvent, FootballStats, FootballsResult, TeamLineup,
+    Football, FootballEvent, FootballStats, FootballsResult, LineupPlayer, SideStats, SideStatsInt,
+    TeamLineup,
 };
 use crate::server::{analysis_db, category_db, db::get_db, topic_db};
 
@@ -51,13 +52,71 @@ struct FootballDoc {
     #[serde(default)]
     calcs: Vec<CalcDoc>,
     #[serde(default)]
-    home_lineup: Option<TeamLineup>,
+    home_lineup: Option<TeamLineupDoc>,
     #[serde(default)]
-    away_lineup: Option<TeamLineup>,
+    away_lineup: Option<TeamLineupDoc>,
     #[serde(default)]
-    events: Vec<FootballEvent>,
+    events: Option<Vec<FootballEventDoc>>,
     #[serde(default)]
-    stats: Option<FootballStats>,
+    stats: Option<FootballStatsDoc>,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct LineupPlayerDoc {
+    number: u8,
+    name: String,
+    position: String,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct TeamLineupDoc {
+    formation: String,
+    #[serde(default)]
+    coach: Option<String>,
+    starters: Vec<LineupPlayerDoc>,
+    substitutes: Vec<LineupPlayerDoc>,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct FootballEventDoc {
+    minute: u8,
+    #[serde(default)]
+    extra: Option<u8>,
+    #[serde(rename = "type")]
+    event_type: String,
+    player: String,
+    team: String,
+    #[serde(default)]
+    assist: Option<String>,
+    #[serde(default)]
+    player_out: Option<String>,
+    note: String,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct SideStatsDoc {
+    home: f32,
+    away: f32,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct SideStatsIntDoc {
+    home: u16,
+    away: u16,
+}
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct FootballStatsDoc {
+    possession: SideStatsDoc,
+    shots: SideStatsIntDoc,
+    shots_on_target: SideStatsIntDoc,
+    corners: SideStatsIntDoc,
+    fouls: SideStatsIntDoc,
+    offsides: SideStatsIntDoc,
+    yellow_cards: SideStatsIntDoc,
+    red_cards: SideStatsIntDoc,
+    passes: SideStatsIntDoc,
+    pass_accuracy: SideStatsDoc,
 }
 
 #[cfg(feature = "oth")]
@@ -82,6 +141,62 @@ struct CalcDoc {
 #[derive(Debug, Deserialize, SurrealValue)]
 struct CountResult {
     count: u64,
+}
+
+// ── Doc → Model ──────────────────────────────────────────────────────────
+
+fn lp_into(d: LineupPlayerDoc) -> LineupPlayer {
+    LineupPlayer {
+        number: d.number,
+        name: d.name,
+        position: d.position,
+    }
+}
+fn tl_into(d: TeamLineupDoc) -> TeamLineup {
+    TeamLineup {
+        formation: d.formation,
+        coach: d.coach,
+        starters: d.starters.into_iter().map(lp_into).collect(),
+        substitutes: d.substitutes.into_iter().map(lp_into).collect(),
+    }
+}
+fn fe_into(d: FootballEventDoc) -> FootballEvent {
+    FootballEvent {
+        minute: d.minute,
+        extra: d.extra,
+        event_type: d.event_type,
+        player: d.player,
+        team: d.team,
+        assist: d.assist,
+        player_out: d.player_out,
+        note: d.note,
+    }
+}
+fn ss_into(d: SideStatsDoc) -> SideStats {
+    SideStats {
+        home: d.home,
+        away: d.away,
+    }
+}
+fn ssi_into(d: SideStatsIntDoc) -> SideStatsInt {
+    SideStatsInt {
+        home: d.home,
+        away: d.away,
+    }
+}
+fn fst_into(d: FootballStatsDoc) -> FootballStats {
+    FootballStats {
+        possession: ss_into(d.possession),
+        shots: ssi_into(d.shots),
+        shots_on_target: ssi_into(d.shots_on_target),
+        corners: ssi_into(d.corners),
+        fouls: ssi_into(d.fouls),
+        offsides: ssi_into(d.offsides),
+        yellow_cards: ssi_into(d.yellow_cards),
+        red_cards: ssi_into(d.red_cards),
+        passes: ssi_into(d.passes),
+        pass_accuracy: ss_into(d.pass_accuracy),
+    }
 }
 
 // ── oth-only helpers ────────────────────────────────────────────────────────
@@ -153,10 +268,15 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         il_calcs: il_pair(&calcs),
         #[cfg(feature = "oth")]
         all_calcs: calcs,
-        home_lineup: doc.home_lineup,
-        away_lineup: doc.away_lineup,
-        events: doc.events,
-        stats: doc.stats,
+        home_lineup: doc.home_lineup.map(tl_into),
+        away_lineup: doc.away_lineup.map(tl_into),
+        events: doc
+            .events
+            .unwrap_or_default()
+            .into_iter()
+            .map(fe_into)
+            .collect(),
+        stats: doc.stats.map(fst_into),
         summary,
         analyses,
         result_s: doc.s,

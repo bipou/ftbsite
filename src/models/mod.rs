@@ -8,7 +8,7 @@ pub use category::Category;
 pub use football::{Calc, Line};
 pub use football::{
     Football, FootballAnalysis, FootballEvent, FootballStats, FootballsResult, LineupPlayer,
-    TeamLineup,
+    SideStats, SideStatsInt, TeamLineup,
 };
 pub use topic::Topic;
 pub use user::{AuthUser, User, UserSummary, UsersResult};
