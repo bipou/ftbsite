@@ -20,7 +20,7 @@
   "calc": "Calculation:",
   "odds": "Odds:",
   "not_calc": "Not calculated",
-  "not_full": "Not full time",
+  "not_finished": "Not finished",
 
   "footballs_today": "Today's Analysis",
   "footballs_yesterday": "Yesterday's Review",
@@ -35,7 +35,7 @@
   "football_wdl": "wdl",
   "football_tg": "total goals",
   "football_gd": "goal diff",
-  "football_over": "Football over:",
+  "football_result": "Football over:",
 
   "football_lineups": "Lineups",
   "football_events": "Events",

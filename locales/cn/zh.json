@@ -17,7 +17,7 @@
   "go_home": "回首页",
   "go_list": "回列表",
 
-  "not_full": "尚未全场",
+  "not_finished": "尚未结束",
 
   "footballs_today": "今日剖析",
   "footballs_yesterday": "昨日复盘",
@@ -25,7 +25,7 @@
   "football_wdl": "胜平负",
   "football_tg": "总进球",
   "football_gd": "净胜球",
-  "football_over": "赛事结果：",
+  "football_result": "赛事结果：",
 
   "football_lineups": "阵容",
   "football_events": "赛况",

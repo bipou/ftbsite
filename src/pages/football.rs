@@ -386,7 +386,7 @@ fn AnalysisSection(analyses: Vec<crate::models::FootballAnalysis>) -> impl IntoV
 }
 
 #[component]
-fn OverDetail(
+fn ResultDetail(
     #[prop(into)] s: Option<String>,
     #[prop(into)] wdl: Option<u8>,
     #[prop(into)] tg: Option<u8>,
@@ -395,7 +395,7 @@ fn OverDetail(
     let i18n = use_i18n();
     view! {
         <div class=CARD_SECTION>
-            <h2 class=SECTION_H2>{move || t!(i18n, football_over)}</h2>
+            <h2 class=SECTION_H2>{move || t!(i18n, football_result)}</h2>
             {match (&s, &wdl, &tg, &gd) {
                 (Some(s), Some(wdl), Some(tg), Some(gd)) => {
                     let s = s.clone();
@@ -424,7 +424,7 @@ fn OverDetail(
                     })
                 }
                 _ => Either::Left(view! {
-                    <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_full)}</p>
+                    <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_finished)}</p>
                 }),
             }}
         </div>
@@ -473,7 +473,7 @@ fn FootballDetail(f: Football) -> impl IntoView {
             {move || t!(i18n, site_warn)}
         </p>
         <FootballHeader f=header_f/>
-        <OverDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
+        <ResultDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
         <LineupSection home=home_lineup away=away_lineup/>
         <EventsSection events=events/>
         <StatsSection stats=stats/>

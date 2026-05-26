@@ -56,7 +56,7 @@ fn CatBadge(
 }
 
 #[component]
-fn OverSection(
+fn ResultSection(
     #[prop(into)] s: Option<String>,
     #[prop(into)] wdl: Option<u8>,
     #[prop(into)] tg: Option<u8>,
@@ -65,16 +65,16 @@ fn OverSection(
     match (s, wdl, tg) {
         (Some(s), Some(wdl), Some(tg)) => Either::Right(view! {
             <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_over)}</span>
+                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_result)}</span>
                 <span class="font-semibold text-blue-700 dark:text-blue-300">
-                    {move || t!(i18n, football_s)} ": " {s}
-                    " | " {move || t!(i18n, football_wdl)} ": " {wdl}
-                    " | " {move || t!(i18n, football_tg)} ": " {tg}
+                    <span class="mr-4">{move || t!(i18n, football_s)} ": " {s}</span>
+                    <span class="mr-4">{move || t!(i18n, football_wdl)} ": " {wdl}</span>
+                    <span>{move || t!(i18n, football_tg)} ": " {tg}</span>
                 </span>
             </div>
         }),
         _ => Either::Left(view! {
-            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
+            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_finished)}</p>
         }),
     }
 }
@@ -221,7 +221,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             </div>
 
             {extra}
-            <OverSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
+            <ResultSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
             {summary_view}
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
