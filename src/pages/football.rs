@@ -424,7 +424,7 @@ fn ResultDetail(
                     })
                 }
                 _ => Either::Left(view! {
-                    <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_finished)}</p>
+                    <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_full)}</p>
                 }),
             }}
         </div>

@@ -74,7 +74,7 @@ fn ResultSection(
             </div>
         }),
         _ => Either::Left(view! {
-            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_finished)}</p>
+            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
         }),
     }
 }
