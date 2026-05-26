@@ -6,10 +6,7 @@ use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 
 #[cfg(feature = "oth")]
 use crate::models::{Calc, Line};
-use crate::models::{
-    Football, FootballEvent, FootballStats, FootballsResult, LineupPlayer, SideStats, SideStatsInt,
-    TeamLineup,
-};
+use crate::models::{Football, FootballEvent, FootballStats, FootballsResult, TeamLineup};
 use crate::server::{analysis_db, category_db, db::get_db, topic_db};
 
 // ── Datetime formatters ────────────────────────────────────────────────────────
@@ -40,7 +37,6 @@ struct FootballDoc {
     #[serde(default)]
     stars: i64,
     status: i8,
-    /// 正式赛果各字段，未完成则为 None
     s: Option<String>,
     wdl: Option<u8>,
     tg: Option<u8>,
@@ -143,24 +139,26 @@ struct CountResult {
     count: u64,
 }
 
-// ── Doc → Model ──────────────────────────────────────────────────────────
+// ── Doc → Model ────────────────────────────────────────────────────────────────
 
-fn lp_into(d: LineupPlayerDoc) -> LineupPlayer {
-    LineupPlayer {
+fn lp_to(d: LineupPlayerDoc) -> crate::models::LineupPlayer {
+    crate::models::LineupPlayer {
         number: d.number,
         name: d.name,
         position: d.position,
     }
 }
-fn tl_into(d: TeamLineupDoc) -> TeamLineup {
+
+fn tl_to(d: TeamLineupDoc) -> TeamLineup {
     TeamLineup {
         formation: d.formation,
         coach: d.coach,
-        starters: d.starters.into_iter().map(lp_into).collect(),
-        substitutes: d.substitutes.into_iter().map(lp_into).collect(),
+        starters: d.starters.into_iter().map(lp_to).collect(),
+        substitutes: d.substitutes.into_iter().map(lp_to).collect(),
     }
 }
-fn fe_into(d: FootballEventDoc) -> FootballEvent {
+
+fn fe_to(d: FootballEventDoc) -> FootballEvent {
     FootballEvent {
         minute: d.minute,
         extra: d.extra,
@@ -172,37 +170,40 @@ fn fe_into(d: FootballEventDoc) -> FootballEvent {
         note: d.note,
     }
 }
-fn ss_into(d: SideStatsDoc) -> SideStats {
-    SideStats {
+
+fn ss_to(d: SideStatsDoc) -> crate::models::SideStats {
+    crate::models::SideStats {
         home: d.home,
         away: d.away,
-    }
-}
-fn ssi_into(d: SideStatsIntDoc) -> SideStatsInt {
-    SideStatsInt {
-        home: d.home,
-        away: d.away,
-    }
-}
-fn fst_into(d: FootballStatsDoc) -> FootballStats {
-    FootballStats {
-        possession: ss_into(d.possession),
-        shots: ssi_into(d.shots),
-        shots_on_target: ssi_into(d.shots_on_target),
-        corners: ssi_into(d.corners),
-        fouls: ssi_into(d.fouls),
-        offsides: ssi_into(d.offsides),
-        yellow_cards: ssi_into(d.yellow_cards),
-        red_cards: ssi_into(d.red_cards),
-        passes: ssi_into(d.passes),
-        pass_accuracy: ss_into(d.pass_accuracy),
     }
 }
 
-// ── oth-only helpers ────────────────────────────────────────────────────────
+fn ssi_to(d: SideStatsIntDoc) -> crate::models::SideStatsInt {
+    crate::models::SideStatsInt {
+        home: d.home,
+        away: d.away,
+    }
+}
+
+fn fst_to(d: FootballStatsDoc) -> FootballStats {
+    FootballStats {
+        possession: ss_to(d.possession),
+        shots: ssi_to(d.shots),
+        shots_on_target: ssi_to(d.shots_on_target),
+        corners: ssi_to(d.corners),
+        fouls: ssi_to(d.fouls),
+        offsides: ssi_to(d.offsides),
+        yellow_cards: ssi_to(d.yellow_cards),
+        red_cards: ssi_to(d.red_cards),
+        passes: ssi_to(d.passes),
+        pass_accuracy: ss_to(d.pass_accuracy),
+    }
+}
+
+// ── oth-only helpers ───────────────────────────────────────────────────────────
 
 #[cfg(feature = "oth")]
-fn line_into(d: LineDoc) -> Line {
+fn line_to(d: LineDoc) -> Line {
     Line {
         win: d.win,
         draw: d.draw,
@@ -212,7 +213,7 @@ fn line_into(d: LineDoc) -> Line {
 }
 
 #[cfg(feature = "oth")]
-fn calc_into(d: CalcDoc) -> Calc {
+fn calc_to(d: CalcDoc) -> Calc {
     Calc {
         s: d.s,
         wdl: d.wdl,
@@ -236,9 +237,9 @@ fn il_pair<T: Clone>(v: &[T]) -> Vec<T> {
 async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let fid = rid_str(&doc.id);
     #[cfg(feature = "oth")]
-    let lines: Vec<Line> = doc.lines.into_iter().map(line_into).collect();
+    let lines: Vec<Line> = doc.lines.into_iter().map(line_to).collect();
     #[cfg(feature = "oth")]
-    let calcs: Vec<Calc> = doc.calcs.into_iter().map(calc_into).collect();
+    let calcs: Vec<Calc> = doc.calcs.into_iter().map(calc_to).collect();
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
     let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;
@@ -268,15 +269,15 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         il_calcs: il_pair(&calcs),
         #[cfg(feature = "oth")]
         all_calcs: calcs,
-        home_lineup: doc.home_lineup.map(tl_into),
-        away_lineup: doc.away_lineup.map(tl_into),
+        home_lineup: doc.home_lineup.map(tl_to),
+        away_lineup: doc.away_lineup.map(tl_to),
         events: doc
             .events
             .unwrap_or_default()
             .into_iter()
-            .map(fe_into)
+            .map(fe_to)
             .collect(),
-        stats: doc.stats.map(fst_into),
+        stats: doc.stats.map(fst_to),
         summary,
         analyses,
         result_s: doc.s,
@@ -317,7 +318,7 @@ pub async fn get_footballs_in_position(
     let mut res = get_db()
         .query("SELECT * FROM footballs WHERE kick_off_at >= $start AND kick_off_at < $end AND status >= 0 ORDER BY kick_off_at DESC LIMIT $limit")
         .bind(("start", start_utc))
-                .bind(("end", end_utc))
+        .bind(("end", end_utc))
         .bind(("limit", limit))
         .await
         .map_err(|e| e.to_string())?;
@@ -352,7 +353,6 @@ pub async fn get_footballs(
     status_max: i8,
 ) -> Result<FootballsResult, String> {
     let ps = constant::config().page_size;
-    // Count
     let mut cres = get_db()
         .query("SELECT count() FROM footballs WHERE status >= $min AND status <= $max GROUP ALL")
         .bind(("min", status_min))
@@ -421,7 +421,6 @@ pub async fn get_footballs_by_topic(
 ) -> Result<FootballsResult, String> {
     let ps = constant::config().page_size;
 
-    // Fetch distinct football_ids linked to this topic
     let mut rel_res = get_db()
         .query(
             "SELECT VALUE football_id FROM topics_rel WHERE topic_id = $tid AND football_id IS NOT NONE",
@@ -431,7 +430,6 @@ pub async fn get_footballs_by_topic(
         .map_err(|e| e.to_string())?;
     let fids_raw: Vec<RecordId> = rel_res.take(0).map_err(|e| e.to_string())?;
 
-    // Deduplicate
     let mut fids: Vec<String> = Vec::new();
     for rid in &fids_raw {
         let fid = rid_str(rid);
