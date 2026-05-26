@@ -1,4 +1,4 @@
-use crate::i18n::{t, t_display, td_string, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
 use leptos::either::Either;
 use leptos::html::Input;
@@ -667,7 +667,7 @@ pub fn RegisterPage() -> impl IntoView {
                             <p class="modal-text">
                                 {move || {
                                     let name = reg_username.get();
-                                    td_string!(i18n.get_locale(), register_success, username = &name)
+                                    t_display!(i18n, register_success, username = &name).to_string()
                                 }}
                             </p>
                             <div class="modal-actions">

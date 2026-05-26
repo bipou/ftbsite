@@ -85,19 +85,26 @@ pub struct FootballStats {
     pub pass_accuracy: SideStats,
 }
 
-// ── AI 分析文章 ─────────────────────────────────────────────────────────
+// ── 分析文章 ────────────────────────────────────────────────────────────
 
+/// 分析文章（footballs_analyses 表）
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FootballAnalysis {
     pub id: String,
     pub football_id: String,
+    /// AI 分析为 None，用户分析指向 users 表
+    pub user_id: Option<String>,
+    /// 赛后 AI 分析的摘要，其他类型为空串
     pub summary: String,
-    pub content_md: String,
+    /// Markdown 原文（落库的唯一文本字段）
+    pub content: String,
+    /// 渲染后的 HTML（服务端转换，不落库）
     pub content_html: String,
-    pub analysis_type: String,
-    pub language: String,
-    pub model: String,
+    /// AI 模型名，用户分析为空串
+    pub ai_model: String,
+    /// 生成/发表时间
     pub generated_at: String,
+    /// 0=草稿 1=发布 -1=删除
     pub status: i8,
 }
 
@@ -142,6 +149,10 @@ pub struct Football {
     pub stats: Option<FootballStats>,
     pub summary: Option<String>,
     pub analyses: Vec<FootballAnalysis>,
+    /// 赛事趣名或文章标题
+    pub article_title: Option<String>,
+    /// 0=文章 >0=赛事
+    pub ana_type: u8,
     pub category: Option<Category>,
     pub topics: Vec<Topic>,
 }

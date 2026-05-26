@@ -362,10 +362,65 @@ fn StatRowInt(#[prop(into)] label: Signal<String>, hv: u16, av: u16) -> impl Int
     }
 }
 
-// ── AI 分析 ──────────────────────────────────────────────────────────────
+// ── 分析文章 ────────────────────────────────────────────────────────────
 
 #[component]
-fn AnalysisSection(analyses: Vec<crate::models::FootballAnalysis>) -> impl IntoView {
+fn ArticleHeader(
+    #[prop(into)] title: Option<String>,
+    #[prop(into)] created: String,
+    hits: u64,
+) -> impl IntoView {
+    let i18n = use_i18n();
+    let title_text = title.unwrap_or_default();
+    view! {
+        <div class=CARD_SECTION>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
+                {title_text}
+            </h1>
+            <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
+                <span>{move || t!(i18n, football_created)} ": " {created}</span>
+                <span>{move || t!(i18n, football_hits)} " " {hits}</span>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn AnalysisCard(
+    analysis: crate::models::FootballAnalysis,
+    #[prop(into)] ana_type: u8,
+) -> impl IntoView {
+    let i18n = use_i18n();
+    let is_ai = ana_type > 0;
+    view! {
+        <div class="mb-6">
+            <div class=format!("{} mb-2", TEXT_XS_MUTED)>
+                {if is_ai {
+                    format!("{}", t_display!(i18n, analysis_ai))
+                } else {
+                    // TODO: 通过 user_id 查用户名
+                    String::from("球迷")
+                }}
+                {" · "}
+                {analysis.generated_at}
+            </div>
+            <div inner_html=analysis.content_html></div>
+            {if is_ai {
+                Either::Right(view! {
+                    <p class="text-xs text-gray-400 mt-2">{format!("{}", t_display!(i18n, analysis_ai_label))}</p>
+                })
+            } else {
+                Either::Left(())
+            }}
+        </div>
+    }
+}
+
+#[component]
+fn AnalysisSection(
+    analyses: Vec<crate::models::FootballAnalysis>,
+    #[prop(into)] ana_type: u8,
+) -> impl IntoView {
     let i18n = use_i18n();
     if analyses.is_empty() {
         return Either::Left(());
@@ -375,12 +430,9 @@ fn AnalysisSection(analyses: Vec<crate::models::FootballAnalysis>) -> impl IntoV
             <h2 class=SECTION_H2>{move || t!(i18n, football_analysis)}</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none">
                 {analyses.into_iter().map(|a| view! {
-                    <div class="mb-4">
-                        <div inner_html=a.content_html></div>
-                    </div>
+                    <AnalysisCard analysis=a ana_type=ana_type/>
                 }).collect::<Vec<_>>()}
             </div>
-            <p class="text-xs text-gray-400 mt-4">{move || t!(i18n, football_ai_label)}</p>
         </div>
     })
 }
@@ -456,6 +508,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
 #[component]
 fn FootballDetail(f: Football) -> impl IntoView {
     let i18n = use_i18n();
+    let ana_type = f.ana_type;
     let header_f = f.clone();
     let extra = render_detail_extra(&f);
     let home_lineup = f.home_lineup;
@@ -468,17 +521,28 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let result_wdl = f.result_wdl;
     let result_tg = f.result_tg;
     let result_gd = f.result_gd;
+    let article_title = f.article_title;
     view! {
         <p class={format!("{} text-center mb-4", TEXT_WARN)}>
             {move || t!(i18n, site_warn)}
         </p>
-        <FootballHeader f=header_f/>
-        <ResultDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
-        <LineupSection home=home_lineup away=away_lineup/>
-        <EventsSection events=events/>
-        <StatsSection stats=stats/>
-        {extra}
-        <AnalysisSection analyses=analyses/>
+        {if ana_type == 0 {
+            Either::Left(view! {
+                <ArticleHeader title=article_title created=f.created_at hits=f.hits/>
+            })
+        } else {
+            Either::Right(view! {
+                <div>
+                    <FootballHeader f=header_f/>
+                    <ResultDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
+                    <LineupSection home=home_lineup away=away_lineup/>
+                    <EventsSection events=events/>
+                    <StatsSection stats=stats/>
+                    {extra}
+                </div>
+            })
+        }}
+        <AnalysisSection analyses=analyses ana_type=ana_type/>
         <DetailTopicsSection topics=topics/>
     }
 }

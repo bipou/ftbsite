@@ -6,7 +6,7 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_query_map;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{FootballCard, Footer, Nav, Pagination};
+use crate::components::{ArticleCard, FootballCard, Footer, Nav, Pagination};
 use crate::models::{Category, FootballsResult};
 
 use crate::shared::common::{Either3, record_key};
@@ -219,8 +219,15 @@ pub fn FootballsPage() -> impl IntoView {
                             } else {
                                 Either3::Right(Either::Right(view! {
                                     <div class={GRID_3}>
-                                        {data.items.into_iter().map(|f| view! {
-                                            <FootballCard football=f/>
+                                        {data.items.into_iter().map(|f| {
+                                            let at = f.ana_type;
+                                            view! {
+                                                {if at == 0 {
+                                                    Either::Left(view! { <ArticleCard football=f/> })
+                                                } else {
+                                                    Either::Right(view! { <FootballCard football=f/> })
+                                                }}
+                                            }
                                         }).collect::<Vec<_>>()}
                                     </div>
                                     <Pagination page_info=pi base_url=base/>

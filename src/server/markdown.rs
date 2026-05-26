@@ -1,6 +1,6 @@
-use pulldown_cmark::{Options, Parser, html};
+use pulldown_cmark::{html, Options, Parser};
 
-/// 将 markdown 渲染为 HTML（纯函数，服务端调用）
+/// 将 Markdown 渲染为 HTML（纯函数，服务端调用）
 pub fn render_md(md: &str) -> String {
     let mut opts = Options::empty();
     opts.insert(Options::ENABLE_TABLES);

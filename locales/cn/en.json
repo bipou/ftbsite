@@ -45,6 +45,8 @@
   "football_stat_passes": "Passes",
   "football_stat_pass_accuracy": "Pass accuracy",
   "football_ai_label": "AI-generated content, for reference only",
+  "analysis_ai": "AI Analysis",
+  "analysis_ai_label": "AI-generated content, for reference only",
 
   "register": "Register",
   "sign_in": "Sign in",

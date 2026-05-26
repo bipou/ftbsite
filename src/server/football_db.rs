@@ -55,6 +55,10 @@ struct FootballDoc {
     events: Option<Vec<FootballEventDoc>>,
     #[serde(default)]
     stats: Option<FootballStatsDoc>,
+    #[serde(default)]
+    article_title: Option<String>,
+    #[serde(default)]
+    ana_type: i8,
 }
 
 #[derive(Debug, Deserialize, SurrealValue)]
@@ -243,10 +247,11 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
     let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;
-    let summary = analyses
-        .iter()
-        .find(|a| a.analysis_type == "post_match" && a.status == 1)
-        .map(|a| a.summary.clone());
+    let summary = if doc.ana_type == 2 {
+        analyses.iter().find(|a| a.status == 1).map(|a| a.summary.clone())
+    } else {
+        None
+    };
 
     Ok(Football {
         id: fid,
@@ -280,6 +285,8 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         stats: doc.stats.map(fst_to),
         summary,
         analyses,
+        article_title: doc.article_title,
+        ana_type: doc.ana_type as u8,
         result_s: doc.s,
         result_wdl: doc.wdl,
         result_tg: doc.tg,

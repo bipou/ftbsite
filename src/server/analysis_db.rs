@@ -1,5 +1,6 @@
 use crate::models::FootballAnalysis;
 use crate::server::db::get_db;
+use crate::server::markdown::render_md;
 use crate::shared::common;
 use serde::Deserialize;
 use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
@@ -9,26 +10,26 @@ struct AnalysisDoc {
     id: RecordId,
     football_id: RecordId,
     #[serde(default)]
+    user_id: Option<RecordId>,
+    #[serde(default)]
     summary: String,
-    content_md: String,
-    content_html: String,
-    analysis_type: String,
-    language: String,
-    model: String,
+    content: String,
+    #[serde(default)]
+    ai_model: String,
     generated_at: Sdt,
     status: i8,
 }
 
 fn analysis_into(d: AnalysisDoc) -> FootballAnalysis {
+    let content_html = render_md(&d.content);
     FootballAnalysis {
         id: common::rid_str(&d.id),
         football_id: common::rid_str(&d.football_id),
+        user_id: d.user_id.as_ref().map(common::rid_str),
         summary: d.summary,
-        content_md: d.content_md,
-        content_html: d.content_html,
-        analysis_type: d.analysis_type,
-        language: d.language,
-        model: d.model,
+        content: d.content,
+        content_html,
+        ai_model: d.ai_model,
         generated_at: common::ymdhmsz8(&d.generated_at),
         status: d.status,
     }
