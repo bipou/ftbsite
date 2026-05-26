@@ -124,7 +124,7 @@ pub struct Football {
     pub updated_at: String,
     pub hits: u64,
     pub stars: u64,
-    /// Status: 4=both,3=picks,2=hot,1=published,0=draft,-1=deleted
+    /// Status: 4=both,3=picks,2=hot,1=published,0=submit,-1=draft,-2=deleted
     pub status: i8,
     /// 正式赛果——比分，如 "3:1"（footballs 表直存，未完成则为 None）
     pub result_s: Option<String>,

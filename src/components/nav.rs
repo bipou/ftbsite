@@ -1,6 +1,6 @@
 use crate::app::use_auth;
 use crate::i18n::t;
-use crate::i18n::{Locale, use_i18n};
+use crate::i18n::{Locale, td_string, use_i18n};
 use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -124,7 +124,7 @@ fn LangDropdown() -> impl IntoView {
                             }
                             class=move || if i18n.get_locale() == locale { "lang-active" } else { "" }
                         >
-                            {move || t!(i18n, lang)}
+                            {td_string!(locale, lang)}
                         </button>
                     }
                 }).collect::<Vec<_>>()}
