@@ -10,6 +10,7 @@ pub fn MarkdownEditor(
     name: &'static str,
     #[prop(into)] value: Signal<String>,
     #[prop(default = 15)] rows: u32,
+    #[prop(into, default = "user".to_string())] scope: String,
 ) -> impl IntoView {
     let i18n = use_i18n();
     let (markdown, set_markdown) = signal(value.get());
@@ -61,6 +62,7 @@ pub fn MarkdownEditor(
                 data_url,
                 _filename: filename,
                 nonce: n,
+                scope: scope.clone(),
             });
             set_upload_trigger.set(None);
         }

@@ -92,8 +92,8 @@ pub async fn register(
         return Err(ServerFnError::new("register_password_weak"));
     }
 
-    // 将 markdown 中 /uploads/tmp/imgs/ 图片 rename 到 /uploads/active/imgs/
-    let introduction = move_uploads(&introduction)?;
+    // 将临时图片持久化到 /uploads/user/active/imgs/
+    let introduction = move_uploads(&introduction, "user", false)?;
 
     let data = user_db::RegisterData {
         username,

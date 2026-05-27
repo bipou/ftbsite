@@ -58,6 +58,11 @@ pub async fn post_analysis(
         .await
         .map_err(|e| ServerFnError::new(e))?;
 
+    // 将临时图片持久化到 /uploads/football/draft/ 或 /uploads/football/active/
+    let draft = status == -1;
+    let content = crate::server::upload::move_uploads(&content, "football", draft)
+        .map_err(|e| ServerFnError::new(e))?;
+
     analysis_db::insert_analysis(&fid, &content, &user.id)
         .await
         .map_err(|e| ServerFnError::new(e))?;
@@ -162,6 +167,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                         <MarkdownEditor
                             name="content"
                             value=content
+                            scope="football"
                         />
                     </div>
 

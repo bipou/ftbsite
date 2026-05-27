@@ -36,8 +36,9 @@ pub async fn upload_image(
     data_url: String,
     _filename: String,
     nonce: String,
+    scope: String,
 ) -> Result<String, ServerFnError> {
     use crate::server::upload::{save_upload, verify_nonce};
     verify_nonce(&nonce)?;
-    save_upload(&data_url)
+    save_upload(&data_url, &scope)
 }

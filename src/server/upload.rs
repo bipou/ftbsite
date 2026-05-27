@@ -11,6 +11,10 @@ pub static NONCE_STORE: std::sync::OnceLock<Mutex<HashMap<String, Instant>>> =
 
 pub static NONCE_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
+const UPLOAD_TMP: &str = "/uploads/{scope}/tmp/imgs/{fname}";
+const UPLOAD_DRAFT: &str = "/uploads/{scope}/draft/imgs/{fname}";
+const UPLOAD_ACTIVE: &str = "/uploads/{scope}/active/imgs/{fname}";
+
 /// 校验 nonce 是否存在且未过期（30 分钟）
 pub fn verify_nonce(nonce: &str) -> Result<(), ServerFnError> {
     use std::time::Duration;
@@ -26,8 +30,8 @@ pub fn verify_nonce(nonce: &str) -> Result<(), ServerFnError> {
 
 // ── 图片上传 ─────────────────────────────────────────────────────────────
 
-/// 解析 data URL 并写入 tmp/imgs/，返回访问路径
-pub fn save_upload(data_url: &str) -> Result<String, ServerFnError> {
+/// 解析 data URL 并写入 scope/tmp/imgs/，返回访问路径
+pub fn save_upload(data_url: &str, scope: &str) -> Result<String, ServerFnError> {
     use base64::Engine;
     use base64::engine::general_purpose::STANDARD;
     use std::io::Write;
@@ -53,7 +57,7 @@ pub fn save_upload(data_url: &str) -> Result<String, ServerFnError> {
         return Err(ServerFnError::new("upload_failed"));
     }
 
-    let dir = uploads_tmp_dir();
+    let dir = uploads_dir(scope, "tmp");
     std::fs::create_dir_all(&dir).map_err(|_| ServerFnError::new("upload_failed"))?;
 
     let ts = std::time::SystemTime::now()
@@ -67,22 +71,33 @@ pub fn save_upload(data_url: &str) -> Result<String, ServerFnError> {
     f.write_all(&bytes)
         .map_err(|_| ServerFnError::new("upload_failed"))?;
 
-    Ok(format!("/uploads/tmp/imgs/{fname}"))
+    Ok(UPLOAD_TMP
+        .replace("{scope}", scope)
+        .replace("{fname}", &fname))
 }
 
-/// 将 markdown 中 /uploads/tmp/imgs/xxx 文件 rename 到 active 目录，并替换 URL 路径
-pub fn move_uploads(md: &str) -> Result<String, ServerFnError> {
-    let dest_dir = uploads_active_dir();
+/// 将 markdown 中 scope/tmp/ 图片 move 到 draft 或 active
+pub fn move_uploads(md: &str, scope: &str, draft: bool) -> Result<String, ServerFnError> {
+    let stage = if draft { "draft" } else { "active" };
+    let dest_dir = uploads_dir(scope, stage);
     std::fs::create_dir_all(&dest_dir).map_err(|_| ServerFnError::new("upload_failed"))?;
 
-    let tmp_dir = uploads_tmp_dir();
-    let from = "/uploads/tmp/imgs/";
-    let to = "/uploads/active/imgs/";
+    let tmp_dir = uploads_dir(scope, "tmp");
+    let from = UPLOAD_TMP.replace("{scope}", scope).replace("/{fname}", "");
+    let to = if draft {
+        UPLOAD_DRAFT
+            .replace("{scope}", scope)
+            .replace("/{fname}", "")
+    } else {
+        UPLOAD_ACTIVE
+            .replace("{scope}", scope)
+            .replace("/{fname}", "")
+    };
 
     let mut result = md.to_string();
     let mut search_from = 0;
 
-    while let Some(pos) = result[search_from..].find(from) {
+    while let Some(pos) = result[search_from..].find(&from) {
         let abs = search_from + pos;
         let rest = &result[abs + from.len()..];
         let fname_len = rest
@@ -99,28 +114,23 @@ pub fn move_uploads(md: &str) -> Result<String, ServerFnError> {
         search_from = abs + from.len() + fname_len;
     }
 
-    result = result.replace(from, to);
+    result = result.replace(&from, &to);
     Ok(result)
 }
 
-fn uploads_tmp_dir() -> std::path::PathBuf {
+fn uploads_dir(scope: &str, stage: &str) -> std::path::PathBuf {
     std::env::var("LEPTOS_SITE_ROOT")
         .map(|root| {
             std::path::PathBuf::from(root)
                 .join("uploads")
-                .join("tmp")
+                .join(scope)
+                .join(stage)
                 .join("imgs")
         })
-        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/tmp/imgs"))
-}
-
-fn uploads_active_dir() -> std::path::PathBuf {
-    std::env::var("LEPTOS_SITE_ROOT")
-        .map(|root| {
-            std::path::PathBuf::from(root)
-                .join("uploads")
-                .join("active")
+        .unwrap_or_else(|_| {
+            std::path::PathBuf::from("public/uploads")
+                .join(scope)
+                .join(stage)
                 .join("imgs")
         })
-        .unwrap_or_else(|_| std::path::PathBuf::from("public/uploads/active/imgs"))
 }
