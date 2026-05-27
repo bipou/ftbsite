@@ -31,7 +31,7 @@ pub async fn init() {
 
     DB.set(db).expect("DB already set");
 
-    leptos::logging::log!("SurrealDB ready: {db_url} ns={db_ns} db={db_name}");
+    leptos::logging::log!("SurrealDB 就绪： {db_url} ns={db_ns} db={db_name}");
 }
 
 pub fn get_db() -> &'static Surreal<Client> {

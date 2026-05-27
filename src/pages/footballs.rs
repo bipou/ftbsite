@@ -6,7 +6,7 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_query_map;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{ArticleCard, FootballCard, Footer, Nav, Pagination};
+use crate::components::{ArticleCard, CategorySelect, FootballCard, Footer, Nav, Pagination};
 use crate::models::{Category, FootballsResult};
 
 use crate::shared::common::{Either3, record_key};
@@ -197,18 +197,7 @@ pub fn FootballsPage() -> impl IntoView {
                     </a>
                     <Suspense fallback=|| ()>
                         {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
-                            view! {
-                                {cats.into_iter().map(|cat| {
-                                    let kid = crate::shared::common::record_key(&cat.id).to_string();
-                                    let url = format!("/{}/footballs?category={}", loc_str.get(), kid);
-                                    let cat_name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
-                                    view! {
-                                        <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                            {cat_name}
-                                        </a>
-                                    }
-                                }).collect::<Vec<_>>()}
-                            }
+                            view! { <CategorySelect all=cats/> }
                         })}
                     </Suspense>
                 </nav>
