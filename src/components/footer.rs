@@ -6,22 +6,38 @@ use leptos::prelude::*;
 #[component]
 pub fn Footer() -> impl IntoView {
     let i18n = use_i18n();
+
+    #[cfg(feature = "oth")]
+    let google_ads = view! {
+        <ins
+            class="adsbygoogle"
+            style="display: block"
+            data-ad-client="ca-pub-2498669832870483"
+            data-ad-slot="3837498575"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+        ></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    };
+    #[cfg(not(feature = "oth"))]
+    let google_ads = ();
+
+    #[cfg(feature = "oth")]
+    let beian = ();
+    #[cfg(not(feature = "oth"))]
+    let beian = view! {
+        <small class="text-xs text-gray-500">
+            "琼ICP备2024032236号-13"
+            " · "
+            "琼ICP备2024032236号-13"
+        </small>
+    };
+
     view! {
         <footer class={format!("mt-16 border-t border-gray-200 dark:border-gray-700 {}", BG_CARD)}>
-            #[cfg(feature = "oth")]
-            {
-                <ins
-                    class="adsbygoogle"
-                    style="display: block"
-                    data-ad-client="ca-pub-2498669832870483"
-                    data-ad-slot="3837498575"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"
-                ></ins>
-                <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            }
+            {google_ads}
             <div class={format!("{} text-center text-sm {} space-y-2", WIDE, TEXT_SUBTLE)}>
                 <p class=TEXT_WARN>
                     {move || t!(i18n, site_warn)}
@@ -33,11 +49,7 @@ pub fn Footer() -> impl IntoView {
                     " ©2024-2026 "
                     {move || t!(i18n, copyright)}
                 </p>
-                <small class="text-xs text-gray-500">
-                    琼ICP备2024032236号-13
-                    " · "
-                    琼ICP备2024032236号-13
-                </small>
+                {beian}
             </div>
         </footer>
     }
