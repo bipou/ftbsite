@@ -22,8 +22,11 @@
   "not_calc": "尚未计算",
   "not_full": "尚未全场",
 
-  "footballs_today": "今日剖析",
-  "footballs_yesterday": "昨日复盘",
+  "footballs_today": "用户剖析",
+  "footballs_yesterday": "赛后复盘",
+  "user_analysis": "用户剖析",
+  "pre_match_analysis": "赛前分析",
+  "post_match_review": "赛后复盘",
   "football_init_odds": "初始赔率：",
   "football_last_odds": "最新赔率：",
   "football_win": "胜",

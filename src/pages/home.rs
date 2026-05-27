@@ -1,45 +1,54 @@
-use crate::i18n::t;
+use crate::i18n::{t, t_display, use_i18n};
 use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{FootballCard, Footer, Nav};
-use crate::i18n::use_i18n;
+use crate::components::{ArticleCard, FootballCard, Footer, Nav};
 use crate::models::Football;
 
-use crate::shared::constant::{
-    EMPTY, GRID_3, HOVER_UNDERLINE, NO_DATA, TEXT_SUBTLE, TEXT_WARN, WIDE,
-};
-use crate::shared::locale::LocaleA;
+use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_SUBTLE, TEXT_WARN, WIDE};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HomeData {
-    pub jt: Vec<Football>,
-    pub zt: Vec<Football>,
+    pub user: Vec<Football>,
+    pub pre: Vec<Football>,
+    pub post: Vec<Football>,
 }
 
 #[server]
 pub async fn get_home_data() -> Result<HomeData, ServerFnError> {
     use crate::server::football_db;
-    let jt = football_db::get_footballs_in_position("jt", 6)
+    let all = football_db::get_home_footballs(12)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let zt = football_db::get_footballs_in_position("zt", 6)
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    Ok(HomeData { jt, zt })
+    let mut user = Vec::new();
+    let mut pre = Vec::new();
+    let mut post = Vec::new();
+    for f in all {
+        match f.ana_type {
+            0 if user.len() < 3 => user.push(f),
+            1 if pre.len() < 3 => pre.push(f),
+            2 if post.len() < 3 => post.push(f),
+            _ => {}
+        }
+    }
+    Ok(HomeData { user, pre, post })
 }
 
 #[component]
-fn TodaySection(footballs: Vec<Football>) -> impl IntoView {
+fn HomeSection(ana_type: u8, footballs: Vec<Football>) -> impl IntoView {
     let i18n = use_i18n();
     view! {
         <section class="mb-12">
             <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-blue-200 dark:border-blue-800 pb-2 mb-4 flex items-center gap-2">
-                <span class="text-blue-500">"⚽"</span>
-                {move || t!(i18n, footballs_today)}
+                <span class="text-blue-500">{match ana_type { 0 => "✍️", 1 => "📊", _ => "📋" }}</span>
+                {match ana_type {
+                    0 => {t_display!(i18n, user_analysis).to_string()},
+                    1 => {t_display!(i18n, pre_match_analysis).to_string()},
+                    _ => {t_display!(i18n, post_match_review).to_string()},
+                }}
             </h2>
             {if footballs.is_empty() {
                 Either::Left(view! {
@@ -50,50 +59,16 @@ fn TodaySection(footballs: Vec<Football>) -> impl IntoView {
             } else {
                 Either::Right(view! {
                     <div class={GRID_3}>
-                        {footballs.into_iter().map(|f| view! {
-                            <FootballCard football=f/>
+                        {footballs.into_iter().map(|f| {
+                            if f.ana_type == 0 {
+                                Either::Left(view! { <ArticleCard football=f/> })
+                            } else {
+                                Either::Right(view! { <FootballCard football=f/> })
+                            }
                         }).collect::<Vec<_>>()}
                     </div>
                 })
             }}
-            <div class="mt-4 text-right">
-                <LocaleA href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
-                    {move || t!(i18n, more)}
-                </LocaleA>
-            </div>
-        </section>
-    }
-}
-
-#[component]
-fn YesterdaySection(footballs: Vec<Football>) -> impl IntoView {
-    let i18n = use_i18n();
-    view! {
-        <section>
-            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 flex items-center gap-2">
-                <span class="text-gray-400">"📋"</span>
-                {move || t!(i18n, footballs_yesterday)}
-            </h2>
-            {if footballs.is_empty() {
-                Either::Left(view! {
-                    <div class=EMPTY>
-                        <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
-                    </div>
-                })
-            } else {
-                Either::Right(view! {
-                    <div class={GRID_3}>
-                        {footballs.into_iter().map(|f| view! {
-                            <FootballCard football=f/>
-                        }).collect::<Vec<_>>()}
-                    </div>
-                })
-            }}
-            <div class="mt-4 text-right">
-                <LocaleA href="/footballs" class=format!("text-sm text-blue-500 {}", HOVER_UNDERLINE)>
-                    {move || t!(i18n, more)}
-                </LocaleA>
-            </div>
         </section>
     }
 }
@@ -124,12 +99,11 @@ pub fn HomePage() -> impl IntoView {
                 </div>
             }>
                 {move || data.get().map(|result| match result {
-                    Err(e) => Either::Left(view! {
-                        <p class="text-red-500 text-center py-8">{e.to_string()}</p>
-                    }),
+                    Err(e) => Either::Left(view! { <p class="text-red-500 text-center py-8">{e.to_string()}</p> }),
                     Ok(d) => Either::Right(view! {
-                        <TodaySection footballs=d.jt/>
-                        <YesterdaySection footballs=d.zt/>
+                        <HomeSection ana_type=0 footballs=d.user/>
+                        <HomeSection ana_type=1 footballs=d.pre/>
+                        <HomeSection ana_type=2 footballs=d.post/>
                     }),
                 })}
             </Suspense>

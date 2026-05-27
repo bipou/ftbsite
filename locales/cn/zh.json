@@ -19,8 +19,11 @@
 
   "not_full": "尚未全场",
 
-  "footballs_today": "今日剖析",
-  "footballs_yesterday": "昨日复盘",
+  "footballs_today": "用户剖析",
+  "footballs_yesterday": "赛后复盘",
+  "user_analysis": "用户剖析",
+  "pre_match_analysis": "赛前分析",
+  "post_match_review": "赛后复盘",
   "football_s": "比分",
   "football_wdl": "胜平负",
   "football_tg": "总进球",

@@ -22,8 +22,11 @@
   "not_calc": "Not calculated",
   "not_full": "Not full-time",
 
-  "footballs_today": "Today's Analysis",
-  "footballs_yesterday": "Yesterday's Review",
+  "footballs_today": "User Analysis",
+  "footballs_yesterday": "Post-Match Review",
+  "user_analysis": "User Analysis",
+  "pre_match_analysis": "Pre-Match",
+  "post_match_review": "Post-Match",
   "football_init_odds": "Initial odds:",
   "football_last_odds": "Latest odds:",
   "football_win": "win",

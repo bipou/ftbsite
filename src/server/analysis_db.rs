@@ -12,7 +12,7 @@ struct AnalysisDoc {
     #[serde(default)]
     user_id: Option<RecordId>,
     #[serde(default)]
-    summary: String,
+    summary: Option<String>,
     content: String,
     #[serde(default)]
     ai_model: String,
@@ -26,7 +26,7 @@ fn analysis_into(d: AnalysisDoc) -> FootballAnalysis {
         id: common::rid_str(&d.id),
         football_id: common::rid_str(&d.football_id),
         user_id: d.user_id.as_ref().map(common::rid_str),
-        summary: d.summary,
+        summary: d.summary.unwrap_or_default(),
         content: d.content,
         content_html,
         ai_model: d.ai_model,

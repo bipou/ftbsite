@@ -33,9 +33,9 @@ struct FootballDoc {
     created_at: Sdt,
     updated_at: Sdt,
     #[serde(default)]
-    hits: i64,
+    hits: Option<i64>,
     #[serde(default)]
-    stars: i64,
+    stars: Option<i64>,
     status: i8,
     s: Option<String>,
     wdl: Option<u8>,
@@ -266,8 +266,8 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         kick_off_at_mdhm8: mdhm8(&doc.kick_off_at),
         created_at: common::ymdhmsz8(&doc.created_at),
         updated_at: common::ymdhmsz8(&doc.updated_at),
-        hits: doc.hits.max(0) as u64,
-        stars: doc.stars.max(0) as u64,
+        hits: doc.hits.unwrap_or(0).max(0) as u64,
+        stars: doc.stars.unwrap_or(0).max(0) as u64,
         status: doc.status,
         #[cfg(feature = "oth")]
         il_odds: il_pair(&lines),
@@ -300,6 +300,21 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────────
+
+/// 首页取最新 12 篇（limit 为总数上限，Rust 层分组截取）
+pub async fn get_home_footballs(limit: i64) -> Result<Vec<Football>, String> {
+    let mut res = get_db()
+        .query("SELECT * FROM footballs WHERE status >= 1 ORDER BY created_at DESC LIMIT $limit")
+        .bind(("limit", limit))
+        .await
+        .map_err(|e| e.to_string())?;
+    let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
+    let mut out = Vec::new();
+    for d in docs {
+        out.push(enrich(d).await?);
+    }
+    Ok(out)
+}
 
 pub async fn get_footballs_in_position(
     position: &str,
