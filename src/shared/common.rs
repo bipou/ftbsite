@@ -6,6 +6,8 @@ use leptos::either::Either;
 pub type Either3<A, B, C> = Either<A, Either<B, C>>;
 pub type Either5<A, B, C, D, E> = Either<A, Either<B, Either<C, Either<D, E>>>>;
 pub type Either6<A, B, C, D, E, F> = Either<A, Either<B, Either<C, Either<D, Either<E, F>>>>>;
+pub type Either7<A, B, C, D, E, F, G> =
+    Either<A, Either<B, Either<C, Either<D, Either<E, Either<F, G>>>>>>;
 
 // ── Page title macros ────────────────────────────────────────────────────
 

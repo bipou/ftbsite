@@ -13,7 +13,9 @@ use leptos_router::{
 use crate::i18n::{I18nContextProvider, Locale, use_i18n};
 use crate::models::AuthUser;
 use crate::pages::{
-    admin::{AdminFootballDetailPage, AdminFootballsPage, AdminPage},
+    admin::{
+        AdminFootballDetailPage, AdminFootballsPage, AdminPage, AdminUserDetailPage, AdminUsersPage,
+    },
     auth::{RegisterPage, SignInPage, SignOutPage, UserActivatePage},
     football::{FootballDetailPage, RandomRedirect},
     footballs::FootballsPage,
@@ -121,6 +123,8 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/admin")               view=AdminPage/>
                         <Route path=path!("/:locale/admin/footballs")     view=AdminFootballsPage/>
                         <Route path=path!("/:locale/admin/football/:id")  view=AdminFootballDetailPage/>
+                        <Route path=path!("/:locale/admin/users")         view=AdminUsersPage/>
+                        <Route path=path!("/:locale/admin/users/:username") view=AdminUserDetailPage/>
                     </Routes>
                 </Router>
             </Suspense>

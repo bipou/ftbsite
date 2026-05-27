@@ -6,6 +6,8 @@ pub mod markdown_editor;
 pub mod nav;
 pub mod pagination;
 pub mod topic_input;
+pub mod user_intro;
+pub mod user_topics;
 
 pub use article_card::ArticleCard;
 pub use category_select::CategorySelect;
@@ -15,3 +17,5 @@ pub use markdown_editor::MarkdownEditor;
 pub use nav::Nav;
 pub use pagination::Pagination;
 pub use topic_input::TopicInput;
+pub use user_intro::UserIntro;
+pub use user_topics::UserTopics;

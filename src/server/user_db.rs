@@ -257,6 +257,83 @@ pub async fn activate_user(rid: &RecordId) -> Result<Option<String>, String> {
     Ok(Some(u.username))
 }
 
+/// Admin: 全量用户列表，不过滤 status
+pub async fn get_admin_users(from: i64) -> Result<UsersResult, String> {
+    let ps = constant::config().page_size;
+    let skip = ((from - 1) * ps).max(0);
+
+    let mut resp = get_db()
+        .query("SELECT count() FROM users GROUP ALL")
+        .await
+        .map_err(|e| e.to_string())?;
+    let counts: Vec<CountResult> = resp.take(0).map_err(|e| e.to_string())?;
+    let total = counts.first().map(|c| c.count).unwrap_or(0);
+
+    let mut resp = get_db()
+        .query("SELECT * FROM users ORDER BY created_at DESC LIMIT $ps START $skip")
+        .bind(("ps", ps))
+        .bind(("skip", skip))
+        .await
+        .map_err(|e| e.to_string())?;
+    let docs: Vec<UserDoc> = resp.take(0).map_err(|e| e.to_string())?;
+
+    let mut items = Vec::with_capacity(docs.len());
+    for d in docs {
+        let keywords = topic_db::get_keywords_by_user_id(&d.id)
+            .await
+            .unwrap_or_else(|e| {
+                leptos::logging::error!("get_keywords_by_user_id: {e}");
+                vec![]
+            });
+        let topics = topic_db::get_topics_by_user_id(&d.id)
+            .await
+            .unwrap_or_else(|e| {
+                leptos::logging::error!("get_topics_by_user_id: {e}");
+                vec![]
+            });
+        items.push(UserSummary {
+            id: rid_str(&d.id),
+            username: d.username,
+            created_at: common::ymd8(&d.created_at),
+            updated_at: common::ymd8(&d.updated_at),
+            status: d.status,
+            keywords,
+            topics,
+        });
+    }
+
+    Ok(UsersResult {
+        page_info: common::make_page_info(from, ps, total),
+        items,
+    })
+}
+
+/// Admin: 更新用户 status
+pub async fn update_user_status(rid: &RecordId, status: i8) -> Result<(), String> {
+    get_db()
+        .query("UPDATE $rid SET status = $status, updated_at = time::now()")
+        .bind(("rid", rid.clone()))
+        .bind(("status", status))
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Admin: 查询用户 status（用于权限校验）
+pub async fn get_user_status_by_username(username: &str) -> Result<Option<i8>, String> {
+    #[derive(Debug, Deserialize, SurrealValue)]
+    struct StatusRow {
+        status: i8,
+    }
+    let mut resp = get_db()
+        .query("SELECT status FROM users WHERE username = $username LIMIT 1")
+        .bind(("username", username.to_owned()))
+        .await
+        .map_err(|e| e.to_string())?;
+    let rows: Vec<StatusRow> = resp.take(0).map_err(|e| e.to_string())?;
+    Ok(rows.into_iter().next().map(|r| r.status))
+}
+
 /// Convenience lookup returning `(email, username)`.
 pub async fn get_user_email_username(rid: &RecordId) -> Result<Option<(String, String)>, String> {
     Ok(get_user_doc_by_id(rid)

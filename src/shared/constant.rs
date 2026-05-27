@@ -5,7 +5,9 @@ pub const HOVER_UNDERLINE: &str = "hover:underline";
 pub const BADGE_BLUE_NO_UL: &str = "badge-blue no-underline";
 pub const BADGE_GRAY: &str = "badge-gray";
 pub const BADGE_GRAY_NO_UL: &str = "badge-gray no-underline";
+#[cfg(feature = "oth")]
 pub const BADGE_GREEN: &str = "badge-green";
+#[cfg(feature = "oth")]
 pub const BADGE_RED: &str = "badge-red";
 pub const ITALIC: &str = "italic";
 

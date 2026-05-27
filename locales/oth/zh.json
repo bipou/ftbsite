@@ -22,8 +22,6 @@
   "not_calc": "尚未计算",
   "not_full": "尚未全场",
 
-  "footballs_today": "用户剖析",
-  "footballs_yesterday": "赛后复盘",
   "user_analysis": "用户剖析",
   "pre_match_analysis": "赛前分析",
   "post_match_review": "赛后复盘",
@@ -140,8 +138,20 @@
   "admin_dashboard": "管理后台",
   "admin_footballs": "足球管理",
   "admin_football_detail": "足球详情",
-  "status_hide": "隐藏",
-  "status_publish": "发布",
+  "admin_users": "用户管理",
+  "admin_data": "数据管理",
+  "admin_users_desc": "查看和管理所有注册用户。",
+  "admin_data_desc": "管理赛事数据状态与可见性。",
+  "admin_access_denied": "无权访问管理后台",
+
+  "status_both": "精选+热门",
+  "status_picks": "精选",
   "status_hot": "热门",
-  "status_picks": "精选"
+  "status_publish": "发布",
+  "status_submit": "待审",
+  "status_draft": "草稿",
+  "status_deleted": "已删除",
+  "status_active": "激活",
+  "status_inactive": "未激活",
+  "status_banned": "已禁止"
 }

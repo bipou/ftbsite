@@ -1,22 +1,19 @@
 use crate::i18n::t;
 use crate::page_title;
-use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY_NO_UL, EMPTY, FLEX_WRAP_GAP, GRID_3, H1, MAIN, NO_DATA, WIDE,
-};
+use crate::shared::constant::{BADGE_BLUE_NO_UL, EMPTY, GRID_3, H1, MAIN, NO_DATA, WIDE};
 use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::{use_params_map, use_query_map};
 
-use crate::components::{Footer, Nav, Pagination};
+use crate::components::{Footer, Nav, Pagination, UserIntro, UserTopics};
 use crate::i18n::use_i18n;
 use crate::models::{User, UserSummary, UsersResult};
 use crate::shared::common::Either3;
 use crate::shared::locale::{LocaleA, use_locale};
 
 const CARD_BLOCK_NO_UL: &str = "card p-4 block no-underline hover:shadow-md transition-shadow";
-const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
 
 // ── Server functions ───────────────────────────────────────────────────────────
 
@@ -112,79 +109,6 @@ pub fn UsersPage() -> impl IntoView {
     }
 }
 
-// ── User profile sub-components ──────────────────────────────────────────
-
-#[component]
-fn IntroSection(intro_html: String) -> impl IntoView {
-    let i18n = use_i18n();
-    if intro_html.is_empty() {
-        Either::Left(())
-    } else {
-        Either::Right(view! {
-            <div class="card p-6 mb-6">
-                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-200 mb-3">
-                    {move || t!(i18n, user_intro)}
-                </h2>
-                <article class=PROSE_CLASS inner_html=intro_html/>
-            </div>
-        })
-    }
-}
-
-#[component]
-fn KeywordsTopics(
-    keywords: Vec<crate::models::Topic>,
-    topics: Vec<crate::models::Topic>,
-) -> impl IntoView {
-    let i18n = use_i18n();
-    if keywords.is_empty() && topics.is_empty() {
-        Either::Left(())
-    } else {
-        Either::Right(view! {
-            <div class="card p-6">
-                {if !keywords.is_empty() {
-                    Either::Left(view! {
-                        <div class="mb-4">
-                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, features_topics)}</p>
-                            <div class={FLEX_WRAP_GAP}>
-                                {keywords.iter().map(|t| {
-                                    let kid = crate::shared::common::record_key(&t.id).to_string();
-                                    let url = format!("/footballs?topic={}", kid);
-                                    view! {
-                                        <a href=url class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
-                                    }
-                                }).collect::<Vec<_>>()}
-                            </div>
-                        </div>
-                    })
-                } else {
-                    Either::Right(())
-                }}
-                {if !topics.is_empty() {
-                    Either::Left(view! {
-                        <div>
-                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, related_topics)}</p>
-                            <div class={FLEX_WRAP_GAP}>
-                                {topics.iter().map(|t| {
-                                    let kid = crate::shared::common::record_key(&t.id).to_string();
-                                    let url = format!("/footballs?topic={}", kid);
-                                    view! {
-                                        <a href=url class=BADGE_GRAY_NO_UL>
-                                            {t.name.clone()}
-                                        </a>
-                                    }
-                                }).collect::<Vec<_>>()}
-                            </div>
-                        </div>
-                    })
-                } else {
-                    Either::Right(())
-                }}
-            </div>
-        })
-    }
-}
-
 #[component]
 pub fn UserProfilePage() -> impl IntoView {
     let i18n = use_i18n();
@@ -231,8 +155,8 @@ pub fn UserProfilePage() -> impl IntoView {
                                 </div>
                             </div>
 
-                            <IntroSection intro_html=intro_html/>
-                            <KeywordsTopics keywords=keywords topics=topics/>
+                            <UserIntro intro_html=intro_html/>
+                            <UserTopics keywords=keywords topics=topics/>
                         }))
                     }
                 })}

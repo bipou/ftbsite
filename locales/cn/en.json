@@ -19,8 +19,6 @@
 
   "not_full": "Not full-time",
 
-  "footballs_today": "User Analysis",
-  "footballs_yesterday": "Post-Match Review",
   "user_analysis": "User Analysis",
   "pre_match_analysis": "Pre-Match",
   "post_match_review": "Post-Match",
@@ -130,8 +128,20 @@
   "admin_dashboard": "Admin Dashboard",
   "admin_footballs": "Football Management",
   "admin_football_detail": "Football Detail",
-  "status_hide": "Hide",
-  "status_publish": "Publish",
+  "admin_users": "User Management",
+  "admin_data": "Data Management",
+  "admin_users_desc": "View and manage all registered users.",
+  "admin_data_desc": "Manage football match status and visibility.",
+  "admin_access_denied": "Access denied",
+
+  "status_both": "Picks+Hot",
+  "status_picks": "Picks",
   "status_hot": "Hot",
-  "status_picks": "Picks"
+  "status_publish": "Publish",
+  "status_submit": "Submit",
+  "status_draft": "Draft",
+  "status_deleted": "Deleted",
+  "status_active": "Active",
+  "status_inactive": "Inactive",
+  "status_banned": "Banned"
 }
