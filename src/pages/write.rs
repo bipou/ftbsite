@@ -1,0 +1,242 @@
+use crate::i18n::{t, t_display, use_i18n};
+use crate::page_title;
+use leptos::either::Either;
+use leptos::prelude::*;
+use leptos_meta::Title;
+
+use crate::components::{Footer, MarkdownEditor, Nav, TopicInput};
+use crate::shared::constant::{BADGE_BLUE_NO_UL, H1, WIDE};
+use crate::shared::locale::LocaleA;
+
+#[server]
+pub async fn get_all_categories() -> Result<Vec<crate::models::Category>, ServerFnError> {
+    use crate::server::category_db;
+    category_db::get_categories()
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
+#[server]
+pub async fn post_analysis(
+    title: String,
+    category_id: String,
+    topic_csv: String,
+    content: String,
+    status: i8,
+) -> Result<String, ServerFnError> {
+    use crate::server::auth::{decode_jwt, get_cookie_value};
+    use crate::server::{analysis_db, football_db, topic_db, user_db};
+    use axum::http::HeaderMap;
+
+    let headers: HeaderMap = leptos_axum::extract().await?;
+    let cookie = headers
+        .get("cookie")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or_default();
+    let token = get_cookie_value(cookie, "fs_token").ok_or_else(|| ServerFnError::new("未登录"))?;
+    let claims = decode_jwt(&token).map_err(|e| ServerFnError::new(e.to_string()))?;
+    let user = user_db::get_user_by_username(&claims.username)
+        .await
+        .map_err(|e| ServerFnError::new(e))?
+        .ok_or_else(|| ServerFnError::new("用户不存在"))?;
+
+    let fid = football_db::insert_article(&title, &category_id, status)
+        .await
+        .map_err(|e| ServerFnError::new(e))?;
+
+    analysis_db::insert_analysis(&fid, &content, &user.id)
+        .await
+        .map_err(|e| ServerFnError::new(e))?;
+
+    if !topic_csv.is_empty() {
+        let tids = topic_db::create_topics_from_names(&topic_csv)
+            .await
+            .map_err(|e| ServerFnError::new(e))?;
+        topic_db::link_topics_to_football(&fid, &tids)
+            .await
+            .map_err(|e| ServerFnError::new(e))?;
+    }
+
+    Ok(title)
+}
+
+// ── Category selector ────────────────────────────────────────────────────────
+
+#[component]
+fn CategorySelect(selected: RwSignal<String>) -> impl IntoView {
+    let i18n = use_i18n();
+    let (expanded, set_expanded) = signal(false);
+    let cats_res = Resource::new(|| (), |_| get_all_categories());
+
+    view! {
+        <div class="flex flex-wrap gap-2 pr-8">
+            <label class="form-label shrink-0">{move || t!(i18n, footballs_filter_category)}</label>
+            <Suspense fallback=|| ()>
+                {move || cats_res.get().map(|r| r.ok()).flatten().map(|all| {
+                    let visible: Vec<_> = if expanded.get() {
+                        all.clone()
+                    } else {
+                        all.iter().filter(|c| c.level <= 2).cloned().collect()
+                    };
+                    let has_more = all.iter().any(|c| c.level > 2);
+                    view! {
+                        <div class="flex flex-wrap gap-2">
+                            {visible.into_iter().map(|cat| {
+                                let kid = crate::shared::common::record_key(&cat.id).to_string();
+                                let name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
+                                let sel = selected;
+                                let kid2 = kid.clone();
+                                view! {
+                                    <button
+                                        type="button"
+                                        class=move || if sel.get() == kid {
+                                            BADGE_BLUE_NO_UL.to_string()
+                                        } else {
+                                            "text-sm text-gray-600 dark:text-gray-400 px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors".to_string()
+                                        }
+                                        on:click=move |_| sel.set(kid2.clone())
+                                    >
+                                        {name}
+                                    </button>
+                                }
+                            }).collect::<Vec<_>>()}
+                            {if has_more {
+                                Either::Left(view! {
+                                    <button
+                                        type="button"
+                                        class="text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-600 rounded px-2 py-0.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                        on:click=move |_| set_expanded.update(|v| *v = !*v)
+                                    >
+                                        {if expanded.get() {
+                                            Either::Left(view! { {t_display!(i18n, collapse).to_string()} })
+                                        } else {
+                                            Either::Right(view! { {t_display!(i18n, expand).to_string()} })
+                                        }}
+                                    </button>
+                                })
+                            } else {
+                                Either::Right(())
+                            }}
+                        </div>
+                    }
+                })}
+            </Suspense>
+        </div>
+    }
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
+#[component]
+pub fn WriteArticlePage() -> impl IntoView {
+    let i18n = use_i18n();
+
+    let title = RwSignal::new(String::new());
+    let category_id = RwSignal::new(String::new());
+    let topic_csv = RwSignal::new(String::new());
+    let content = RwSignal::new("## Share Analysis\n\n在此撰写您的足球分析…".to_string());
+    let (success, set_success) = signal(false);
+    let (article_title, set_article_title) = signal(String::new());
+
+    let post_action = ServerAction::<PostAnalysis>::new();
+
+    let submit = move |status: i8| {
+        post_action.dispatch(PostAnalysis {
+            title: title.get(),
+            category_id: category_id.get(),
+            topic_csv: topic_csv.get(),
+            content: content.get(),
+            status,
+        });
+    };
+
+    Effect::new(move |_| {
+        if let Some(Ok(t)) = post_action.value().get() {
+            set_article_title.set(t);
+            set_success.set(true);
+        }
+    });
+
+    let pending = post_action.pending();
+
+    view! {
+        <Title text=move || page_title!(i18n, write_article)/>
+        <Nav/>
+        <main class=WIDE>
+            <h1 class=H1>{move || t!(i18n, write_article)}</h1>
+
+            <div style:opacity=move || if success.get() { "0.35" } else { "1" }
+                style:filter=move || if success.get() { "blur(4px)" } else { "none" }
+                style:pointer-events=move || if success.get() { "none" } else { "auto" }
+                style:transition="all 0.3s"
+            >
+                <div class="space-y-4">
+                    <div>
+                        <input
+                            type="text"
+                            class="form-input w-full text-lg font-semibold"
+                            placeholder="文章标题"
+                            prop:value=title
+                            on:input=move |ev| title.set(event_target_value(&ev))
+                        />
+                    </div>
+
+                    <CategorySelect selected=category_id/>
+
+                    <TopicInput csv_out=topic_csv/>
+
+                    <div>
+                        <label class="form-label">{move || t!(i18n, analysis_content)}</label>
+                        <MarkdownEditor
+                            name="content"
+                            value=content
+                        />
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button
+                            type="button"
+                            class="btn-secondary flex-1"
+                            disabled=move || pending.get()
+                            on:click=move |_| submit(-1)
+                        >
+                            {move || t!(i18n, save_draft)}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn-primary flex-1"
+                            disabled=move || pending.get()
+                            on:click=move |_| submit(0)
+                        >
+                            {move || t!(i18n, submit_article)}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <Show when=move || success.get() fallback=|| ()>
+                <div class="modal-overlay">
+                    <div class="modal-card">
+                        <div class="modal-icon">"✓"</div>
+                        <p class="modal-text">
+                            <span class="modal-username">{article_title.get()}</span>
+                            <br/>
+                            {t_display!(i18n, share_success).to_string()}
+                            <br/>
+                            {t_display!(i18n, review_notice).to_string()}
+                        </p>
+                        <div class="modal-actions">
+                            <LocaleA href="/footballs" class="btn-primary modal-btn">
+                                {move || t!(i18n, go_list)}
+                            </LocaleA>
+                            <LocaleA href="/" class="modal-btn-primary">
+                                {move || t!(i18n, go_home)}
+                            </LocaleA>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+        </main>
+        <Footer/>
+    }
+}

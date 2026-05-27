@@ -4,3 +4,4 @@ pub mod football;
 pub mod footballs;
 pub mod home;
 pub mod users;
+pub mod write;

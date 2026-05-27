@@ -19,6 +19,7 @@ use crate::pages::{
     footballs::FootballsPage,
     home::HomePage,
     users::{UserProfilePage, UsersPage},
+    write::WriteArticlePage,
 };
 use leptos_i18n::Locale as _;
 
@@ -105,6 +106,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/sign-out")            view=SignOutPage/>
                         <Route path=path!("/:locale/rand")                view=RandomRedirect/>
                         <Route path=path!("/:locale/footballs")           view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/share-analysis") view=WriteArticlePage/>
                         <Route path=path!("/:locale/footballs/:id")       view=FootballDetailPage/>
                         <Route path=path!("/:locale/users")               view=UsersPage/>
                         <Route path=path!("/:locale/users/:username")     view=UserProfilePage/>

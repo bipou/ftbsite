@@ -167,6 +167,32 @@ pub async fn create_topics_from_names(names: &str) -> Result<Vec<String>, String
     Ok(ids)
 }
 
+pub async fn link_topics_to_football(
+    football_id: &str,
+    topic_ids: &[String],
+) -> Result<(), String> {
+    let fid = into_rid(football_id, "footballs");
+    for tid in topic_ids {
+        let topic_rid = into_rid(tid, "topics");
+        let mut res = get_db()
+            .query("SELECT VALUE id FROM topics_rel WHERE football_id = $fid AND topic_id = $tid")
+            .bind(("fid", fid.clone()))
+            .bind(("tid", topic_rid.clone()))
+            .await
+            .map_err(|e| e.to_string())?;
+        let rel_ids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
+        if rel_ids.is_empty() {
+            get_db()
+                .query("CREATE topics_rel CONTENT { football_id: $fid, topic_id: $tid }")
+                .bind(("fid", fid.clone()))
+                .bind(("tid", topic_rid.clone()))
+                .await
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 pub async fn link_topics_to_user(user_id: &str, topic_ids: Vec<String>) -> Result<(), String> {
     let user_rid = into_rid(user_id, "users");
     for tid in &topic_ids {

@@ -26,9 +26,12 @@ pub async fn get_random_id() -> Result<Option<String>, ServerFnError> {
 #[server]
 pub async fn get_sidebar_categories() -> Result<Vec<Category>, ServerFnError> {
     use crate::server::category_db;
-    category_db::get_categories_by_levels(&[1, 2])
+    let mut cats = category_db::get_categories_by_levels(&[1, 2])
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    // pinned 优先，其余按 level ASC
+    cats.sort_by(|a, b| b.pinned.cmp(&a.pinned).then(a.level.cmp(&b.level)));
+    Ok(cats)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,10 +154,18 @@ pub fn FootballsPage() -> impl IntoView {
             <p class={format!("{} text-center mb-2", TEXT_WARN)}>
                 {move || t!(i18n, site_warn)}
             </p>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                {move || t!(i18n, footballs_list)}
-                {heading_suffix}
-            </h1>
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                    {move || t!(i18n, footballs_list)}
+                    {heading_suffix}
+                </h1>
+                <a
+                    href=move || format!("/{}/footballs/share-analysis", loc_str.get())
+                    class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-3 text-lg transition-colors no-underline"
+                >
+                    {move || t!(i18n, write_article)}
+                </a>
+            </div>
             // ── Horizontal category filter bar ───────────────────────────
             <div class="mb-6">
                 <nav class="cat-bar flex flex-wrap items-center gap-x-2 gap-y-1">

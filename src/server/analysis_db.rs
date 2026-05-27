@@ -47,3 +47,22 @@ pub async fn get_analyses_by_football_id(rid: &RecordId) -> Result<Vec<FootballA
     let docs: Vec<AnalysisDoc> = res.take(0).map_err(|e| e.to_string())?;
     Ok(docs.into_iter().map(analysis_into).collect())
 }
+
+/// 插入分析正文
+pub async fn insert_analysis(
+    football_id: &str,
+    content: &str,
+    user_id: &str,
+) -> Result<(), String> {
+    let fid = common::into_rid(football_id, "footballs");
+    get_db()
+        .query(
+            "CREATE footballs_analyses SET football_id = $fid, content = $content, user_id = $uid, ai_model = '', generated_at = time::now(), status = 1"
+        )
+        .bind(("fid", fid))
+        .bind(("content", content.to_string()))
+        .bind(("uid", common::into_rid(user_id, "users")))
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}

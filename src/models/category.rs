@@ -7,4 +7,5 @@ pub struct Category {
     pub id: String,
     pub name: HashMap<String, String>,
     pub level: u8,
+    pub pinned: bool,
 }

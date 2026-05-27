@@ -18,6 +18,7 @@ fn into_category(d: CategoryDoc) -> Category {
         id: rid_str(&d.id),
         name: d.name,
         level: d.level,
+        pinned: false,
     }
 }
 

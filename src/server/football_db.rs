@@ -248,7 +248,10 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let category = category_db::get_category_by_id(&doc.category_id).await?;
     let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;
     let summary = if doc.ana_type == 2 {
-        analyses.iter().find(|a| a.status == 1).map(|a| a.summary.clone())
+        analyses
+            .iter()
+            .find(|a| a.status == 1)
+            .map(|a| a.summary.clone())
     } else {
         None
     };
@@ -522,4 +525,23 @@ pub async fn increment_hits(rid: &RecordId) -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// 用户发表文章：插入轻量 footballs 壳
+pub async fn insert_article(title: &str, category_id: &str, status: i8) -> Result<String, String> {
+    let rid = common::into_rid(category_id, "categories");
+    let mut res = get_db()
+        .query(
+            "CREATE footballs SET article_title = $title, category_id = $cid, ana_type = 0, status = $status, home_team = '', away_team = '', season = '', kick_off_at = time::now(), created_at = time::now(), updated_at = time::now()"
+        )
+        .bind(("title", title.to_string()))
+        .bind(("cid", rid))
+        .bind(("status", status))
+        .await
+        .map_err(|e| e.to_string())?;
+    let docs: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
+    docs.into_iter()
+        .next()
+        .map(|id| rid_str(&id))
+        .ok_or_else(|| "创建失败".to_string())
 }
