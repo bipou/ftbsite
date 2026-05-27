@@ -7,7 +7,8 @@ use leptos_router::hooks::use_query_map;
 use serde::{Deserialize, Serialize};
 
 use crate::components::{ArticleCard, CategorySelect, FootballCard, Footer, Nav, Pagination};
-use crate::models::{Category, FootballsResult};
+use crate::models::FootballsResult;
+use crate::pages::write::get_all_categories;
 
 use crate::shared::common::{Either3, record_key};
 use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_WARN, WIDE};
@@ -21,28 +22,6 @@ pub async fn get_random_id() -> Result<Option<String>, ServerFnError> {
     football_db::get_random_football_id()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
-}
-
-#[server]
-pub async fn get_sidebar_categories() -> Result<Vec<Category>, ServerFnError> {
-    use crate::server::category_db;
-    let mut cats = category_db::get_categories_by_levels(&[1, 2])
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
-    // pinned 优先，其余按 level ASC
-    cats.sort_by(|a, b| {
-        fn rank(p: Option<bool>) -> u8 {
-            match p {
-                Some(true) => 0,
-                None => 1,
-                Some(false) => 2,
-            }
-        }
-        a.level
-            .cmp(&b.level)
-            .then(rank(a.pinned).cmp(&rank(b.pinned)))
-    });
-    Ok(cats)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -116,7 +95,7 @@ pub fn FootballsPage() -> impl IntoView {
             .unwrap_or_default()
     };
 
-    let cats_res = Resource::new(|| (), |_| get_sidebar_categories());
+    let cats_res = Resource::new(|| (), |_| get_all_categories());
 
     let footballs_res = Resource::new_blocking(
         move || (from(), filter(), filter_id()),
@@ -150,9 +129,8 @@ pub fn FootballsPage() -> impl IntoView {
     // 页面标题：footballs_list | 筛选名 – site_name | site_slogan
     let title_text = move || {
         format!(
-            "{}{} – {} | {}",
+            "{} – {} | {}",
             t_display!(i18n, footballs_list),
-            heading_suffix(),
             t_display!(i18n, site_name),
             t_display!(i18n, site_slogan),
         )
@@ -168,7 +146,9 @@ pub fn FootballsPage() -> impl IntoView {
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     {move || t!(i18n, footballs_list)}
-                    {heading_suffix}
+                    <Suspense fallback=|| ()>
+                        {heading_suffix}
+                    </Suspense>
                 </h1>
                 <a
                     href=move || format!("/{}/footballs/share-analysis", loc_str.get())
@@ -178,29 +158,31 @@ pub fn FootballsPage() -> impl IntoView {
                 </a>
             </div>
             // ── Horizontal category filter bar ───────────────────────────
-            <div class="mb-6">
-                <nav class="cat-bar flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span class="text-sm text-gray-400 dark:text-gray-500 shrink-0 mr-1">
+            <div class="mb-6 pr-8">
+                <div class="flex">
+                    <span class="form-label shrink-0 mr-1">
                         {move || t!(i18n, footballs_filter_category)}
                     </span>
-                    <a href=move || format!("/{}/footballs", loc_str.get())
-                       class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        {move || t!(i18n, all)}
-                    </a>
-                    <a href=move || format!("/{}/footballs?picks", loc_str.get())
-                        class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
-                        {move || t!(i18n, status_picks)}
-                    </a>
-                    <a href=move || format!("/{}/footballs?hot", loc_str.get())
-                        class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
-                        {move || t!(i18n, status_hot)}
-                    </a>
-                    <Suspense fallback=|| ()>
-                        {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
-                            view! { <CategorySelect all=cats/> }
-                        })}
-                    </Suspense>
-                </nav>
+                    <div class="flex flex-wrap gap-2">
+                        <a href=move || format!("/{}/footballs", loc_str.get())
+                           class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            {move || t!(i18n, all)}
+                        </a>
+                        <a href=move || format!("/{}/footballs?picks", loc_str.get())
+                            class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
+                            {move || t!(i18n, status_picks)}
+                        </a>
+                        <a href=move || format!("/{}/footballs?hot", loc_str.get())
+                            class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
+                            {move || t!(i18n, status_hot)}
+                        </a>
+                        <Suspense fallback=|| ()>
+                            {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
+                                view! { <CategorySelect all=cats expandable=true/> }
+                            })}
+                        </Suspense>
+                    </div>
+                </div>
             </div>
 
             // ── Main content ─────────────────────────────────────────────

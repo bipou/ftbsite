@@ -1,6 +1,6 @@
 use crate::i18n::{t, use_i18n};
 use crate::models::Football;
-use crate::shared::constant::{FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED};
+use crate::shared::constant::{CARD_TITLE, FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED};
 use crate::shared::locale::LocaleA;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -25,7 +25,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                     href=detail_path
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight truncate"
+                    class=CARD_TITLE
                 >
                     {title}
                 </LocaleA>

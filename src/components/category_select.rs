@@ -1,7 +1,7 @@
 use crate::i18n::{t_display, use_i18n};
 use crate::models::Category;
 use crate::shared::common::record_key;
-use crate::shared::constant::BADGE_BLUE_NO_UL;
+use crate::shared::constant::{BADGE_BLUE_NO_UL, CAT_BTN, CAT_BTN_MORE};
 use crate::shared::locale::use_locale;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -24,7 +24,7 @@ pub fn CategorySelect(
     let has_more = expandable && !high.is_empty();
 
     view! {
-        <div class="flex flex-wrap gap-2">
+        <>
             {low.into_iter().map(|cat| {
                 let kid = record_key(&cat.id).to_string();
                 let name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
@@ -34,7 +34,7 @@ pub fn CategorySelect(
                     let k2 = k.clone();
                     Either::Left(view! {
                         <button type="button"
-                            class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { "text-sm text-gray-600 dark:text-gray-400 px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors".to_string() }
+                            class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
                             on:click=move |_| s.set(k2.clone())
                         >{name}</button>
                     })
@@ -56,7 +56,7 @@ pub fn CategorySelect(
                             let k2 = k.clone();
                             Either::Left(view! {
                                 <button type="button"
-                                    class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { "text-sm text-gray-600 dark:text-gray-400 px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors".to_string() }
+                                    class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
                                     on:click=move |_| s.set(k2.clone())
                                 >{name}</button>
                             })
@@ -74,10 +74,10 @@ pub fn CategorySelect(
             {if has_more {
                 Either::Left(view! {
                     <button type="button"
-                        class="text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-600 rounded px-2 py-0.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        class=CAT_BTN_MORE
                         on:click=move |_| set_expanded.update(|v| *v = !*v)
                     >
-                        {if expanded.get() {
+                        {move || if expanded.get() {
                             Either::Left(view! { {t_display!(i18n, collapse).to_string()} })
                         } else {
                             Either::Right(view! { {t_display!(i18n, expand).to_string()} })
@@ -87,6 +87,6 @@ pub fn CategorySelect(
             } else {
                 Either::Right(())
             }}
-        </div>
+        </>
     }
 }

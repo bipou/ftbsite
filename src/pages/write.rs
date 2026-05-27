@@ -13,7 +13,8 @@ pub async fn get_all_categories() -> Result<Vec<crate::models::Category>, Server
     let mut cats = category_db::get_categories()
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    // pinned=true 最前，无字段次之，pinned=false 最后；各自 level ASC
+    // pinned=true 最前，无字段次之，pinned=false 隐藏；各自 level ASC
+    cats.retain(|c| c.pinned != Some(false));
     cats.sort_by(|a, b| {
         fn rank(p: Option<bool>) -> u8 {
             match p {
@@ -84,7 +85,11 @@ fn CategorySection(selected: RwSignal<String>) -> impl IntoView {
                 <label class="form-label shrink-0">{move || t!(use_i18n(), footballs_filter_category)}</label>
                 <Suspense fallback=|| ()>
                     {move || cats_res.get().map(|r| r.ok()).flatten().map(|all| {
-                        view! { <CategorySelect all=all selected=selected expandable=true/> }
+                        view! {
+                            <div class="flex flex-wrap gap-2">
+                                <CategorySelect all=all selected=selected expandable=true/>
+                            </div>
+                        }
                     })}
                 </Suspense>
             </div>

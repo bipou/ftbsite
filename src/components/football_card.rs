@@ -2,7 +2,7 @@ use crate::i18n::{t, use_i18n};
 use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_TITLE, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
     TEXT_SUBTLE, TEXT_XS_MUTED,
 };
 #[cfg(feature = "oth")]
@@ -208,7 +208,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     view! {
         <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
-                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight truncate">
+                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class=CARD_TITLE>
                     {title}
                 </LocaleA>
                 <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(status)}</span>
