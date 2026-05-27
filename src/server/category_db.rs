@@ -11,6 +11,8 @@ struct CategoryDoc {
     id: RecordId,
     name: HashMap<String, String>,
     level: u8,
+    #[serde(default)]
+    pinned: Option<bool>,
 }
 
 fn into_category(d: CategoryDoc) -> Category {
@@ -18,7 +20,7 @@ fn into_category(d: CategoryDoc) -> Category {
         id: rid_str(&d.id),
         name: d.name,
         level: d.level,
-        pinned: false,
+        pinned: d.pinned,
     }
 }
 

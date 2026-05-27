@@ -30,7 +30,18 @@ pub async fn get_sidebar_categories() -> Result<Vec<Category>, ServerFnError> {
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     // pinned 优先，其余按 level ASC
-    cats.sort_by(|a, b| b.pinned.cmp(&a.pinned).then(a.level.cmp(&b.level)));
+    cats.sort_by(|a, b| {
+        fn rank(p: Option<bool>) -> u8 {
+            match p {
+                Some(true) => 0,
+                None => 1,
+                Some(false) => 2,
+            }
+        }
+        a.level
+            .cmp(&b.level)
+            .then(rank(a.pinned).cmp(&rank(b.pinned)))
+    });
     Ok(cats)
 }
 
