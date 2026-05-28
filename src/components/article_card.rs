@@ -1,3 +1,4 @@
+use crate::components::football_card::{status_badge, status_class};
 use crate::i18n::{t, use_i18n};
 use crate::models::Football;
 use crate::shared::constant::{CARD_TITLE, FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED};
@@ -18,8 +19,12 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
         crate::shared::common::record_key(&football.id)
     );
 
+    let status = football.status;
+    let card_class = format!("card p-4 {} {}", HOVER_SHADOW, status_class(status));
+    let badge = status_badge(status);
+
     view! {
-        <div class=format!("card p-4 {}", HOVER_SHADOW)>
+        <div class=card_class>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
                 <LocaleA
                     href=detail_path
@@ -29,8 +34,8 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                 >
                     {title}
                 </LocaleA>
-                <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">
-                    {if is_ai { "AI" } else { "" }}
+                <span class="text-sm ml-2 whitespace-nowrap">
+                    {if !badge.is_empty() { badge } else if is_ai { "AI" } else { "" }}
                 </span>
             </div>
 

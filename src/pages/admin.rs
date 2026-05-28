@@ -1,4 +1,4 @@
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -10,8 +10,7 @@ use crate::models::{Football, FootballsResult, User, UsersResult};
 
 use crate::shared::common::{Either3, Either7};
 use crate::shared::constant::{
-    ALERT_ERROR, ALERT_SUCCESS, EMPTY, GRID_2, GRID_3, H1, HOVER_SHADOW, MAIN, NO_DATA,
-    NO_UNDERLINE,
+    EMPTY, GRID_2, GRID_3, H1, HOVER_SHADOW, MAIN, NO_DATA, NO_UNDERLINE,
 };
 use crate::shared::locale::{LocaleA, use_locale};
 
@@ -133,6 +132,142 @@ fn UserStatusBadge(status: i8) -> impl IntoView {
     }
 }
 
+/// 用户 3 状态操作按钮 — 列表和详情页共用
+#[component]
+fn UserStatusButtons(
+    id: String,
+    initial_status: i8,
+    action: ServerAction<AdminUpdateUserStatus>,
+) -> impl IntoView {
+    let i18n = use_i18n();
+    let status = RwSignal::new(initial_status);
+    let feedback = RwSignal::new(None::<String>);
+
+    let onclick = move |s: i8| {
+        let uid = id.clone();
+        let act = action;
+        move |_| {
+            status.set(s);
+            let label = match s {
+                1 => t_display!(i18n, status_active).to_string(),
+                0 => t_display!(i18n, status_inactive).to_string(),
+                _ => t_display!(i18n, status_banned).to_string(),
+            };
+            feedback.set(Some(format!("{}: {}", t_display!(i18n, admin_status_updated).to_string(), label)));
+            #[cfg(feature = "hydrate")]
+            set_timeout(move || feedback.set(None), std::time::Duration::from_secs(3));
+            act.dispatch(AdminUpdateUserStatus {
+                user_id: uid.clone(),
+                status: s,
+            });
+        }
+    };
+
+    view! {
+        <div>
+            <div class="flex gap-1 flex-wrap">
+            {[
+                (1i8, "status_active", UBTN_GREEN),
+                (0, "status_inactive", UBTN_YELLOW),
+                (-1, "status_banned", UBTN_RED),
+            ].into_iter().map(|(s, _key, cls)| {
+                let hl = move || if status.get() == s { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
+                view! {
+                    <button
+                        type="button"
+                        class=move || format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl())
+                        on:click=onclick(s)
+                    >
+                        {move || match s {
+                            1 => Either3::Left(t!(i18n, status_active)),
+                            0 => Either3::Right(Either::Left(t!(i18n, status_inactive))),
+                            _ => Either3::Right(Either::Right(t!(i18n, status_banned))),
+                        }}
+                    </button>
+                }
+            }).collect::<Vec<_>>()}
+            </div>
+            {move || feedback.get().map(|msg| view! {
+                <p class="text-green-500 text-xs mt-1">{msg}</p>
+            })}
+        </div>
+    }
+}
+
+/// 足球 7 状态操作按钮 — 列表和详情页共用
+#[component]
+fn FootballStatusButtons(
+    id: String,
+    initial_status: i8,
+    action: ServerAction<AdminUpdateStatus>,
+) -> impl IntoView {
+    let i18n = use_i18n();
+    let status = RwSignal::new(initial_status);
+    let feedback = RwSignal::new(None::<String>);
+
+    let onclick = move |s: i8| {
+        let fid = id.clone();
+        let act = action;
+        move |_| {
+            status.set(s);
+            let label = match s {
+                4 => t_display!(i18n, status_both).to_string(),
+                3 => t_display!(i18n, status_picks).to_string(),
+                2 => t_display!(i18n, status_hot).to_string(),
+                1 => t_display!(i18n, status_publish).to_string(),
+                0 => t_display!(i18n, status_submit).to_string(),
+                -1 => t_display!(i18n, status_draft).to_string(),
+                _ => t_display!(i18n, status_deleted).to_string(),
+            };
+            feedback.set(Some(format!("{}: {}", t_display!(i18n, admin_status_updated).to_string(), label)));
+            #[cfg(feature = "hydrate")]
+            set_timeout(move || feedback.set(None), std::time::Duration::from_secs(3));
+            act.dispatch(AdminUpdateStatus {
+                football_id: fid.clone(),
+                status: s,
+            });
+        }
+    };
+
+    view! {
+        <div>
+            <div class="flex gap-1 flex-wrap">
+            {[
+                (4i8, "status_both", UBTN_RED),
+                (3, "status_picks", FBTN_ORANGE),
+                (2, "status_hot", FBTN_INDIGO),
+                (1, "status_publish", FBTN_BLUE),
+                (0, "status_submit", FBTN_SUBMIT),
+                (-1, "status_draft", UBTN_DRAFT),
+                (-2, "status_deleted", UBTN_DELETED),
+            ].into_iter().map(|(s, _key, cls)| {
+                let hl = move || if status.get() == s { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
+                view! {
+                    <button
+                        type="button"
+                        class=move || format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl())
+                        on:click=onclick(s)
+                    >
+                        {move || match s {
+                            4 => Either7::Left(t!(i18n, status_both)),
+                            3 => Either7::Right(Either::Left(t!(i18n, status_picks))),
+                            2 => Either7::Right(Either::Right(Either::Left(t!(i18n, status_hot)))),
+                            1 => Either7::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_publish))))),
+                            0 => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_submit)))))),
+                            -1 => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_draft))))))),
+                            _ => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Right(t!(i18n, status_deleted))))))),
+                        }}
+                    </button>
+                }
+            }).collect::<Vec<_>>()}
+            </div>
+            {move || feedback.get().map(|msg| view! {
+                <p class="text-green-500 text-xs mt-1">{msg}</p>
+            })}
+        </div>
+    }
+}
+
 // ── 仪表盘 ──────────────────────────────────────────────────────────────
 
 #[component]
@@ -230,16 +365,7 @@ pub fn AdminUsersPage() -> impl IntoView {
                         </div>
                         <h1 class=H1>{move || t!(i18n, admin_users)}</h1>
 
-                {move || update_action.value().get().map(|r| match r {
-                    Ok(()) => Either::Left(view! {
-                        <p class=ALERT_SUCCESS>{move || t!(i18n, admin_status_updated)}</p>
-                    }),
-                    Err(e) => Either::Right(view! {
-                        <p class=ALERT_ERROR>{e.to_string()}</p>
-                    }),
-                })}
-
-                <Suspense fallback=move || view! {
+                        <Suspense fallback=move || view! {
                     <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
                 }>
                     {move || data.get().map(|result| match result {
@@ -297,29 +423,8 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                 }}
 
                                                 // 操作按钮
-                                                <div class="flex gap-1 flex-wrap mt-2">
-                                                    {[
-                                                        (1i8, "status_active", UBTN_GREEN),
-                                                        (0, "status_inactive", UBTN_YELLOW),
-                                                        (-1, "status_banned", UBTN_RED),
-                                                    ].into_iter().map(|(s, key, cls)| {
-                                                        let id_val = uid.clone();
-                                                        let is_current = status == s;
-                                                        let hl = if is_current { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
-                                                        view! {
-                                                            <ActionForm action=update_action>
-                                                                <input type="hidden" name="user_id" value=id_val/>
-                                                                <input type="hidden" name="status" value=s.to_string()/>
-                                                                <button type="submit" class=format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl)>
-                                                                    {move || match key {
-                                                                        "status_active" => Either3::Left(t!(i18n, status_active)),
-                                                                        "status_inactive" => Either3::Right(Either::Left(t!(i18n, status_inactive))),
-                                                                        _ => Either3::Right(Either::Right(t!(i18n, status_banned))),
-                                                                    }}
-                                                                </button>
-                                                            </ActionForm>
-                                                        }
-                                                    }).collect::<Vec<_>>()}
+                                                <div class="mt-2">
+                                                    <UserStatusButtons id=uid initial_status=status action=update_action/>
                                                 </div>
                                             </div>
                                         }
@@ -427,40 +532,9 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                                     </div>
 
                                     // 状态操作按钮
-                                    <div class="flex gap-2 mt-4">
-                                        {[
-                                            (1i8, "status_active", UBTN_GREEN),
-                                            (0, "status_inactive", UBTN_YELLOW),
-                                            (-1, "status_banned", UBTN_RED),
-                                        ].into_iter().map(|(s, key, cls)| {
-                                            let id_val = uid.clone();
-                                            let is_current = status == s;
-                                            let hl = if is_current { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
-                                            view! {
-                                                <ActionForm action=update_action>
-                                                    <input type="hidden" name="user_id" value=id_val/>
-                                                    <input type="hidden" name="status" value=s.to_string()/>
-                                                    <button type="submit" class=format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl)>
-                                                        {move || match key {
-                                                            "status_active" => Either3::Left(t!(i18n, status_active)),
-                                                            "status_inactive" => Either3::Right(Either::Left(t!(i18n, status_inactive))),
-                                                            _ => Either3::Right(Either::Right(t!(i18n, status_banned))),
-                                                        }}
-                                                    </button>
-                                                </ActionForm>
-                                            }
-                                        }).collect::<Vec<_>>()}
+                                    <div class="mt-4">
+                                        <UserStatusButtons id=uid initial_status=status action=update_action/>
                                     </div>
-
-                                    // 操作反馈
-                                    {move || update_action.value().get().map(|r| match r {
-                                        Ok(()) => Either::Left(view! {
-                                            <p class=format!("mt-3 {}", ALERT_SUCCESS)>{move || t!(i18n, admin_status_updated)}</p>
-                                        }),
-                                        Err(e) => Either::Right(view! {
-                                            <p class=format!("mt-3 {}", ALERT_ERROR)>{e.to_string()}</p>
-                                        }),
-                                    })}
                                 </div>
 
                                 <UserIntro intro_html=intro_html/>
@@ -526,15 +600,6 @@ pub fn AdminFootballsPage() -> impl IntoView {
                 </div>
                 <h1 class=H1>{move || t!(i18n, admin_footballs)}</h1>
 
-                {move || update_action.value().get().map(|r| match r {
-                    Ok(()) => Either::Left(view! {
-                        <p class=ALERT_SUCCESS>{move || t!(i18n, admin_status_updated)}</p>
-                    }),
-                    Err(e) => Either::Right(view! {
-                        <p class=ALERT_ERROR>{e.to_string()}</p>
-                    }),
-                })}
-
                 <Suspense fallback=move || view! {
                     <p class="text-gray-400 text-center py-8">{move || t!(i18n, loading)}</p>
                 }>
@@ -567,39 +632,8 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                                         {season} " · " {kick_off_at_mdhm8}
                                                     </p>
                                                 </div>
-                                                // 状态操作按钮（7 个）
-                                                <div class="flex gap-1 flex-wrap">
-                                                    {[
-                                                        (4i8, "status_both", UBTN_RED),
-                                                        (3, "status_picks", FBTN_ORANGE),
-                                                        (2, "status_hot", FBTN_INDIGO),
-                                                        (1, "status_publish", FBTN_BLUE),
-                                                        (0, "status_submit", FBTN_SUBMIT),
-                                                        (-1, "status_draft", UBTN_DRAFT),
-                                                        (-2, "status_deleted", UBTN_DELETED),
-                                                    ].into_iter().map(|(s, key, cls)| {
-                                                        let fid_val = id.to_string();
-                                                        let is_current = status == s;
-                                                        let hl = if is_current { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
-                                                        view! {
-                                                            <ActionForm action=update_action>
-                                                                <input type="hidden" name="football_id" value=fid_val/>
-                                                                <input type="hidden" name="status" value=s.to_string()/>
-                                                                <button type="submit" class=format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl)>
-                                                                    {move || match key {
-                                                                        "status_both" => Either7::Left(t!(i18n, status_both)),
-                                                                        "status_picks" => Either7::Right(Either::Left(t!(i18n, status_picks))),
-                                                                        "status_hot" => Either7::Right(Either::Right(Either::Left(t!(i18n, status_hot)))),
-                                                                        "status_publish" => Either7::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_publish))))),
-                                                                        "status_submit" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_submit)))))),
-                                                                        "status_draft" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_draft))))))),
-                                                                        _ => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Right(t!(i18n, status_deleted))))))),
-                                                                    }}
-                                                                </button>
-                                                            </ActionForm>
-                                                        }
-                                                    }).collect::<Vec<_>>()}
-                                                </div>
+                                                // 状态操作按钮
+                                                    <FootballStatusButtons id=id.to_string() initial_status=status action=update_action/>
                                             </div>
                                         }
                                     }).collect::<Vec<_>>()}
@@ -680,46 +714,7 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
 
                                 // 状态操作按钮
                                 <div class="card p-4 mb-4">
-                                    <div class="flex gap-1 flex-wrap">
-                                            {[
-                                                (4i8, "status_both", UBTN_RED),
-                                                (3, "status_picks", FBTN_ORANGE),
-                                                (2, "status_hot", FBTN_INDIGO),
-                                                (1, "status_publish", FBTN_BLUE),
-                                                (0, "status_submit", FBTN_SUBMIT),
-                                                (-1, "status_draft", UBTN_DRAFT),
-                                                (-2, "status_deleted", UBTN_DELETED),
-                                            ].into_iter().map(|(s, key, cls)| {
-                                                let id_val = fid.clone();
-                                                let is_current = status == s;
-                                                let hl = if is_current { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
-                                                view! {
-                                                    <ActionForm action=update_action>
-                                                        <input type="hidden" name="football_id" value=id_val/>
-                                                        <input type="hidden" name="status" value=s.to_string()/>
-                                                        <button type="submit" class=format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl)>
-                                                            {move || match key {
-                                                                "status_both" => Either7::Left(t!(i18n, status_both)),
-                                                                "status_picks" => Either7::Right(Either::Left(t!(i18n, status_picks))),
-                                                                "status_hot" => Either7::Right(Either::Right(Either::Left(t!(i18n, status_hot)))),
-                                                                "status_publish" => Either7::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_publish))))),
-                                                                "status_submit" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_submit)))))),
-                                                                "status_draft" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_draft))))))),
-                                                                _ => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Right(t!(i18n, status_deleted))))))),
-                                                            }}
-                                                        </button>
-                                                    </ActionForm>
-                                                }
-                                            }).collect::<Vec<_>>()}
-                                        </div>
-                                    {move || update_action.value().get().map(|r| match r {
-                                        Ok(()) => Either::Left(view! {
-                                            <p class=format!("mt-2 {}", ALERT_SUCCESS)>{move || t!(i18n, admin_status_updated)}</p>
-                                        }),
-                                        Err(e) => Either::Right(view! {
-                                            <p class=format!("mt-2 {}", ALERT_ERROR)>{e.to_string()}</p>
-                                        }),
-                                    })}
+                                    <FootballStatusButtons id=fid initial_status=status action=update_action/>
                                 </div>
 
                                 // 公开详情

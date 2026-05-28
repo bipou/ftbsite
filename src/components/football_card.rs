@@ -11,7 +11,7 @@ use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
 
-fn status_class(status: i8) -> &'static str {
+pub(crate) fn status_class(status: i8) -> &'static str {
     match status {
         4 => "fc-status-4",
         3 => "fc-status-3",
@@ -20,7 +20,7 @@ fn status_class(status: i8) -> &'static str {
     }
 }
 
-fn status_badge(status: i8) -> &'static str {
+pub(crate) fn status_badge(status: i8) -> &'static str {
     match status {
         4 => "⭐🔥",
         3 => "⭐",
