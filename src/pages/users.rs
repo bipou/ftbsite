@@ -54,7 +54,7 @@ pub fn UsersPage() -> impl IntoView {
             <h1 class={H1}>
                 {move || t!(i18n, users_list)}
             </h1>
-            <Suspense fallback=move || view! { <div class={format!("{} text-gray-400", EMPTY)}>{move || t!(i18n, loading)}</div> }>
+            <Suspense fallback=move || view! { <div class={[EMPTY, "text-gray-400"].join(" ")}>{move || t!(i18n, loading)}</div> }>
                 {move || data.get().map(|result| match result {
                     Err(e) => Either::Left(view! {
                         <p class="text-red-500 text-center">{e.to_string()}</p>
@@ -62,10 +62,10 @@ pub fn UsersPage() -> impl IntoView {
                     Ok(d) => {
                         let pi = d.page_info.clone();
                         Either::Right(view! {
-                            <div class={format!("{} mb-8", GRID_3)}>
+                            <div class={[GRID_3, "mb-8"].join(" ")}>
                                 {d.items.into_iter().map(|user| {
                                     let UserSummary { username, updated_at, keywords, .. } = user;
-                                    let url = format!("/{}/users/{}", loc_str.get(), username);
+                                    let url = ["/", &loc_str.get(), "/users/", &username].join("");
                                     let initial = username.chars().next().unwrap_or('?');
                                     view! {
                                         <div class=CARD_BLOCK_NO_UL>
@@ -81,10 +81,10 @@ pub fn UsersPage() -> impl IntoView {
                                                             <div class="flex flex-wrap gap-1 mt-1">
                                                                 {keywords.iter().take(8).map(|topic| {
                                                                     let kid = crate::shared::common::record_key(&topic.id).to_string();
-                                                                    let url = format!("/{}/footballs?topic={}", loc_str.get(), kid);
+                                                                    let url = ["/", &loc_str.get(), "/footballs?topic=", &kid].join("");
                                                                     let name = topic.name.clone();
                                                                     view! {
-                                                                        <a href=url class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{name}</a>
+                                                                        <a href=url class=["text-sm", BADGE_BLUE_NO_UL].join(" ")>{name}</a>
                                                                     }
                                                                 }).collect::<Vec<_>>()}
                                                             </div>
@@ -98,7 +98,7 @@ pub fn UsersPage() -> impl IntoView {
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>
-                            <Pagination page_info=pi base_url=format!("/{}/users", loc_str.get())/>
+                            <Pagination page_info=pi base_url=["/", &loc_str.get(), "/users"].join("")/>
                         })
                     }
                 })}
@@ -122,7 +122,7 @@ pub fn UserProfilePage() -> impl IntoView {
     view! {
         <Nav/>
         <main class={MAIN}>
-            <Suspense fallback=move || view! { <div class={format!("{} text-gray-400", EMPTY)}>{move || t!(i18n, loading)}</div> }>
+            <Suspense fallback=move || view! { <div class={[EMPTY, "text-gray-400"].join(" ")}>{move || t!(i18n, loading)}</div> }>
                 {move || data.get().map(|result| match result {
                     Err(e) => Either3::Left(view! {
                         <p class="text-red-500 text-center">{e.to_string()}</p>
@@ -137,7 +137,7 @@ pub fn UserProfilePage() -> impl IntoView {
                         let User { username, created_at, updated_at, introduction_html, keywords, topics, .. } = user;
                         let intro_html = introduction_html;
                         let initial = username.chars().next().unwrap_or('?');
-                        let title = format!("{} – {}", username, site_title!(i18n));
+                        let title = [&username, " – ", &site_title!(i18n)].join("");
                         Either3::Right(Either::Right(view! {
                             <Title text=title/>
 

@@ -16,12 +16,17 @@ pub fn Pagination(page_info: PageInfo, base_url: String) -> impl IntoView {
         return Either::Left(view! { <div/> });
     }
 
-    let prev_url = format!("{}?from={}", base, pi.current_page.saturating_sub(1).max(1));
-    let next_url = format!("{}?from={}", base, pi.current_page + 1);
+    let prev_url = [
+        &base,
+        "?from=",
+        &pi.current_page.saturating_sub(1).max(1).to_string(),
+    ]
+    .join("");
+    let next_url = [&base, "?from=", &(pi.current_page + 1).to_string()].join("");
 
     Either::Right(view! {
-        <nav class={format!("{} mt-8 px-4", FLEX_BETWEEN)}>
-            <div class={format!("text-sm {}", TEXT_SUBTLE)}>
+        <nav class={[FLEX_BETWEEN, "mt-8", "px-4"].join(" ")}>
+            <div class={["text-sm", TEXT_SUBTLE].join(" ")}>
                 <span>{move || {
                     let (c, t, n) = (pi.current_page, pi.total_pages, pi.total_count);
                     t_display!(i18n, pagination_info, current = c.to_string(), total = t.to_string(), count = n.to_string()).to_string()

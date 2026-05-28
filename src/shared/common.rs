@@ -14,23 +14,27 @@ pub type Either7<A, B, C, D, E, F, G> =
 #[macro_export]
 macro_rules! page_title {
     ($i18n:expr, $key:ident) => {
-        format!(
-            "{} – {} | {}",
-            $crate::i18n::t_display!($i18n, $key),
-            $crate::i18n::t_display!($i18n, site_name),
-            $crate::i18n::t_display!($i18n, site_slogan)
+        $crate::i18n::t_display!(
+            $i18n,
+            page_title,
+            key = $crate::i18n::t_display!($i18n, $key),
+            name = $crate::i18n::t_display!($i18n, site_name),
+            slogan = $crate::i18n::t_display!($i18n, site_slogan)
         )
+        .to_string()
     };
 }
 
 #[macro_export]
 macro_rules! site_title {
     ($i18n:expr) => {
-        format!(
-            "{} | {}",
-            $crate::i18n::t_display!($i18n, site_name),
-            $crate::i18n::t_display!($i18n, site_slogan)
+        $crate::i18n::t_display!(
+            $i18n,
+            site_title,
+            name = $crate::i18n::t_display!($i18n, site_name),
+            slogan = $crate::i18n::t_display!($i18n, site_slogan)
         )
+        .to_string()
     };
 }
 

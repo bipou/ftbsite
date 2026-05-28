@@ -83,12 +83,12 @@ pub fn HomePage() -> impl IntoView {
         <Nav/>
         <main class={WIDE}>
             <div class="mb-10 text-center">
-                <p class={format!("{} text-sm max-w-2xl mx-auto", TEXT_SUBTLE)}>
+                <p class={[TEXT_SUBTLE, "text-sm", "max-w-2xl", "mx-auto"].join(" ")}>
                     <a style="white-space: pre-line" href="https://github.com/bipou/football-site" target="_blank" rel="noopener noreferrer">
                         {move || t!(i18n, site_intro)}
                     </a>
                 </p>
-                <p class={format!("{} mt-3 max-w-2xl mx-auto", TEXT_WARN)}>
+                <p class={[TEXT_WARN, "mt-3", "max-w-2xl", "mx-auto"].join(" ")}>
                     {move || t!(i18n, site_warn)}
                 </p>
             </div>

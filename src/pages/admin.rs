@@ -122,7 +122,7 @@ const FBTN_SUBMIT: &str = "bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-g
 fn UserStatusBadge(status: i8) -> impl IntoView {
     let i18n = use_i18n();
     view! {
-        <span class=move || format!("text-xs px-1.5 py-0.5 rounded {}", user_status_cls(status))>
+        <span class=move || ["text-xs", "px-1.5", "py-0.5", "rounded", user_status_cls(status)].join(" ")>
             {move || match status {
                 1..=10 => Either3::Left(t!(i18n, status_active)),
                 0 => Either3::Right(Either::Left(t!(i18n, status_inactive))),
@@ -153,11 +153,14 @@ fn UserStatusButtons(
                 0 => t_display!(i18n, status_inactive).to_string(),
                 _ => t_display!(i18n, status_banned).to_string(),
             };
-            feedback.set(Some(format!(
-                "{}: {}",
-                t_display!(i18n, admin_status_updated).to_string(),
-                label
-            )));
+            feedback.set(Some(
+                [
+                    &t_display!(i18n, admin_status_updated).to_string(),
+                    ": ",
+                    &label,
+                ]
+                .join(""),
+            ));
             #[cfg(feature = "hydrate")]
             set_timeout(
                 move || feedback.set(None),
@@ -182,7 +185,7 @@ fn UserStatusButtons(
                 view! {
                     <button
                         type="button"
-                        class=move || format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl())
+                        class=move || ["text-xs", "px-2", "py-1", "rounded", "transition-colors", cls, hl()].join(" ")
                         on:click=onclick(s)
                     >
                         {move || match s {
@@ -226,11 +229,14 @@ fn FootballStatusButtons(
                 -1 => t_display!(i18n, status_draft).to_string(),
                 _ => t_display!(i18n, status_deleted).to_string(),
             };
-            feedback.set(Some(format!(
-                "{}: {}",
-                t_display!(i18n, admin_status_updated).to_string(),
-                label
-            )));
+            feedback.set(Some(
+                [
+                    &t_display!(i18n, admin_status_updated).to_string(),
+                    ": ",
+                    &label,
+                ]
+                .join(""),
+            ));
             #[cfg(feature = "hydrate")]
             set_timeout(
                 move || feedback.set(None),
@@ -259,7 +265,7 @@ fn FootballStatusButtons(
                 view! {
                     <button
                         type="button"
-                        class=move || format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl())
+                        class=move || ["text-xs", "px-2", "py-1", "rounded", "transition-colors", cls, hl()].join(" ")
                         on:click=onclick(s)
                     >
                         {move || match s {
@@ -308,7 +314,7 @@ pub fn AdminPage() -> impl IntoView {
                         <div class=GRID_2>
                             <LocaleA
                                 href="/admin/footballs"
-                                class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)
+                                class=["card", "p-6", "block", NO_UNDERLINE, HOVER_SHADOW].join(" ")
                             >
                                 <h2 class="text-lg font-semibold text-blue-600 mb-2">
                                     "⚽ " {move || t!(i18n, admin_data)}
@@ -317,7 +323,7 @@ pub fn AdminPage() -> impl IntoView {
                             </LocaleA>
                             <LocaleA
                                 href="/admin/users"
-                                class=format!("card p-6 block {} {}", NO_UNDERLINE, HOVER_SHADOW)
+                                class=["card", "p-6", "block", NO_UNDERLINE, HOVER_SHADOW].join(" ")
                             >
                                 <h2 class="text-lg font-semibold text-blue-600 mb-2">
                                     "👥 " {move || t!(i18n, admin_users)}
@@ -389,7 +395,7 @@ pub fn AdminUsersPage() -> impl IntoView {
                         Ok(d) => {
                             let pi = d.page_info.clone();
                             Either::Right(view! {
-                                <div class=format!("{} mb-8", GRID_3)>
+                                <div class=[GRID_3, "mb-8"].join(" ")>
                                     {d.items.into_iter().map(|user| {
                                         let username = user.username.clone();
                                         let uid = user.id.clone();
@@ -407,8 +413,8 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center gap-2 flex-wrap">
                                                             <LocaleA
-                                                                href=format!("/admin/users/{}", username.clone())
-                                                                class="font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 text-sm no-underline hover:underline"
+                                                                                                                            href=["/admin/users/", &username.clone()].join("")
+                                                                                                                            class="font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 text-sm no-underline hover:underline"
                                                             >
                                                             {username}
                                                             </LocaleA>
@@ -424,10 +430,10 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                         <div class="flex flex-wrap gap-1 mb-2">
                                                             {keywords.iter().take(6).map(|t| {
                                                                 let kid = crate::shared::common::record_key(&t.id).to_string();
-                                                                let path = format!("/footballs?topic={}", kid);
-                                                                let name = t.name.clone();
-                                                                view! {
-                                                                    <LocaleA href=path class="badge-blue no-underline text-xs">{name}</LocaleA>
+                                                                let path = ["/footballs?topic=", &kid].join("");
+                                                                                                                                let name = t.name.clone();
+                                                                                                                                view! {
+                                                                                                                                    <LocaleA href=path class="badge-blue no-underline text-xs">{name}</LocaleA>
                                                                 }
                                                             }).collect::<Vec<_>>()}
                                                         </div>
@@ -444,7 +450,7 @@ pub fn AdminUsersPage() -> impl IntoView {
                                         }
                                     }).collect::<Vec<_>>()}
                                 </div>
-                                <Pagination page_info=pi base_url=format!("/{}/admin/users", loc_str.get())/>
+                                <Pagination page_info=pi base_url=["/", &loc_str.get(), "/admin/users"].join("")/>
                             })
                         }
                     })}>
@@ -627,18 +633,18 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                 <div class="space-y-3 mb-8">
                                     {d.items.into_iter().map(|football| {
                                         let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, ana_type, article_title, .. } = football;
-                                        let url = format!("/{}/admin/footballs/{}", loc_str.get(), crate::shared::common::record_key(&id));
-                                        let title = if ana_type == 0 {
-                                            article_title.unwrap_or_else(|| format!("{} vs {}", home_team, away_team))
-                                        } else {
-                                            format!("{} vs {}", home_team, away_team)
-                                        };
+                                        let url = ["/", &loc_str.get(), "/admin/footballs/", &crate::shared::common::record_key(&id)].join("");
+                                                                                let title = if ana_type == 0 {
+                                                                                    article_title.unwrap_or_else(|| [&home_team, " vs ", &away_team].join(""))
+                                                                                } else {
+                                                                                    [&home_team, " vs ", &away_team].join("")
+                                                                                };
                                         view! {
                                             <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                 <div class="flex-1 min-w-0">
                                                     <a
                                                         href=url
-                                                        class=format!("font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 {} text-sm", NO_UNDERLINE)
+                                                        class=["font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600", NO_UNDERLINE, "text-sm"].join(" ")
                                                     >
                                                         {title}
                                                     </a>
@@ -652,7 +658,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                         }
                                     }).collect::<Vec<_>>()}
                                 </div>
-                                <Pagination page_info=pi base_url=format!("/{}/admin/footballs", loc_str.get())/>
+                                <Pagination page_info=pi base_url=["/", &loc_str.get(), "/admin/footballs"].join("")/>
                             }))
                         }
                     })}

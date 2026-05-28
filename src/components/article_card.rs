@@ -15,13 +15,14 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     let summary = football.summary;
     let created = football.created_at;
     let is_ai = football.ana_type > 0;
-    let detail_path = format!(
-        "/footballs/{}",
-        crate::shared::common::record_key(&football.id)
-    );
+    let detail_path = [
+        "/footballs/",
+        &crate::shared::common::record_key(&football.id),
+    ]
+    .join("");
 
     let status = football.status;
-    let card_class = format!("card p-4 {} {}", HOVER_SHADOW, status_class(status));
+    let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status)].join(" ");
     let badge = status_badge(status);
     let badge_or_label = if !badge.is_empty() {
         badge.to_string()
@@ -50,7 +51,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
 
     view! {
         <div class=card_class>
-            <div class=format!("{} mb-2", FLEX_BETWEEN)>
+            <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
                 <LocaleA
                     href=detail_path
                     target="_blank"
@@ -64,7 +65,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                 </span>
             </div>
 
-            <div class=format!("text-sm {} mb-3", TEXT_SUBTLE)>
+            <div class=["text-sm", TEXT_SUBTLE, "mb-3"].join(" ")>
                 <span class="text-blue-500">{created}</span>
             </div>
 
@@ -76,8 +77,8 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                 Either::Right(())
             }}
 
-            <div class=format!("{} mt-3", FLEX_BETWEEN)>
-                <span class=format!("text-sm {}", TEXT_XS_MUTED)>
+            <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
+                <span class=["text-sm", TEXT_XS_MUTED].join(" ")>
                     {move || author_name.get().flatten().unwrap_or_default()}
                 </span>
                 <span class="text-sm text-gray-400">

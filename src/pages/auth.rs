@@ -436,7 +436,7 @@ pub fn SignInPage() -> impl IntoView {
             if let Some(ref res) = auth_res {
                 res.refetch();
             }
-            navigate(&format!("/{}/footballs", loc), Default::default());
+            navigate(&["/", &loc, "/footballs"].join(""), Default::default());
         }
     });
 
@@ -448,7 +448,7 @@ pub fn SignInPage() -> impl IntoView {
         <Nav/>
         <main class="min-h-[80vh] flex items-center justify-center px-4">
             <div class="card p-8 w-full max-w-sm">
-                <h1 class=format!("{} text-center", H1)>
+                <h1 class=[H1, "text-center"].join(" ")>
                     {move || t!(i18n, user_sign_in)}
                 </h1>
 
@@ -469,7 +469,7 @@ pub fn SignInPage() -> impl IntoView {
 
                 <p class="mt-4 text-sm text-center text-gray-500">
                     {move || t!(i18n, sign_in_new_user)} " "
-                    <LocaleA href="/register" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, sign_in_create_account)}</LocaleA>
+                    <LocaleA href="/register" class=["text-blue-500", HOVER_UNDERLINE].join(" ")>{move || t!(i18n, sign_in_create_account)}</LocaleA>
                 </p>
             </div>
         </main>
@@ -496,13 +496,13 @@ pub fn SignOutPage() -> impl IntoView {
             if let Some(ref res) = auth_res {
                 res.refetch();
             }
-            navigate(&format!("/{}/", loc), Default::default());
+            navigate(&["/", &loc, "/"].join(""), Default::default());
         }
     });
 
     view! {
         <div class="min-h-screen flex items-center justify-center">
-            <p class=format!("{} text-lg", TEXT_SUBTLE)>{move || t!(i18n, signing_out)}</p>
+            <p class=[TEXT_SUBTLE, "text-lg"].join(" ")>{move || t!(i18n, signing_out)}</p>
         </div>
     }
 }
@@ -579,7 +579,7 @@ pub fn RegisterPage() -> impl IntoView {
 
                 <p class="mt-4 text-sm text-center text-gray-500">
                     {move || t!(i18n, register_have_account)} " "
-                    <LocaleA href="/sign-in" class=format!("text-blue-500 {}", HOVER_UNDERLINE)>{move || t!(i18n, register_go_sign_in)}</LocaleA>
+                    <LocaleA href="/sign-in" class=["text-blue-500", HOVER_UNDERLINE].join(" ")>{move || t!(i18n, register_go_sign_in)}</LocaleA>
                 </p>
 
                 // 成功弹框
@@ -594,10 +594,10 @@ pub fn RegisterPage() -> impl IntoView {
                                 }}
                             </p>
                             <div class="modal-actions">
-                                <a href=move || format!("/{}/sign-in", i18n.get_locale().to_string()) class="btn-primary modal-btn">
-                                    {move || t!(i18n, register_go_sign_in)}
-                                </a>
-                                <a href=move || format!("/{}/", i18n.get_locale().to_string()) class="modal-btn-primary">
+                                <a href=move || ["/", &i18n.get_locale().to_string(), "/sign-in"].join("") class="btn-primary modal-btn">
+                                                                    {move || t!(i18n, register_go_sign_in)}
+                                                                </a>
+                                                                <a href=move || ["/", &i18n.get_locale().to_string(), "/"].join("") class="modal-btn-primary">
                                     {move || t!(i18n, go_home)}
                                 </a>
                             </div>

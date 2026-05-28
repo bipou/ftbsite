@@ -36,9 +36,9 @@ pub fn Footer() -> impl IntoView {
     };
 
     view! {
-        <footer class={format!("mt-16 border-t border-gray-200 dark:border-gray-700 {}", BG_CARD)}>
+        <footer class={["mt-16 border-t border-gray-200 dark:border-gray-700", BG_CARD].join(" ")}>
             {google_ads}
-            <div class={format!("{} text-center text-sm {} space-y-2", WIDE, TEXT_SUBTLE)}>
+            <div class={[WIDE, "text-center text-sm", TEXT_SUBTLE, "space-y-2"].join(" ")}>
                 <p class=TEXT_WARN>
                     {move || t!(i18n, site_warn)}
                 </p>

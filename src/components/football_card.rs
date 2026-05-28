@@ -40,7 +40,7 @@ fn CatBadge(
         if n.is_none() {
             Either3::Left(())
         } else if let Some(kid) = &kid {
-            let href = format!("/{}/footballs?category={}", loc_str.get(), kid);
+            let href = ["/", &loc_str.get(), "/footballs?category=", kid].join("");
             Either3::Right(Either::Left(view! {
                 <a href=href class=BADGE_GRAY_NO_UL>{n.unwrap_or_default()}</a>
             }))
@@ -71,7 +71,7 @@ fn ResultSection(
             </div>
         }),
         _ => Either::Left(view! {
-            <p class=format!("{} {}", TEXT_XS_MUTED, ITALIC)>{move || t!(i18n, not_full)}</p>
+            <p class=[TEXT_XS_MUTED, ITALIC].join(" ")>{move || t!(i18n, not_full)}</p>
         }),
     }
 }
@@ -102,7 +102,7 @@ fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
         return Either::Left(view! {
-            <p class=format!("{} {} mb-2", TEXT_XS_MUTED, ITALIC)>
+            <p class=[TEXT_XS_MUTED, ITALIC, "mb-2"].join(" ")>
                 {move || t!(i18n, not_calc)}
             </p>
         });
@@ -172,11 +172,7 @@ fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
 pub fn FootballCard(football: Football) -> impl IntoView {
     let i18n = use_i18n();
     let extra = render_card_extra(&football);
-    let card_class = format!(
-        "card p-4 {} {}",
-        HOVER_SHADOW,
-        status_class(football.status)
-    );
+    let card_class = ["card", "p-4", HOVER_SHADOW, status_class(football.status)].join(" ");
     let title = football.title();
     let season = football.season;
     let kick_off = football.kick_off_at_mdhm8;
@@ -189,10 +185,11 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-2">{s}</p>
         }
     });
-    let detail_path = format!(
-        "/footballs/{}",
-        crate::shared::common::record_key(&football.id)
-    );
+    let detail_path = [
+        "/footballs/",
+        &crate::shared::common::record_key(&football.id),
+    ]
+    .join("");
     let category = football.category;
     let cat_kid = category
         .as_ref()
@@ -204,7 +201,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
 
     view! {
         <div class=card_class>
-            <div class=format!("{} mb-2", FLEX_BETWEEN)>
+            <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
                 <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class=CARD_TITLE>
                     {title}
                 </LocaleA>
@@ -217,7 +214,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                 }}
             </div>
 
-            <div class=format!("text-sm {} mb-3 space-x-2", TEXT_SUBTLE)>
+            <div class=["text-sm", TEXT_SUBTLE, "mb-3", "space-x-2"].join(" ")>
                 <span>{season}</span>
                 <CatBadge name=cat_name kid=cat_kid/>
                 <span class="text-blue-500">{kick_off}</span>
@@ -227,14 +224,14 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             <ResultSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
             {summary_view}
 
-            <div class=format!("{} mt-3", FLEX_BETWEEN)>
+            <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
                 <div class="flex flex-wrap gap-1">
                     {topics.into_iter().map(|topic| {
                         let kid = crate::shared::common::record_key(&topic.id).to_string();
-                        let href = format!("/footballs?topic={}", kid);
+                        let href = ["/footballs?topic=", &kid].join("");
                         let name = topic.name;
                         view! {
-                            <LocaleA href=href class=format!("text-sm {}", BADGE_BLUE_NO_UL)>{name}</LocaleA>
+                            <LocaleA href=href class=["text-sm", BADGE_BLUE_NO_UL].join(" ")>{name}</LocaleA>
                         }
                     }).collect::<Vec<_>>()}
                 </div>

@@ -31,7 +31,7 @@ fn FootballHeader(f: Football) -> impl IntoView {
     let title_text = {
         let ht = f.home_team.clone();
         let at = f.away_team.clone();
-        move || format!("{} vs {} – {}", ht, at, site_title!(i18n))
+        move || [&ht, " vs ", &at, " – ", &site_title!(i18n)].join("")
     };
     let loc = i18n.get_locale().to_string();
     let cat = Memo::new(move |_| f.category.as_ref().and_then(|c| c.name.get(&loc).cloned()));
@@ -58,7 +58,7 @@ fn FootballHeader(f: Football) -> impl IntoView {
                     <div class=TEXT_XS_MUTED>"UTC: " {f.kick_off_at_mdhm}</div>
                 </div>
             </div>
-            <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
+            <div class=["mt-3", TEXT_XS_MUTED, "flex", "gap-4", "flex-wrap"].join(" ")>
                 <span>{move || t!(i18n, football_created)} ": " {f.created_at}</span>
                 <span>{move || t!(i18n, football_updated)} ": " {f.updated_at}</span>
                 <span>{move || t!(i18n, football_hits)}{f.hits}</span>
@@ -96,7 +96,7 @@ fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
     if odds.is_empty() {
         return Either::Left(view! {
             <div class=CARD_SECTION>
-                <p class=format!("text-gray-400 text-sm {}", ITALIC)>
+                <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>
                     {move || t!(i18n, not_calc)}
                 </p>
             </div>
@@ -121,7 +121,7 @@ fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
                                 <td class="px-4 py-2">{format!("{:.2}", o.win)}</td>
                                 <td class="px-4 py-2">{format!("{:.2}", o.draw)}</td>
                                 <td class="px-4 py-2">{format!("{:.2}", o.loss)}</td>
-                                <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{o.created_at}</td>
+                                <td class=["px-4", "py-2", TEXT_XS_MUTED].join(" ")>{o.created_at}</td>
                             </tr>
                         }).collect::<Vec<_>>()}
                     </tbody>
@@ -138,7 +138,7 @@ fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     if calcs.is_empty() {
         return Either::Left(view! {
             <div class=CARD_SECTION>
-                <p class=format!("text-gray-400 text-sm {}", ITALIC)>
+                <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>
                     {move || t!(i18n, not_calc)}
                 </p>
             </div>
@@ -165,7 +165,7 @@ fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
                                 <td class="px-4 py-2">{c.wdl}</td>
                                 <td class="px-4 py-2">{c.tg}</td>
                                 <td class="px-4 py-2">{c.gd}</td>
-                                <td class=format!("px-4 py-2 {}", TEXT_XS_MUTED)>{c.created_at}</td>
+                                <td class=["px-4", "py-2", TEXT_XS_MUTED].join(" ")>{c.created_at}</td>
                             </tr>
                         }).collect::<Vec<_>>()}
                     </tbody>
@@ -267,8 +267,8 @@ fn EventsSection(events: Vec<FootballEvent>) -> impl IntoView {
                 {events.into_iter().map(|e| {
                     let icon = event_icon(&e.event_type);
                     let minute_str = match e.extra {
-                        Some(x) => format!("{}+{}'", e.minute, x),
-                        None => format!("{}'", e.minute),
+                                            Some(x) => [&e.minute.to_string(), "+", &x.to_string(), "'"].join(""),
+                                            None => [&e.minute.to_string(), "'"].join(""),
                     };
                     let note = e.note;
                     view! {
@@ -353,8 +353,8 @@ fn StatRow(
                 <span>{av_d}</span>
             </div>
             <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex">
-                <div class="h-full bg-blue-500" style=format!("width:{}%", hl)></div>
-                <div class="h-full bg-gray-400 dark:bg-gray-500" style=format!("width:{}%", 100 - hl)></div>
+                <div class="h-full bg-blue-500" style=["width:", &hl.to_string(), "%"].join("")></div>
+                                <div class="h-full bg-gray-400 dark:bg-gray-500" style=["width:", &(100 - hl).to_string(), "%"].join("")></div>
             </div>
         </div>
     }
@@ -382,7 +382,7 @@ fn ArticleHeader(
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                 {title_text}
             </h1>
-            <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
+            <div class=["mt-3", TEXT_XS_MUTED, "flex", "gap-4", "flex-wrap"].join(" ")>
                 <span>{move || t!(i18n, football_created)} ": " {created}</span>
                 <span>{move || t!(i18n, football_hits)} {hits}</span>
             </div>
@@ -415,11 +415,11 @@ fn AnalysisCard(
 
     view! {
         <div class="mb-6">
-            <div class=format!("{} mb-2", TEXT_XS_MUTED)>
+            <div class=[TEXT_XS_MUTED, "mb-2"].join(" ")>
                 {move || {
                     if is_ai {
-                        format!("{}", t_display!(i18n, analysis_ai))
-                    } else {
+                                            t_display!(i18n, analysis_ai).to_string()
+                                        } else {
                         author_name.get().flatten().unwrap_or_default()
                     }
                 }}
@@ -429,7 +429,7 @@ fn AnalysisCard(
             <div inner_html=content_html></div>
             {if is_ai {
                 Either::Right(view! {
-                    <p class="text-xs text-gray-400 mt-2">{format!("{}", t_display!(i18n, analysis_ai_label))}</p>
+                    <p class="text-xs text-gray-400 mt-2">{t_display!(i18n, analysis_ai_label).to_string()}</p>
                 })
             } else {
                 Either::Left(())
@@ -498,7 +498,7 @@ fn ResultDetail(
                     })
                 }
                 _ => Either::Left(view! {
-                    <p class=format!("text-gray-400 text-sm {}", ITALIC)>{move || t!(i18n, not_full)}</p>
+                    <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>{move || t!(i18n, not_full)}</p>
                 }),
             }}
         </div>
@@ -518,7 +518,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
                     {topics.iter().map(|t| {
                         let kid = crate::shared::common::record_key(&t.id).to_string();
                         view! {
-                            <a href=format!("/footballs?topic={}", kid) class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
+                            <a href=["/footballs?topic=", &kid].join("") class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
                         }
                     }).collect::<Vec<_>>()}
                 </div>
@@ -545,7 +545,7 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let result_gd = f.result_gd;
     let article_title = f.article_title;
     view! {
-        <p class={format!("{} text-center mb-4", TEXT_WARN)}>
+        <p class={[TEXT_WARN, "text-center", "mb-4"].join(" ")}>
             {move || t!(i18n, site_warn)}
         </p>
         {if ana_type == 0 {
@@ -586,7 +586,7 @@ pub fn FootballDetailPage() -> impl IntoView {
         <Nav/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
-                <div class=format!("{} text-gray-400", EMPTY)>
+                <div class=[EMPTY, "text-gray-400"].join(" ")>
                     {move || t!(i18n, loading)}
                 </div>
             }>
@@ -636,9 +636,9 @@ async fn redirect_to_random_football(locale: String) -> Result<(), ServerFnError
     let url = match football_db::get_random_football_id().await {
         Ok(Some(full_id)) => {
             let kid = record_key(&full_id);
-            format!("/{}/footballs/{}", locale, kid)
+            ["/", &locale, "/footballs/", &kid].join("")
         }
-        _ => format!("/{}/footballs", locale),
+        _ => ["/", &locale, "/footballs"].join(""),
     };
 
     let resp = expect_context::<ResponseOptions>();

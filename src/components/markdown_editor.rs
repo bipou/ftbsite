@@ -76,8 +76,8 @@ pub fn MarkdownEditor(
         if let Some(Ok(url)) = upload_action.value().get() {
             let cursor = cursor_pos.get_untracked();
             let i18n = use_i18n();
-            let alt = t_display!(i18n, image);
-            let md = format!("![{alt}]({url})");
+            let alt = t_display!(i18n, image).to_string();
+            let md = ["![", &alt, "](", &url, ")"].join("");
             set_markdown.update(|v| {
                 if cursor < v.len() {
                     // 在光标位置插入
@@ -149,7 +149,7 @@ pub fn MarkdownEditor(
             // 编辑模式
             <Show when=move || !show_preview.get() fallback=|| ()>
                 <textarea
-                    id=format!("md-ed-{name}")
+                    id=["md-ed-", name].join("")
                     rows=rows
                     class="form-input"
                     node_ref=textarea_ref

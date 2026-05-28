@@ -39,7 +39,7 @@ pub fn CategorySelect(
                         >{name}</button>
                     })
                 } else {
-                    let url = format!("/{}/footballs?category={}", loc_str.get(), kid);
+                    let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                     Either::Right(view! {
                         <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{name}</a>
                     })
@@ -61,7 +61,7 @@ pub fn CategorySelect(
                                 >{name}</button>
                             })
                         } else {
-                            let url = format!("/{}/footballs?category={}", loc_str.get(), kid);
+                            let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                             Either::Right(view! {
                                 <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{name}</a>
                             })

@@ -43,10 +43,10 @@ struct FootballDoc {
     gd: Option<i8>,
     #[cfg(feature = "oth")]
     #[serde(default)]
-    lines: Vec<LineDoc>,
+    lines: Option<Vec<LineDoc>>,
     #[cfg(feature = "oth")]
     #[serde(default)]
-    calcs: Vec<CalcDoc>,
+    calcs: Option<Vec<CalcDoc>>,
     #[serde(default)]
     home_lineup: Option<TeamLineupDoc>,
     #[serde(default)]
@@ -241,9 +241,19 @@ fn il_pair<T: Clone>(v: &[T]) -> Vec<T> {
 async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let fid = rid_str(&doc.id);
     #[cfg(feature = "oth")]
-    let lines: Vec<Line> = doc.lines.into_iter().map(line_to).collect();
+    let lines: Vec<Line> = doc
+        .lines
+        .unwrap_or_default()
+        .into_iter()
+        .map(line_to)
+        .collect();
     #[cfg(feature = "oth")]
-    let calcs: Vec<Calc> = doc.calcs.into_iter().map(calc_to).collect();
+    let calcs: Vec<Calc> = doc
+        .calcs
+        .unwrap_or_default()
+        .into_iter()
+        .map(calc_to)
+        .collect();
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
     let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;

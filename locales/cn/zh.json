@@ -3,6 +3,8 @@
 
   "site_name": "剖奥",
   "site_slogan": "足球数据实验室",
+  "site_title": "{{name}} | {{slogan}}",
+  "page_title": "{{key}} – {{name}} | {{slogan}}",
   "site_intro": "剖奥，足球数据实验室。\nRust 全栈同构，基于 Leptos、SurrealDB、Axum 构建。",
   "site_warn": "纯属娱乐，勿做参考。",
 

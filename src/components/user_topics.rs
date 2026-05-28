@@ -20,7 +20,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                             <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, features_topics)}</p>
                             <div class=FLEX_WRAP_GAP>
                                 {keywords.into_iter().map(|t| {
-                                    let path = format!("/footballs?topic={}", crate::shared::common::record_key(&t.id));
+                                    let path = ["/footballs?topic=", &crate::shared::common::record_key(&t.id)].join("");
                                     view! {
                                         <LocaleA href=path class=BADGE_BLUE_NO_UL>{t.name.clone()}</LocaleA>
                                     }
@@ -37,7 +37,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                             <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, related_topics)}</p>
                             <div class=FLEX_WRAP_GAP>
                                 {topics.into_iter().map(|t| {
-                                    let path = format!("/footballs?topic={}", crate::shared::common::record_key(&t.id));
+                                    let path = ["/footballs?topic=", &crate::shared::common::record_key(&t.id)].join("");
                                     view! {
                                         <LocaleA href=path class=BADGE_GRAY_NO_UL>{t.name.clone()}</LocaleA>
                                     }

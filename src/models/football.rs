@@ -159,7 +159,7 @@ pub struct Football {
 
 impl Football {
     pub fn title(&self) -> String {
-        format!("{} vs {}", self.home_team, self.away_team)
+        [&self.home_team, " vs ", &self.away_team].join("")
     }
 }
 

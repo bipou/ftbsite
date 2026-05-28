@@ -155,11 +155,11 @@ fn SetLocaleFromUrl() -> impl IntoView {
 fn NotFound() -> impl IntoView {
     let i18n = use_i18n();
     view! {
-        <Title text=move || format!("404 – {}", site_title!(i18n))/>
+        <Title text=move || ["404 – ", &site_title!(i18n)].join("")/>
         <div class="min-h-screen flex items-center justify-center">
             <div class="text-center space-y-4 p-8">
                 <h1 class="text-7xl font-bold text-blue-600">"404"</h1>
-                <p class={format!("text-xl {}", TEXT_SUBTLE)}>{move || t!(i18n, page_error_404)}</p>
+                <p class={["text-xl", TEXT_SUBTLE].join(" ")}>{move || t!(i18n, page_error_404)}</p>
                 <LocaleA href="/" class="btn-primary inline-block mt-4">{move || t!(i18n, go_home)}</LocaleA>
             </div>
         </div>

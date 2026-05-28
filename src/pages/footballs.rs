@@ -104,8 +104,8 @@ pub fn FootballsPage() -> impl IntoView {
 
     // h1 和页面标题的筛选后缀，统一定义
     let heading_suffix = move || match filter().as_str() {
-        "picks" => format!(" | {}", t_display!(i18n, status_picks)),
-        "hot" => format!(" | {}", t_display!(i18n, status_hot)),
+        "picks" => [" | ", &t_display!(i18n, status_picks).to_string()].join(""),
+        "hot" => [" | ", &t_display!(i18n, status_hot).to_string()].join(""),
         "topic" | "category" => {
             let fid = filter_id();
             if fid.is_empty() {
@@ -117,7 +117,7 @@ pub fn FootballsPage() -> impl IntoView {
                     .and_then(|cats| {
                         cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
                             let name = c.name.get(&loc_str.get()).cloned().unwrap_or_default();
-                            format!(" | {}", name)
+                            [" | ", &name].join("")
                         })
                     })
                     .unwrap_or_default()
@@ -128,19 +128,21 @@ pub fn FootballsPage() -> impl IntoView {
 
     // 页面标题：football_list | 筛选名 – site_name | site_slogan
     let title_text = move || {
-        format!(
-            "{} – {} | {}",
-            t_display!(i18n, football_list),
-            t_display!(i18n, site_name),
-            t_display!(i18n, site_slogan),
-        )
+        [
+            &t_display!(i18n, football_list).to_string(),
+            " – ",
+            &t_display!(i18n, site_name).to_string(),
+            " | ",
+            &t_display!(i18n, site_slogan).to_string(),
+        ]
+        .join("")
     };
 
     view! {
         <Title text=title_text/>
         <Nav/>
         <main class=WIDE>
-            <p class={format!("{} text-center mb-2", TEXT_WARN)}>
+            <p class={[TEXT_WARN, "text-center", "mb-2"].join(" ")}>
                 {move || t!(i18n, site_warn)}
             </p>
             <div class="flex items-center justify-between mb-4">
@@ -151,7 +153,7 @@ pub fn FootballsPage() -> impl IntoView {
                     </Suspense>
                 </h1>
                 <a
-                    href=move || format!("/{}/footballs/share-analysis", loc_str.get())
+                    href=move || ["/", &loc_str.get(), "/footballs/share-analysis"].join("")
                     class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-3 text-lg transition-colors no-underline"
                 >
                     {move || t!(i18n, write_article)}
@@ -164,15 +166,15 @@ pub fn FootballsPage() -> impl IntoView {
                         {move || t!(i18n, football_category)}
                     </span>
                     <div class="flex flex-wrap gap-2">
-                        <a href=move || format!("/{}/footballs", loc_str.get())
-                           class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            {move || t!(i18n, all)}
-                        </a>
-                        <a href=move || format!("/{}/footballs?picks", loc_str.get())
-                            class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
-                            {move || t!(i18n, status_picks)}
-                        </a>
-                        <a href=move || format!("/{}/footballs?hot", loc_str.get())
+                        <a href=move || ["/", &loc_str.get(), "/footballs"].join("")
+                                                   class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                    {move || t!(i18n, all)}
+                                                </a>
+                                                <a href=move || ["/", &loc_str.get(), "/footballs?picks"].join("")
+                                                    class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
+                                                    {move || t!(i18n, status_picks)}
+                                                </a>
+                                                <a href=move || ["/", &loc_str.get(), "/footballs?hot"].join("")
                             class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
                             {move || t!(i18n, status_hot)}
                         </a>
@@ -199,9 +201,9 @@ pub fn FootballsPage() -> impl IntoView {
                         Ok(data) => {
                             let pi = data.page_info.clone();
                             let base = match filter().as_str() {
-                                "topic" | "category" => format!("/{}/footballs?{}={}", loc_str.get(), filter(), filter_id()),
-                                "picks" | "hot" => format!("/{}/footballs?{}", loc_str.get(), filter()),
-                                _ => format!("/{}/footballs", loc_str.get()),
+                                                            "topic" | "category" => ["/", &loc_str.get(), "/footballs?", &filter(), "=", &filter_id()].join(""),
+                                                            "picks" | "hot" => ["/", &loc_str.get(), "/footballs?", &filter()].join(""),
+                                                            _ => ["/", &loc_str.get(), "/footballs"].join(""),
                             };
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {
