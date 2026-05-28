@@ -44,10 +44,10 @@ fn HomeSection(ana_type: u8, footballs: Vec<Football>) -> impl IntoView {
         <section class="mb-12">
             <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 border-b border-blue-200 dark:border-blue-800 pb-2 mb-4 flex items-center gap-2">
                 <span class="text-blue-500">{match ana_type { 0 => "✍️", 1 => "📊", _ => "📋" }}</span>
-                {match ana_type {
-                    0 => {t_display!(i18n, user_analysis).to_string()},
-                    1 => {t_display!(i18n, pre_match_analysis).to_string()},
-                    _ => {t_display!(i18n, post_match_review).to_string()},
+                {move || match ana_type {
+                    0 => { t_display!(i18n, user_analysis).to_string() },
+                    1 => { t_display!(i18n, pre_match_analysis).to_string() },
+                    _ => { t_display!(i18n, post_match_review).to_string() },
                 }}
             </h2>
             {if footballs.is_empty() {

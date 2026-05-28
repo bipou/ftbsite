@@ -27,7 +27,11 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 #[component]
 fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
-    let title_text = format!("{} vs {} – {}", f.home_team, f.away_team, site_title!(i18n));
+    let title_text = {
+        let ht = f.home_team.clone();
+        let at = f.away_team.clone();
+        move || format!("{} vs {} – {}", ht, at, site_title!(i18n))
+    };
     let loc = i18n.get_locale().to_string();
     let cat = Memo::new(move |_| f.category.as_ref().and_then(|c| c.name.get(&loc).cloned()));
     view! {

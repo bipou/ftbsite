@@ -63,6 +63,7 @@
   "analysis_content": "剖析内容（支持 Markdown 语法）",
   "save_draft": "存草稿",
   "submit_article": "提交",
+  "submitting": "提交中…",
   "share_success": "分享成功",
   "review_notice": "审核 30 分钟内完成，请耐心等待。",
   "collapse": "收起",
@@ -70,7 +71,9 @@
 
   "register": "注册",
   "sign_in": "签入",
+  "signing_in": "签入中…",
   "sign_out": "签出",
+  "signing_out": "签出中…",
   "all": "全部",
   "based_on": "基于 iRust.net",
   "copyright": "版权所有",

@@ -302,6 +302,7 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
     let (status_msg, set_status_msg) = signal(String::new());
     let answer_ref = NodeRef::<Input>::new();
     let btn = Signal::derive(move || t_display!(i18n, register).to_string());
+    let pending_btn = Signal::derive(move || t_display!(i18n, submitting).to_string());
 
     let captcha_res = Resource::new(|| (), |_| async move { get_captcha().await.ok() });
 
@@ -392,7 +393,7 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
                     "w-full justify-center bg-gray-300 text-gray-500 rounded-lg py-2 px-4 cursor-not-allowed mt-4".to_string()
                 }
             >
-                {move || if action.pending().get() { btn.get() } else { btn.get() }}
+                {move || if action.pending().get() { pending_btn.get() } else { btn.get() }}
             </button>
 
             // Error
@@ -436,7 +437,7 @@ pub fn SignInPage() -> impl IntoView {
     });
 
     let btn = Signal::derive(move || t_display!(i18n, sign_in).to_string());
-    let pending = Signal::derive(move || "Signing in...".to_string());
+    let pending = Signal::derive(move || t_display!(i18n, signing_in).to_string());
 
     view! {
         <Title text=move || page_title!(i18n, user_sign_in)/>
@@ -497,7 +498,7 @@ pub fn SignOutPage() -> impl IntoView {
 
     view! {
         <div class="min-h-screen flex items-center justify-center">
-            <p class=format!("{} text-lg", TEXT_SUBTLE)>"Signing out..."</p>
+            <p class=format!("{} text-lg", TEXT_SUBTLE)>{move || t!(i18n, signing_out)}</p>
         </div>
     }
 }

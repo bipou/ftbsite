@@ -178,7 +178,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                             disabled=move || pending.get()
                             on:click=move |_| submit(-1)
                         >
-                            {move || t!(i18n, save_draft)}
+                            {move || if pending.get() { t_display!(i18n, submitting).to_string() } else { t_display!(i18n, save_draft).to_string() }}
                         </button>
                         <button
                             type="button"
@@ -186,7 +186,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                             disabled=move || pending.get()
                             on:click=move |_| submit(0)
                         >
-                            {move || t!(i18n, submit_article)}
+                            {move || if pending.get() { t_display!(i18n, submitting).to_string() } else { t_display!(i18n, submit_article).to_string() }}
                         </button>
                     </div>
                 </div>

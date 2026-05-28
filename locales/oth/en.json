@@ -63,6 +63,7 @@
   "analysis_content": "Analysis Content (supports Markdown syntax)",
   "save_draft": "Save Draft",
   "submit_article": "Submit",
+  "submitting": "Submitting…",
   "share_success": "Shared successfully",
   "review_notice": "Review completed within 30 minutes, please wait patiently.",
   "collapse": "Collapse",
@@ -70,7 +71,9 @@
 
   "register": "Register",
   "sign_in": "Sign in",
+  "signing_in": "Signing in…",
   "sign_out": "Sign out",
+  "signing_out": "Signing out…",
   "all": "All",
   "based_on": "Based on iRust.net",
   "copyright": "All Rights Reserved",

@@ -120,9 +120,8 @@ const FBTN_SUBMIT: &str = "bg-gray-100 hover:bg-gray-200 text-gray-600 dark:bg-g
 #[component]
 fn UserStatusBadge(status: i8) -> impl IntoView {
     let i18n = use_i18n();
-    let st_cls = user_status_cls(status);
     view! {
-        <span class=format!("text-xs px-1.5 py-0.5 rounded {}", st_cls)>
+        <span class=move || format!("text-xs px-1.5 py-0.5 rounded {}", user_status_cls(status))>
             {move || match status {
                 1..=10 => Either3::Left(t!(i18n, status_active)),
                 0 => Either3::Right(Either::Left(t!(i18n, status_inactive))),
@@ -153,9 +152,16 @@ fn UserStatusButtons(
                 0 => t_display!(i18n, status_inactive).to_string(),
                 _ => t_display!(i18n, status_banned).to_string(),
             };
-            feedback.set(Some(format!("{}: {}", t_display!(i18n, admin_status_updated).to_string(), label)));
+            feedback.set(Some(format!(
+                "{}: {}",
+                t_display!(i18n, admin_status_updated).to_string(),
+                label
+            )));
             #[cfg(feature = "hydrate")]
-            set_timeout(move || feedback.set(None), std::time::Duration::from_secs(3));
+            set_timeout(
+                move || feedback.set(None),
+                std::time::Duration::from_secs(3),
+            );
             act.dispatch(AdminUpdateUserStatus {
                 user_id: uid.clone(),
                 status: s,
@@ -219,9 +225,16 @@ fn FootballStatusButtons(
                 -1 => t_display!(i18n, status_draft).to_string(),
                 _ => t_display!(i18n, status_deleted).to_string(),
             };
-            feedback.set(Some(format!("{}: {}", t_display!(i18n, admin_status_updated).to_string(), label)));
+            feedback.set(Some(format!(
+                "{}: {}",
+                t_display!(i18n, admin_status_updated).to_string(),
+                label
+            )));
             #[cfg(feature = "hydrate")]
-            set_timeout(move || feedback.set(None), std::time::Duration::from_secs(3));
+            set_timeout(
+                move || feedback.set(None),
+                std::time::Duration::from_secs(3),
+            );
             act.dispatch(AdminUpdateStatus {
                 football_id: fid.clone(),
                 status: s,
