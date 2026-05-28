@@ -1,4 +1,4 @@
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::models::PageInfo;
 use crate::shared::constant::{FLEX_BETWEEN, TEXT_SUBTLE};
 use leptos::either::Either;
@@ -22,8 +22,10 @@ pub fn Pagination(page_info: PageInfo, base_url: String) -> impl IntoView {
     Either::Right(view! {
         <nav class={format!("{} mt-8 px-4", FLEX_BETWEEN)}>
             <div class={format!("text-sm {}", TEXT_SUBTLE)}>
-                <span>"Page " {pi.current_page} " / " {pi.total_pages} " — " {pi.total_count} " "</span>
-                {move || t!(i18n, pagination_aggregate)}
+                <span>{move || {
+                    let (c, t, n) = (pi.current_page, pi.total_pages, pi.total_count);
+                    t_display!(i18n, pagination_info, current = c.to_string(), total = t.to_string(), count = n.to_string()).to_string()
+                }}</span>
             </div>
             <div class="flex gap-2">
                 {if pi.has_previous {

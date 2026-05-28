@@ -80,7 +80,7 @@ pub fn CategorySelect(
                         {move || if expanded.get() {
                             Either::Left(view! { {t_display!(i18n, collapse).to_string()} })
                         } else {
-                            Either::Right(view! { {t_display!(i18n, expand).to_string()} })
+                            Either::Right(view! { {t_display!(i18n, more).to_string()} })
                         }}
                     </button>
                 })

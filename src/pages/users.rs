@@ -76,7 +76,7 @@ pub fn UsersPage() -> impl IntoView {
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <a href=url target="_blank" rel="noopener noreferrer" class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate no-underline hover:underline hover:text-blue-600">{username}</a>
-                                                    <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated_at}</p>
+                                                    <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)}{move || t!(i18n, colon)} {updated_at}</p>
                                                     {if !keywords.is_empty() {
                                                         Either::Left(view! {
                                                             <div class="flex flex-wrap gap-1 mt-1">
@@ -149,8 +149,8 @@ pub fn UserProfilePage() -> impl IntoView {
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{username}</h1>
-                                        <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, registration_time)} {created_at}</p>
-                                        <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated_at}</p>
+                                        <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, registration_time)}{move || t!(i18n, colon)} {created_at}</p>
+                                        <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)}{move || t!(i18n, colon)} {updated_at}</p>
                                     </div>
                                 </div>
                             </div>

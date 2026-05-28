@@ -62,11 +62,11 @@ fn ResultSection(
     match (s, wdl, tg) {
         (Some(s), Some(wdl), Some(tg)) => Either::Right(view! {
             <div class="text-xs flex items-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_result)}</span>
+                <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_result)}{move || t!(i18n, colon)}</span>
                 <span class="font-semibold text-blue-700 dark:text-blue-300">
-                    <span class="mr-4">{move || t!(i18n, football_s)} ": " {s}</span>
-                    <span class="mr-4">{move || t!(i18n, football_wdl)} ": " {wdl}</span>
-                    <span>{move || t!(i18n, football_tg)} ": " {tg}</span>
+                    <span class="mr-4">{move || t!(i18n, football_s)}{move || t!(i18n, colon)}{s}</span>
+                    <span class="mr-4">{move || t!(i18n, football_wdl)}{move || t!(i18n, colon)}{wdl}</span>
+                    <span>{move || t!(i18n, football_tg)}{move || t!(i18n, colon)}{tg}</span>
                 </span>
             </div>
         }),
@@ -113,7 +113,7 @@ fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
         <div class="text-xs space-y-1 mb-2">
             {init.map(|o| view! {
                 <div class="flex items-center gap-2">
-                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_odds)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_odds)}{move || t!(i18n, colon)}</span>
                     <span class=BADGE_GREEN>{move || t!(i18n, football_win)} " " {format!("{:.2}", o.win)}</span>
                     <span class=BADGE_GRAY>{move || t!(i18n, football_draw)} " " {format!("{:.2}", o.draw)}</span>
                     <span class=BADGE_RED>{move || t!(i18n, football_loss)} " " {format!("{:.2}", o.loss)}</span>
@@ -121,7 +121,7 @@ fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
             })}
             {last.and_then(|o| if odds.len() > 1 { Some(view! {
                 <div class="flex items-center gap-2">
-                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_odds)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_odds)}{move || t!(i18n, colon)}</span>
                     <span class=BADGE_GREEN>{move || t!(i18n, football_win)} " " {format!("{:.2}", o.win)}</span>
                     <span class=BADGE_GRAY>{move || t!(i18n, football_draw)} " " {format!("{:.2}", o.draw)}</span>
                     <span class=BADGE_RED>{move || t!(i18n, football_loss)} " " {format!("{:.2}", o.loss)}</span>
@@ -144,23 +144,23 @@ fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
         <div class="text-xs space-y-1 mb-2 border-t border-gray-100 dark:border-gray-700 pt-2">
             {init.map(|c| view! {
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_calc)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_init_calc)}{move || t!(i18n, colon)}</span>
                     <span class=TEXT_MUTED>
-                        {move || t!(i18n, football_s)} ": " {c.s}
-                        " | " {move || t!(i18n, football_wdl)} ": " {c.wdl}
-                        " | " {move || t!(i18n, football_tg)} ": " {c.tg}
-                        " | " {move || t!(i18n, football_gd)} ": " {c.gd}
+                        {move || t!(i18n, football_s)}{move || t!(i18n, colon)}{c.s}
+                        " | " {move || t!(i18n, football_wdl)}{move || t!(i18n, colon)}{c.wdl}
+                        " | " {move || t!(i18n, football_tg)}{move || t!(i18n, colon)}{c.tg}
+                        " | " {move || t!(i18n, football_gd)}{move || t!(i18n, colon)}{c.gd}
                     </span>
                 </div>
             })}
             {last.and_then(|c| if calcs.len() > 1 { Some(view! {
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_calc)}</span>
+                    <span class="text-gray-400 w-16 shrink-0">{move || t!(i18n, football_last_calc)}{move || t!(i18n, colon)}</span>
                     <span class=TEXT_MUTED>
-                        {move || t!(i18n, football_s)} ": " {c.s}
-                        " | " {move || t!(i18n, football_wdl)} ": " {c.wdl}
-                        " | " {move || t!(i18n, football_tg)} ": " {c.tg}
-                        " | " {move || t!(i18n, football_gd)} ": " {c.gd}
+                        {move || t!(i18n, football_s)}{move || t!(i18n, colon)}{c.s}
+                        " | " {move || t!(i18n, football_wdl)}{move || t!(i18n, colon)}{c.wdl}
+                        " | " {move || t!(i18n, football_tg)}{move || t!(i18n, colon)}{c.tg}
+                        " | " {move || t!(i18n, football_gd)}{move || t!(i18n, colon)}{c.gd}
                     </span>
                 </div>
             }) } else { None })}
@@ -238,7 +238,7 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                         }
                     }).collect::<Vec<_>>()}
                 </div>
-                <span class="text-sm text-gray-400">{move || t!(i18n, football_hits)} {hits}</span>
+                <span class="text-sm text-gray-400">{move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {hits}</span>
             </div>
         </div>
     }

@@ -30,6 +30,19 @@ pub async fn get_upload_nonce() -> Result<String, ServerFnError> {
     Ok(nonce)
 }
 
+/// 通过用户 ID 获取用户名
+#[server]
+pub async fn get_username_by_id(user_id: String) -> Result<Option<String>, ServerFnError> {
+    use crate::server::user_db::get_user_doc_by_id;
+    use crate::shared::common::into_rid;
+    let rid = into_rid(&user_id, "users");
+    match get_user_doc_by_id(&rid).await {
+        Ok(Some(user)) => Ok(Some(user.username)),
+        Ok(None) => Ok(None),
+        Err(e) => Err(ServerFnError::new(e)),
+    }
+}
+
 /// 上传图片到 tmp 目录。须持有有效 nonce
 #[server]
 pub async fn upload_image(

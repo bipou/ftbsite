@@ -2,7 +2,7 @@ use leptos::either::Either;
 use leptos::html::{Input, Textarea};
 use leptos::prelude::*;
 
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::fns::{GetUploadNonce, PreviewMd, UploadImage};
 
 #[component]
@@ -75,7 +75,9 @@ pub fn MarkdownEditor(
     Effect::new(move |_| {
         if let Some(Ok(url)) = upload_action.value().get() {
             let cursor = cursor_pos.get_untracked();
-            let md = format!("![图片]({url})");
+            let i18n = use_i18n();
+            let alt = t_display!(i18n, image);
+            let md = format!("![{alt}]({url})");
             set_markdown.update(|v| {
                 if cursor < v.len() {
                     // 在光标位置插入

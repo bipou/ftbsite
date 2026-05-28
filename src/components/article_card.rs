@@ -1,7 +1,8 @@
 use crate::components::football_card::{status_badge, status_class};
-use crate::i18n::{t, use_i18n};
+use crate::i18n::{t, t_display, use_i18n};
 use crate::models::Football;
 use crate::shared::constant::{CARD_TITLE, FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED};
+use crate::shared::fns::get_username_by_id;
 use crate::shared::locale::LocaleA;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -22,6 +23,30 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     let status = football.status;
     let card_class = format!("card p-4 {} {}", HOVER_SHADOW, status_class(status));
     let badge = status_badge(status);
+    let badge_or_label = if !badge.is_empty() {
+        badge.to_string()
+    } else if is_ai {
+        t_display!(i18n, analysis_ai).to_string()
+    } else {
+        String::new()
+    };
+
+    // 用户文章：获取作者 user_id
+    let user_id = if football.ana_type == 0 {
+        football.analyses.first().and_then(|a| a.user_id.clone())
+    } else {
+        None
+    };
+
+    let author_name = Resource::new(
+        move || user_id.clone(),
+        |uid| async move {
+            match uid {
+                Some(id) if !id.is_empty() => get_username_by_id(id).await.ok().flatten(),
+                _ => None,
+            }
+        },
+    );
 
     view! {
         <div class=card_class>
@@ -35,7 +60,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                     {title}
                 </LocaleA>
                 <span class="text-sm ml-2 whitespace-nowrap">
-                    {if !badge.is_empty() { badge } else if is_ai { "AI" } else { "" }}
+                    {badge_or_label}
                 </span>
             </div>
 
@@ -53,11 +78,10 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
 
             <div class=format!("{} mt-3", FLEX_BETWEEN)>
                 <span class=format!("text-sm {}", TEXT_XS_MUTED)>
-                    // TODO: 查用户名
-                    "球迷"
+                    {move || author_name.get().flatten().unwrap_or_default()}
                 </span>
                 <span class="text-sm text-gray-400">
-                    {move || t!(i18n, football_hits)} " " {football.hits}
+                    {move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {football.hits}
                 </span>
             </div>
         </div>

@@ -140,7 +140,7 @@ pub async fn resend_activation(user_id: String, lang: String) -> Result<(), Serv
     let (email, username) = user_db::get_user_email_username(&rid)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?
-        .ok_or_else(|| ServerFnError::new("User not found".to_string()))?;
+        .ok_or_else(|| ServerFnError::new("user_not_found".to_string()))?;
     email_mod::send_activation_email(&lang, &username, &user_id, &email)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
@@ -236,6 +236,8 @@ fn CaptchaGate(
         }
     });
 
+    let cap_ph = t_display!(i18n, captcha_placeholder).to_string();
+
     view! {
         <ActionForm action=action>
             {children()}
@@ -246,11 +248,11 @@ fn CaptchaGate(
                     <div class="rounded overflow-hidden cursor-pointer shrink-0" style="width:160px;height:40px;border:1px solid #d1d5db"
                          inner_html=svg on:click=move |_| captcha_res.refetch() />
                     <input type="text" name="captcha_answer" required node_ref=answer_ref
-                           placeholder="?" class="form-input w-16 text-center text-xl" on:input=on_input
+                           placeholder=cap_ph
+                           class="form-input w-16 text-center text-xl" on:input=on_input
                            prop:value=move || answer_val.get() autocomplete="off" />
                     <button type="button"
                             class="text-blue-500 hover:text-blue-700 text-lg font-bold shrink-0 leading-none"
-                            title="换一个"
                             on:click=move |_| captcha_res.refetch() >
                         "↻"
                     </button>
@@ -359,6 +361,8 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
         }
     });
 
+    let cap_ph = t_display!(i18n, captcha_placeholder).to_string();
+
     view! {
         <ActionForm action=action>
             {children()}
@@ -369,10 +373,10 @@ fn CaptchaGateRegister(children: Children, action: ServerAction<Register>) -> im
                     <div class="rounded overflow-hidden cursor-pointer shrink-0" style="width:160px;height:40px;border:1px solid #d1d5db"
                          inner_html=svg on:click=move |_| captcha_res.refetch() />
                     <input type="text" name="captcha_answer" required node_ref=answer_ref
-                           placeholder="?" class="form-input w-16 text-center text-xl" on:input=on_input />
+                           placeholder=cap_ph
+                           class="form-input w-16 text-center text-xl" on:input=on_input />
                     <button type="button"
                             class="text-blue-500 hover:text-blue-700 text-lg font-bold shrink-0 leading-none"
-                            title="换一个"
                             on:click=move |_| { captcha_res.refetch(); set_captcha_ok.set(false); set_status_msg.set(String::new()); }>
                         "↻"
                     </button>
@@ -643,7 +647,7 @@ pub fn UserActivatePage() -> impl IntoView {
                                 {move || t!(i18n, user_activated)}
                             </h1>
                             <p class="text-gray-600 mb-4">{username}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">"Sign In →"</LocaleA>
+                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
                         })),
                         Ok(None) => Either3::Right(Either::Right(view! {
                             <Show when=move || !resent.get() fallback=move || view! {

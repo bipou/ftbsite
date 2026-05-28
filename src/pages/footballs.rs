@@ -126,11 +126,11 @@ pub fn FootballsPage() -> impl IntoView {
         _ => String::new(),
     };
 
-    // 页面标题：footballs_list | 筛选名 – site_name | site_slogan
+    // 页面标题：football_list | 筛选名 – site_name | site_slogan
     let title_text = move || {
         format!(
             "{} – {} | {}",
-            t_display!(i18n, footballs_list),
+            t_display!(i18n, football_list),
             t_display!(i18n, site_name),
             t_display!(i18n, site_slogan),
         )
@@ -145,7 +145,7 @@ pub fn FootballsPage() -> impl IntoView {
             </p>
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    {move || t!(i18n, footballs_list)}
+                    {move || t!(i18n, football_list)}
                     <Suspense fallback=|| ()>
                         {heading_suffix}
                     </Suspense>
@@ -161,7 +161,7 @@ pub fn FootballsPage() -> impl IntoView {
             <div class="mb-6 pr-8">
                 <div class="flex">
                     <span class="form-label shrink-0 mr-1">
-                        {move || t!(i18n, footballs_filter_category)}
+                        {move || t!(i18n, football_category)}{move || t!(i18n, colon)}
                     </span>
                     <div class="flex flex-wrap gap-2">
                         <a href=move || format!("/{}/footballs", loc_str.get())

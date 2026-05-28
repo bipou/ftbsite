@@ -1,5 +1,6 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
+use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -413,7 +414,7 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                             </LocaleA>
                                                             <UserStatusBadge status/>
                                                         </div>
-                                                        <p class="text-xs text-gray-400 mt-0.5">{move || t!(i18n, profile_updated)} {updated}</p>
+                                                        <p class="text-xs text-gray-400 mt-0.5">{move || t!(i18n, profile_updated)}{move || t!(i18n, colon)} {updated}</p>
                                                     </div>
                                                 </div>
 
@@ -538,8 +539,8 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                                                 </h1>
                                                 <UserStatusBadge status/>
                                             </div>
-                                            <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, registration_time)} {created}</p>
-                                            <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)} {updated}</p>
+                                            <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, registration_time)}{move || t!(i18n, colon)} {created}</p>
+                                            <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)}{move || t!(i18n, colon)} {updated}</p>
                                             <p class="text-xs text-gray-400 mt-1">Email: {email}</p>
                                         </div>
                                     </div>
@@ -682,7 +683,7 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
     let update_action = ServerAction::<AdminUpdateStatus>::new();
 
     view! {
-        <Title text="BiPou"/>
+        <Title text=move || site_title!(i18n)/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>

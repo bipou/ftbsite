@@ -11,6 +11,7 @@ use leptos_router::hooks::use_params_map;
 
 use crate::components::{Footer, Nav};
 use crate::models::{Football, FootballEvent, FootballStats, TeamLineup};
+use crate::shared::fns::get_username_by_id;
 use crate::shared::locale::LocaleA;
 
 #[server]
@@ -43,7 +44,7 @@ fn FootballHeader(f: Football) -> impl IntoView {
                         {f.home_team} <span class="text-gray-400 mx-2">"vs"</span> {f.away_team}
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
-                        <span>{move || t!(i18n, football_season)} " " {f.season}</span>
+                        <span>{move || t!(i18n, football_season)}{move || t!(i18n, colon)} {f.season}</span>
                         {move || if cat.get().is_some() {
                             Either::Left(view! { <span class=BADGE_GRAY>{cat.get().unwrap_or_default()}</span> })
                         } else {
@@ -58,9 +59,9 @@ fn FootballHeader(f: Football) -> impl IntoView {
                 </div>
             </div>
             <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
-                <span>{move || t!(i18n, football_created)} ": " {f.created_at}</span>
-                <span>{move || t!(i18n, football_updated)} ": " {f.updated_at}</span>
-                <span>{move || t!(i18n, football_hits)} {f.hits}</span>
+                <span>{move || t!(i18n, football_created)}{move || t!(i18n, colon)} {f.created_at}</span>
+                <span>{move || t!(i18n, football_updated)}{move || t!(i18n, colon)} {f.updated_at}</span>
+                <span>{move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {f.hits}</span>
             </div>
         </div>
     }
@@ -215,10 +216,10 @@ fn TeamView(team: TeamLineup) -> impl IntoView {
     view! {
         <div>
             <div class="text-sm text-gray-500 mb-1">
-                {move || t!(i18n, football_formation)} ": " {formation}
+                {move || t!(i18n, football_formation)}{move || t!(i18n, colon)} {formation}
                 {move || coach.as_ref().map(|c| view! {
                     <span class="ml-2">
-                        {move || t!(i18n, football_coach)} ": " {c.clone()}
+                        {move || t!(i18n, football_coach)}{move || t!(i18n, colon)} {c.clone()}
                     </span>
                 })}
             </div>
@@ -382,8 +383,8 @@ fn ArticleHeader(
                 {title_text}
             </h1>
             <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
-                <span>{move || t!(i18n, football_created)} ": " {created}</span>
-                <span>{move || t!(i18n, football_hits)} " " {hits}</span>
+                <span>{move || t!(i18n, football_created)}{move || t!(i18n, colon)} {created}</span>
+                <span>{move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {hits}</span>
             </div>
         </div>
     }
@@ -396,19 +397,36 @@ fn AnalysisCard(
 ) -> impl IntoView {
     let i18n = use_i18n();
     let is_ai = ana_type > 0;
+
+    // 提取所需字段，避免 view! 中移动冲突
+    let user_id = analysis.user_id.clone();
+    let generated_at = analysis.generated_at;
+    let content_html = analysis.content_html;
+
+    let author_name = Resource::new(
+        move || user_id.clone(),
+        |uid| async move {
+            match uid {
+                Some(id) if !id.is_empty() => get_username_by_id(id).await.ok().flatten(),
+                _ => None,
+            }
+        },
+    );
+
     view! {
         <div class="mb-6">
             <div class=format!("{} mb-2", TEXT_XS_MUTED)>
-                {if is_ai {
-                    format!("{}", t_display!(i18n, analysis_ai))
-                } else {
-                    // TODO: 通过 user_id 查用户名
-                    String::from("球迷")
+                {move || {
+                    if is_ai {
+                        format!("{}", t_display!(i18n, analysis_ai))
+                    } else {
+                        author_name.get().flatten().unwrap_or_default()
+                    }
                 }}
                 {" · "}
-                {analysis.generated_at}
+                {generated_at}
             </div>
-            <div inner_html=analysis.content_html></div>
+            <div inner_html=content_html></div>
             {if is_ai {
                 Either::Right(view! {
                     <p class="text-xs text-gray-400 mt-2">{format!("{}", t_display!(i18n, analysis_ai_label))}</p>
@@ -495,7 +513,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
     } else {
         Either::Right(view! {
             <div class="card p-4 mb-6">
-                <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}</p>
+                <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}{move || t!(i18n, colon)}</p>
                 <div class=FLEX_WRAP_GAP>
                     {topics.iter().map(|t| {
                         let kid = crate::shared::common::record_key(&t.id).to_string();

@@ -79,7 +79,6 @@ pub fn TopicInput(
                 type="text"
                 node_ref=input_ref
                 class="border-0 outline-none flex-1 min-w-24 bg-transparent text-sm"
-                placeholder="..."
                 on:keydown=on_keydown
                 on:input=move |ev| set_input.set(event_target_value(&ev))
                 prop:value=input

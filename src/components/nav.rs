@@ -143,7 +143,6 @@ fn ThemeToggle() -> impl IntoView {
     };
     view! {
         <button
-            title="Toggle theme"
             on:click=on_click
             class="w-7 h-7 flex items-center justify-center rounded-full border-0 bg-transparent cursor-pointer text-base leading-1"
         >

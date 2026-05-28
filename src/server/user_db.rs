@@ -15,7 +15,7 @@ use crate::server::markdown::render_md;
 #[derive(Debug, Deserialize, SurrealValue)]
 pub struct UserDoc {
     id: RecordId,
-    username: String,
+    pub username: String,
     email: String,
     cred: String,
     #[serde(default)]
@@ -226,7 +226,7 @@ pub async fn register_user(data: RegisterData) -> Result<(String, String), Strin
         .await
         .map_err(|e| e.to_string())?;
     let created: Vec<UserDoc> = resp.take(0).map_err(|e| e.to_string())?;
-    let user_doc = created.into_iter().next().ok_or("failed to create user")?;
+    let user_doc = created.into_iter().next().ok_or("create_user_failed")?;
     let uid_str = rid_str(&user_doc.id);
 
     // optional topics

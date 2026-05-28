@@ -47,12 +47,13 @@ pub async fn post_analysis(
         .get("cookie")
         .and_then(|v| v.to_str().ok())
         .unwrap_or_default();
-    let token = get_cookie_value(cookie, "fs_token").ok_or_else(|| ServerFnError::new("未登录"))?;
+    let token =
+        get_cookie_value(cookie, "fs_token").ok_or_else(|| ServerFnError::new("not_sign_in"))?;
     let claims = decode_jwt(&token).map_err(|e| ServerFnError::new(e.to_string()))?;
     let user = user_db::get_user_by_username(&claims.username)
         .await
         .map_err(|e| ServerFnError::new(e))?
-        .ok_or_else(|| ServerFnError::new("用户不存在"))?;
+        .ok_or_else(|| ServerFnError::new("user_not_found"))?;
 
     let fid = football_db::insert_article(&title, &category_id, status)
         .await
@@ -87,7 +88,7 @@ fn CategorySection(selected: RwSignal<String>) -> impl IntoView {
     view! {
         <div class="pr-8">
             <div class="flex">
-                <label class="form-label shrink-0">{move || t!(use_i18n(), footballs_filter_category)}</label>
+                <label class="form-label shrink-0">{move || t!(use_i18n(), football_category)}{move || t!(use_i18n(), colon)}</label>
                 <Suspense fallback=|| ()>
                     {move || cats_res.get().map(|r| r.ok()).flatten().map(|all| {
                         view! {
@@ -136,6 +137,8 @@ pub fn WriteArticlePage() -> impl IntoView {
 
     let pending = post_action.pending();
 
+    let title_ph = t_display!(i18n, article_title).to_string();
+
     view! {
         <Title text=move || page_title!(i18n, write_article)/>
         <Nav/>
@@ -152,7 +155,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                         <input
                             type="text"
                             class="form-input w-full text-lg font-semibold"
-                            placeholder="文章标题"
+                            placeholder=title_ph
                             prop:value=title
                             on:input=move |ev| title.set(event_target_value(&ev))
                         />
@@ -189,6 +192,18 @@ pub fn WriteArticlePage() -> impl IntoView {
                             {move || if pending.get() { t_display!(i18n, submitting).to_string() } else { t_display!(i18n, submit_article).to_string() }}
                         </button>
                     </div>
+
+                    {move || post_action.value().get().and_then(|r| r.err()).map(|e| {
+                        let raw = e.to_string();
+                        let msg = if raw.contains("not_sign_in") {
+                            t_display!(i18n, not_sign_in).to_string()
+                        } else if raw.contains("user_not_found") {
+                            t_display!(i18n, user_not_found).to_string()
+                        } else {
+                            raw
+                        };
+                        view! { <p class="text-red-500 text-sm text-center mt-2">{msg}</p> }
+                    })}
                 </div>
             </div>
 
