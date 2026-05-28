@@ -122,7 +122,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/users/:id/activate")  view=UserActivatePage/>
                         <Route path=path!("/:locale/admin")               view=AdminPage/>
                         <Route path=path!("/:locale/admin/footballs")     view=AdminFootballsPage/>
-                        <Route path=path!("/:locale/admin/football/:id")  view=AdminFootballDetailPage/>
+                        <Route path=path!("/:locale/admin/footballs/:id")  view=AdminFootballDetailPage/>
                         <Route path=path!("/:locale/admin/users")         view=AdminUsersPage/>
                         <Route path=path!("/:locale/admin/users/:username") view=AdminUserDetailPage/>
                     </Routes>

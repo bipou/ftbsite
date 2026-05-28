@@ -16,19 +16,16 @@ fn status_class(status: i8) -> &'static str {
         4 => "fc-status-4",
         3 => "fc-status-3",
         2 => "fc-status-2",
-        1 => "fc-status-1",
-        _ => "fc-status-0",
+        _ => "",
     }
 }
 
 fn status_badge(status: i8) -> &'static str {
     match status {
         4 => "⭐🔥",
-        3 => "⭐ Pick",
-        2 => "🔥 Hot",
-        1 => "Published",
-        0 => "Draft",
-        _ => "—",
+        3 => "⭐",
+        2 => "🔥",
+        _ => "",
     }
 }
 
@@ -211,7 +208,13 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                 <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class=CARD_TITLE>
                     {title}
                 </LocaleA>
-                <span class="text-sm text-gray-400 ml-2 whitespace-nowrap">{status_badge(status)}</span>
+                {let badge = status_badge(status); if !badge.is_empty() {
+                    Either::Left(view! {
+                        <span class="text-sm ml-2 whitespace-nowrap">{badge}</span>
+                    })
+                } else {
+                    Either::Right(())
+                }}
             </div>
 
             <div class=format!("text-sm {} mb-3 space-x-2", TEXT_SUBTLE)>

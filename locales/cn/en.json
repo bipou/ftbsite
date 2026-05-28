@@ -133,6 +133,7 @@
   "admin_users_desc": "View and manage all registered users.",
   "admin_data_desc": "Manage football match status and visibility.",
   "admin_access_denied": "Access denied",
+  "admin_status_updated": "Status updated",
 
   "status_both": "Picks+Hot",
   "status_picks": "Picks",

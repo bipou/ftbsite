@@ -19,7 +19,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     );
 
     view! {
-        <div class=format!("card p-4 {} {}", HOVER_SHADOW, "fc-status-1")>
+        <div class=format!("card p-4 {}", HOVER_SHADOW)>
             <div class=format!("{} mb-2", FLEX_BETWEEN)>
                 <LocaleA
                     href=detail_path

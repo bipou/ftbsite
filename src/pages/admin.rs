@@ -85,6 +85,16 @@ pub async fn admin_update_status(football_id: String, status: i8) -> Result<(), 
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
+#[server]
+pub async fn admin_get_football(id: String) -> Result<Option<Football>, ServerFnError> {
+    use crate::server::football_db;
+    use crate::shared::common::into_rid;
+    let rid = into_rid(&id, "footballs");
+    football_db::get_football_by_id(&rid)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
 // ── 辅助 ────────────────────────────────────────────────────────────────
 
 fn user_status_cls(status: i8) -> &'static str {
@@ -213,11 +223,16 @@ pub fn AdminUsersPage() -> impl IntoView {
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
+                        <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                            <LocaleA href="/admin" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_dashboard)}</LocaleA>
+                            <span class="text-gray-300">"»"</span>
+                            <span class="text-gray-800 dark:text-gray-200 font-medium">{move || t!(i18n, admin_users)}</span>
+                        </div>
                         <h1 class=H1>{move || t!(i18n, admin_users)}</h1>
 
                 {move || update_action.value().get().map(|r| match r {
                     Ok(()) => Either::Left(view! {
-                        <p class=ALERT_SUCCESS>"Status updated."</p>
+                        <p class=ALERT_SUCCESS>{move || t!(i18n, admin_status_updated)}</p>
                     }),
                     Err(e) => Either::Right(view! {
                         <p class=ALERT_ERROR>{e.to_string()}</p>
@@ -383,11 +398,13 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                             let topics = user.topics.clone();
                             let initial = uname.chars().next().unwrap_or('?');
                             Either3::Right(Either::Right(view! {
-                                // 返回链接
-                                <div class="mb-4">
-                                    <LocaleA href="/admin/users" class="text-sm text-gray-500 hover:text-blue-600 no-underline">
-                                        "← Back to user list"
-                                    </LocaleA>
+                                // 面包屑
+                                <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                                    <LocaleA href="/admin" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_dashboard)}</LocaleA>
+                                    <span class="text-gray-300">"»"</span>
+                                    <LocaleA href="/admin/users" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_users)}</LocaleA>
+                                    <span class="text-gray-300">"»"</span>
+                                    <span class="text-gray-800 dark:text-gray-200 font-medium">{uname.clone()}</span>
                                 </div>
 
                                 // 用户信息头部 + 状态操作
@@ -438,7 +455,7 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                                     // 操作反馈
                                     {move || update_action.value().get().map(|r| match r {
                                         Ok(()) => Either::Left(view! {
-                                            <p class=format!("mt-3 {}", ALERT_SUCCESS)>"Status updated."</p>
+                                            <p class=format!("mt-3 {}", ALERT_SUCCESS)>{move || t!(i18n, admin_status_updated)}</p>
                                         }),
                                         Err(e) => Either::Right(view! {
                                             <p class=format!("mt-3 {}", ALERT_ERROR)>{e.to_string()}</p>
@@ -502,11 +519,16 @@ pub fn AdminFootballsPage() -> impl IntoView {
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
+                <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                    <LocaleA href="/admin" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_dashboard)}</LocaleA>
+                    <span class="text-gray-300">"»"</span>
+                    <span class="text-gray-800 dark:text-gray-200 font-medium">{move || t!(i18n, admin_footballs)}</span>
+                </div>
                 <h1 class=H1>{move || t!(i18n, admin_footballs)}</h1>
 
                 {move || update_action.value().get().map(|r| match r {
                     Ok(()) => Either::Left(view! {
-                        <p class=ALERT_SUCCESS>"Status updated successfully."</p>
+                        <p class=ALERT_SUCCESS>{move || t!(i18n, admin_status_updated)}</p>
                     }),
                     Err(e) => Either::Right(view! {
                         <p class=ALERT_ERROR>{e.to_string()}</p>
@@ -525,9 +547,13 @@ pub fn AdminFootballsPage() -> impl IntoView {
                             Either3::Right(Either::Left(view! {
                                 <div class="space-y-3 mb-8">
                                     {d.items.into_iter().map(|football| {
-                                        let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, .. } = football;
-                                        let url = format!("/{}/footballs/{}", loc_str.get(), crate::shared::common::record_key(&id));
-                                        let title = format!("{} vs {}", home_team, away_team);
+                                        let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, ana_type, article_title, .. } = football;
+                                        let url = format!("/{}/admin/footballs/{}", loc_str.get(), crate::shared::common::record_key(&id));
+                                        let title = if ana_type == 0 {
+                                            article_title.unwrap_or_else(|| format!("{} vs {}", home_team, away_team))
+                                        } else {
+                                            format!("{} vs {}", home_team, away_team)
+                                        };
                                         view! {
                                             <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                 <div class="flex-1 min-w-0">
@@ -539,8 +565,6 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                                     </a>
                                                     <p class="text-xs text-gray-400 mt-1">
                                                         {season} " · " {kick_off_at_mdhm8}
-                                                        " · Status: "
-                                                        <span class="font-medium text-gray-600">{status}</span>
                                                     </p>
                                                 </div>
                                                 // 状态操作按钮（7 个）
@@ -598,7 +622,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
     }
 }
 
-// ── 赛事管理详情（包装公开组件）────────────────────────────────────────
+// ── 赛事管理详情 ────────────────────────────────────────────────────────
 
 #[component]
 pub fn AdminFootballDetailPage() -> impl IntoView {
@@ -606,10 +630,12 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
     let status_res = Resource::new(|| (), |_| get_my_status());
     let params = use_params_map();
     let id = move || params.read().get("id").unwrap_or_default();
+    let football_res =
+        Resource::new_blocking(move || id(), |i| async move { admin_get_football(i).await });
+    let update_action = ServerAction::<AdminUpdateStatus>::new();
 
     view! {
         <Title text="BiPou"/>
-        <Nav/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
@@ -622,23 +648,86 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
-                {
-                    let detail_url = move || format!("/footballs/{}", id());
-                    view! {
-                        <div class="flex items-center gap-4 mb-6">
-                            <LocaleA href="/admin/footballs" class="text-sm text-gray-500 hover:text-blue-600 no-underline">
-                                "← Back to admin list"
-                            </LocaleA>
-                            <a href=detail_url class="text-sm text-blue-500 hover:underline">
-                                "Public view →"
-                            </a>
-                            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100 ml-2">
-                                {move || t!(i18n, admin_football_detail)}
-                            </h1>
-                        </div>
-                        <crate::pages::football::FootballDetailPage/>
-                    }
-                }
+                <Suspense fallback=move || view! {
+                    <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
+                }>
+                    {move || football_res.get().map(|fr| match fr {
+                        Err(e) => Either3::Left(view! {
+                            <p class="text-red-500 text-center py-8">{e.to_string()}</p>
+                        }),
+                        Ok(None) => Either3::Right(Either::Left(view! {
+                            <div class=EMPTY>
+                                <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                            </div>
+                        })),
+                        Ok(Some(f)) => {
+                            let fid = f.id.clone();
+                            let status = f.status;
+                            let title = if f.ana_type == 0 {
+                                f.article_title.clone().unwrap_or_else(|| f.title())
+                            } else {
+                                f.title()
+                            };
+                            Either3::Right(Either::Right(view! {
+                                // 面包屑
+                                <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">
+                                    <LocaleA href="/admin" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_dashboard)}</LocaleA>
+                                    <span class="text-gray-300">"»"</span>
+                                    <LocaleA href="/admin/footballs" class="text-gray-500 hover:text-blue-600 no-underline">{move || t!(i18n, admin_footballs)}</LocaleA>
+                                    <span class="text-gray-300">"»"</span>
+                                    <span class="text-gray-800 dark:text-gray-200 font-medium">{title}</span>
+                                </div>
+
+                                // 状态操作按钮
+                                <div class="card p-4 mb-4">
+                                    <div class="flex gap-1 flex-wrap">
+                                            {[
+                                                (4i8, "status_both", UBTN_RED),
+                                                (3, "status_picks", FBTN_ORANGE),
+                                                (2, "status_hot", FBTN_INDIGO),
+                                                (1, "status_publish", FBTN_BLUE),
+                                                (0, "status_submit", FBTN_SUBMIT),
+                                                (-1, "status_draft", UBTN_DRAFT),
+                                                (-2, "status_deleted", UBTN_DELETED),
+                                            ].into_iter().map(|(s, key, cls)| {
+                                                let id_val = fid.clone();
+                                                let is_current = status == s;
+                                                let hl = if is_current { " ring-2 ring-blue-400 ring-offset-1" } else { "" };
+                                                view! {
+                                                    <ActionForm action=update_action>
+                                                        <input type="hidden" name="football_id" value=id_val/>
+                                                        <input type="hidden" name="status" value=s.to_string()/>
+                                                        <button type="submit" class=format!("text-xs px-2 py-1 rounded transition-colors {}{}", cls, hl)>
+                                                            {move || match key {
+                                                                "status_both" => Either7::Left(t!(i18n, status_both)),
+                                                                "status_picks" => Either7::Right(Either::Left(t!(i18n, status_picks))),
+                                                                "status_hot" => Either7::Right(Either::Right(Either::Left(t!(i18n, status_hot)))),
+                                                                "status_publish" => Either7::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_publish))))),
+                                                                "status_submit" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_submit)))))),
+                                                                "status_draft" => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_draft))))))),
+                                                                _ => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Right(t!(i18n, status_deleted))))))),
+                                                            }}
+                                                        </button>
+                                                    </ActionForm>
+                                                }
+                                            }).collect::<Vec<_>>()}
+                                        </div>
+                                    {move || update_action.value().get().map(|r| match r {
+                                        Ok(()) => Either::Left(view! {
+                                            <p class=format!("mt-2 {}", ALERT_SUCCESS)>{move || t!(i18n, admin_status_updated)}</p>
+                                        }),
+                                        Err(e) => Either::Right(view! {
+                                            <p class=format!("mt-2 {}", ALERT_ERROR)>{e.to_string()}</p>
+                                        }),
+                                    })}
+                                </div>
+
+                                // 公开详情
+                                <crate::pages::football::FootballDetailPage/>
+                            }))
+                        }
+                    })}
+                </Suspense>
                     })),
                     _ => Either3::Right(Either::Right(view! {
                         <div class=EMPTY>

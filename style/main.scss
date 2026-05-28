@@ -228,12 +228,10 @@ tbody .font-medium{font-weight:500}
 
 // ── Football status cards ──────────────────────────────────────────────────────
 .fc-status-4{background:#fee2e2}.fc-status-3{background:#fef2f2}
-.fc-status-2{background:#dbeafe}.fc-status-1{background:#eff6ff}
-.fc-status-0{background:#fff}
+.fc-status-2{background:#dbeafe}
 @include dark {
   .fc-status-4{background:rgba(59,21,21,.3)}.fc-status-3{background:rgba(59,21,21,.2)}
-  .fc-status-2{background:rgba(30,58,95,.3)}.fc-status-1{background:rgba(30,58,95,.2)}
-  .fc-status-0{background:#1f2937}
+  .fc-status-2{background:rgba(30,58,95,.3)}
 }
 
 // ── Site title ─────────────────────────────────────────────────────────────────

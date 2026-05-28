@@ -143,6 +143,7 @@
   "admin_users_desc": "查看和管理所有注册用户。",
   "admin_data_desc": "管理赛事数据状态与可见性。",
   "admin_access_denied": "无权访问管理后台",
+  "admin_status_updated": "状态已更新",
 
   "status_both": "精选+热门",
   "status_picks": "精选",
