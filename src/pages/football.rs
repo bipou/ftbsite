@@ -44,7 +44,7 @@ fn FootballHeader(f: Football) -> impl IntoView {
                         {f.home_team} <span class="text-gray-400 mx-2">"vs"</span> {f.away_team}
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
-                        <span>{move || t!(i18n, football_season)}{move || t!(i18n, colon)} {f.season}</span>
+                        <span>{move || t!(i18n, football_season)}{f.season}</span>
                         {move || if cat.get().is_some() {
                             Either::Left(view! { <span class=BADGE_GRAY>{cat.get().unwrap_or_default()}</span> })
                         } else {
@@ -59,9 +59,9 @@ fn FootballHeader(f: Football) -> impl IntoView {
                 </div>
             </div>
             <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
-                <span>{move || t!(i18n, football_created)}{move || t!(i18n, colon)} {f.created_at}</span>
-                <span>{move || t!(i18n, football_updated)}{move || t!(i18n, colon)} {f.updated_at}</span>
-                <span>{move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {f.hits}</span>
+                <span>{move || t!(i18n, football_created)} ": " {f.created_at}</span>
+                <span>{move || t!(i18n, football_updated)} ": " {f.updated_at}</span>
+                <span>{move || t!(i18n, football_hits)}{f.hits}</span>
             </div>
         </div>
     }
@@ -216,10 +216,10 @@ fn TeamView(team: TeamLineup) -> impl IntoView {
     view! {
         <div>
             <div class="text-sm text-gray-500 mb-1">
-                {move || t!(i18n, football_formation)}{move || t!(i18n, colon)} {formation}
+                {move || t!(i18n, football_formation)} ": " {formation}
                 {move || coach.as_ref().map(|c| view! {
                     <span class="ml-2">
-                        {move || t!(i18n, football_coach)}{move || t!(i18n, colon)} {c.clone()}
+                        {move || t!(i18n, football_coach)} ": " {c.clone()}
                     </span>
                 })}
             </div>
@@ -383,8 +383,8 @@ fn ArticleHeader(
                 {title_text}
             </h1>
             <div class=format!("mt-3 {} flex gap-4 flex-wrap", TEXT_XS_MUTED)>
-                <span>{move || t!(i18n, football_created)}{move || t!(i18n, colon)} {created}</span>
-                <span>{move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {hits}</span>
+                <span>{move || t!(i18n, football_created)} ": " {created}</span>
+                <span>{move || t!(i18n, football_hits)} {hits}</span>
             </div>
         </div>
     }
@@ -513,7 +513,7 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
     } else {
         Either::Right(view! {
             <div class="card p-4 mb-6">
-                <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}{move || t!(i18n, colon)}</p>
+                <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}</p>
                 <div class=FLEX_WRAP_GAP>
                     {topics.iter().map(|t| {
                         let kid = crate::shared::common::record_key(&t.id).to_string();

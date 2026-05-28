@@ -17,7 +17,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                 {if !keywords.is_empty() {
                     Either::Left(view! {
                         <div class="mb-4">
-                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, features_topics)}{move || t!(i18n, colon)}</p>
+                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, features_topics)}</p>
                             <div class=FLEX_WRAP_GAP>
                                 {keywords.into_iter().map(|t| {
                                     let path = format!("/footballs?topic={}", crate::shared::common::record_key(&t.id));
@@ -34,7 +34,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                 {if !topics.is_empty() {
                     Either::Left(view! {
                         <div>
-                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, related_topics)}{move || t!(i18n, colon)}</p>
+                            <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, related_topics)}</p>
                             <div class=FLEX_WRAP_GAP>
                                 {topics.into_iter().map(|t| {
                                     let path = format!("/footballs?topic={}", crate::shared::common::record_key(&t.id));

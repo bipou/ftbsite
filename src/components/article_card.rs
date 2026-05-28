@@ -81,7 +81,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                     {move || author_name.get().flatten().unwrap_or_default()}
                 </span>
                 <span class="text-sm text-gray-400">
-                    {move || t!(i18n, football_hits)}{move || t!(i18n, colon)} {football.hits}
+                    {move || t!(i18n, football_hits)}{football.hits}
                 </span>
             </div>
         </div>

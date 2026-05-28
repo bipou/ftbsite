@@ -161,7 +161,7 @@ pub fn FootballsPage() -> impl IntoView {
             <div class="mb-6 pr-8">
                 <div class="flex">
                     <span class="form-label shrink-0 mr-1">
-                        {move || t!(i18n, football_category)}{move || t!(i18n, colon)}
+                        {move || t!(i18n, football_category)}
                     </span>
                     <div class="flex flex-wrap gap-2">
                         <a href=move || format!("/{}/footballs", loc_str.get())

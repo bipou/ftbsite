@@ -18,8 +18,6 @@
   "go_list": "回列表",
 
   "image": "图片",
-  "colon": "：",
-
   "not_sign_in": "未登录",
   "not_full": "尚未全场",
   "user_not_found": "用户不存在",
@@ -32,7 +30,7 @@
   "football_wdl": "胜平负",
   "football_tg": "总进球",
   "football_gd": "净胜球",
-  "football_result": "赛事结果",
+  "football_result": "赛事结果：",
 
   "football_lineups": "阵容",
   "football_events": "赛况",
@@ -74,13 +72,13 @@
   "copyright": "版权所有",
 
   "football_list": "赛事列表",
-  "football_category": "类别",
+  "football_category": "类别：",
   "football_created": "创建于",
   "football_updated": "更新于",
-  "football_keys_tags": "关键词/标签",
-  "football_hits": "浏览",
-  "football_season": "赛季",
-  "football_kick_off": "开球时间",
+  "football_keys_tags": "关键词/标签：",
+  "football_hits": "浏览：",
+  "football_season": "赛季：",
+  "football_kick_off": "开球时间：",
 
   "user_sign_in": "用户签入",
   "sign_in_account": "账户",
@@ -115,10 +113,10 @@
   "captcha_invalid": "答案错误，请重试",
 
   "users_list": "球迷列表",
-  "registration_time": "注册时间",
-  "profile_updated": "资料更新",
-  "features_topics": "话题 / 特点关键词",
-  "related_topics": "话题 / 涉猎关键词",
+  "registration_time": "注册时间：",
+  "profile_updated": "资料更新：",
+  "features_topics": "话题 / 特点关键词：",
+  "related_topics": "话题 / 涉猎关键词：",
   "user_intro": "用户简介",
 
   "user_activate": "账户激活",

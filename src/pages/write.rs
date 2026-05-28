@@ -84,11 +84,12 @@ pub async fn post_analysis(
 
 #[component]
 fn CategorySection(selected: RwSignal<String>) -> impl IntoView {
+    let i18n = use_i18n();
     let cats_res = Resource::new(|| (), |_| get_all_categories());
     view! {
         <div class="pr-8">
             <div class="flex">
-                <label class="form-label shrink-0">{move || t!(use_i18n(), football_category)}{move || t!(use_i18n(), colon)}</label>
+                <label class="form-label shrink-0">{move || t!(i18n, football_category)}</label>
                 <Suspense fallback=|| ()>
                     {move || cats_res.get().map(|r| r.ok()).flatten().map(|all| {
                         view! {
