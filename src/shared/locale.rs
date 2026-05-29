@@ -1,19 +1,19 @@
 // 语言工具模块：统一管理 URL 前缀、链接生成，全程不硬编码语言代码
 use crate::i18n::use_i18n;
 use leptos::prelude::*;
-use leptos_router::{components::A, hooks::use_params_map};
+use leptos_router::{components::A, params::ParamsMap};
 
 use crate::i18n::Locale;
 use leptos_i18n::Locale as _;
 
 /// 从 URL 的 :locale 段获取当前语言字符串；无则取 i18n 当前语言
 pub fn use_locale() -> Memo<String> {
-    let params = use_params_map();
+    let params: Option<Memo<ParamsMap>> = use_context();
     let i18n = use_i18n();
     Memo::new(move |_| {
         params
-            .read()
-            .get("locale")
+            .as_ref()
+            .and_then(|p| p.read().get("locale"))
             .unwrap_or_else(|| i18n.get_locale().to_string())
     })
 }
