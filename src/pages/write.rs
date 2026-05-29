@@ -3,7 +3,9 @@ use crate::page_title;
 use leptos::prelude::*;
 use leptos_meta::Title;
 
-use crate::components::{CategorySelect, Footer, MarkdownEditor, Nav, TopicInput};
+use crate::components::{
+    CaptchaCore, CaptchaState, CategorySelect, Footer, MarkdownEditor, Nav, TopicInput,
+};
 use crate::shared::constant::{H1, WIDE};
 use crate::shared::locale::LocaleA;
 
@@ -37,10 +39,19 @@ pub async fn post_analysis(
     topic_csv: String,
     content: String,
     status: i8,
+    captcha_token: String,
+    captcha_answer: String,
 ) -> Result<String, ServerFnError> {
     use crate::server::auth::{decode_jwt, get_cookie_value};
-    use crate::server::{analysis_db, football_db, topic_db, user_db};
+    use crate::server::{analysis_db, captcha, football_db, topic_db, user_db};
     use axum::http::HeaderMap;
+
+    // 草稿无需验证码
+    if status != -1 {
+        if captcha::verify_token(&captcha_token, &captcha_answer).is_none() {
+            return Err(ServerFnError::new("captcha_invalid"));
+        }
+    }
 
     let headers: HeaderMap = leptos_axum::extract().await?;
     let cookie = headers
@@ -118,6 +129,15 @@ pub fn WriteArticlePage() -> impl IntoView {
     let (article_title, set_article_title) = signal(String::new());
 
     let post_action = ServerAction::<PostAnalysis>::new();
+    let cap_state = CaptchaState::new();
+    provide_context(cap_state.clone());
+
+    // 提交出错后刷新验证码
+    Effect::new(move |_| {
+        if let Some(Err(_)) = post_action.value().get() {
+            cap_state.refresh_trigger.update(|n| *n += 1);
+        }
+    });
 
     let submit = move |status: i8| {
         post_action.dispatch(PostAnalysis {
@@ -126,6 +146,8 @@ pub fn WriteArticlePage() -> impl IntoView {
             topic_csv: topic_csv.get(),
             content: content.get(),
             status,
+            captcha_token: cap_state.token.get(),
+            captcha_answer: cap_state.answer.get(),
         });
     };
 
@@ -175,6 +197,8 @@ pub fn WriteArticlePage() -> impl IntoView {
                         />
                     </div>
 
+                    <CaptchaCore/>
+
                     <div class="flex gap-4 pt-4">
                         <button
                             type="button"
@@ -187,7 +211,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                         <button
                             type="button"
                             class="btn-primary flex-1"
-                            disabled=move || pending.get()
+                            disabled=move || !cap_state.ok.get() || pending.get()
                             on:click=move |_| submit(0)
                         >
                             {move || if pending.get() { t_display!(i18n, submitting).to_string() } else { t_display!(i18n, submit_article).to_string() }}
@@ -196,7 +220,9 @@ pub fn WriteArticlePage() -> impl IntoView {
 
                     {move || post_action.value().get().and_then(|r| r.err()).map(|e| {
                         let raw = e.to_string();
-                        let msg = if raw.contains("not_sign_in") {
+                        let msg = if raw.contains("captcha_invalid") {
+                            t_display!(i18n, captcha_invalid).to_string()
+                        } else if raw.contains("not_sign_in") {
                             t_display!(i18n, not_sign_in).to_string()
                         } else if raw.contains("user_not_found") {
                             t_display!(i18n, user_not_found).to_string()

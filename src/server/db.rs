@@ -31,6 +31,12 @@ pub async fn init() {
 
     DB.set(db).expect("DB already set");
 
+    // 健康检查：确保 DB 确实可达，否则崩溃让容器重启
+    get_db()
+        .query("RETURN 1")
+        .await
+        .unwrap_or_else(|e| panic!("db health check: {e}"));
+
     leptos::logging::log!("SurrealDB 就绪： {db_url} ns={db_ns} db={db_name}");
 }
 

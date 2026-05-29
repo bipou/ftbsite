@@ -29,9 +29,9 @@ pub fn Footer() -> impl IntoView {
     #[cfg(not(feature = "oth"))]
     let beian = view! {
         <small class="text-xs text-gray-500">
-            "琼ICP备2024032236号-13"
+            "琼ICP备2024032236号-14"
             " · "
-            "琼ICP备2024032236号-13"
+            "琼公安备案预留位置"
         </small>
     };
 

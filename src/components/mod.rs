@@ -1,4 +1,5 @@
 pub mod article_card;
+pub mod captcha;
 pub mod category_select;
 pub mod football_card;
 pub mod footer;
@@ -10,6 +11,7 @@ pub mod user_intro;
 pub mod user_topics;
 
 pub use article_card::ArticleCard;
+pub use captcha::{CaptchaCore, CaptchaState};
 pub use category_select::CategorySelect;
 pub use football_card::FootballCard;
 pub use footer::Footer;
