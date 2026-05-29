@@ -27,7 +27,7 @@ pub fn CategorySelect(
         <>
             {low.into_iter().map(|cat| {
                 let kid = record_key(&cat.id).to_string();
-                let name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
+                let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获，避免借用问题
                 if let Some(ref sel) = selected {
                     let s = sel.clone();
                     let k = kid.clone();
@@ -36,12 +36,12 @@ pub fn CategorySelect(
                         <button type="button"
                             class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
                             on:click=move |_| s.set(k2.clone())
-                        >{name}</button>
+                        >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
                     })
                 } else {
                     let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                     Either::Right(view! {
-                        <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{name}</a>
+                        <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
                     })
                 }
             }).collect::<Vec<_>>()}
@@ -49,7 +49,7 @@ pub fn CategorySelect(
                 Either::Left(view! {
                     {high.clone().into_iter().map(|cat| {
                         let kid = record_key(&cat.id).to_string();
-                        let name = cat.name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default();
+                        let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获
                         if let Some(ref sel) = selected {
                             let s = sel.clone();
                             let k = kid.clone();
@@ -58,12 +58,12 @@ pub fn CategorySelect(
                                 <button type="button"
                                     class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
                                     on:click=move |_| s.set(k2.clone())
-                                >{name}</button>
+                                >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
                             })
                         } else {
                             let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                             Either::Right(view! {
-                                <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{name}</a>
+                                <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
                             })
                         }
                     }).collect::<Vec<_>>()}
