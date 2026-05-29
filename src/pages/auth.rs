@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
-use crate::components::{CaptchaCore, CaptchaState, Footer, MarkdownEditor, Nav, TopicInput};
+use crate::components::{CaptchaCore, CaptchaState, MarkdownEditor, TopicInput};
 use crate::shared::common::Either3;
 use crate::shared::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
 use crate::shared::locale::LocaleA;
@@ -188,7 +188,6 @@ pub fn SignInPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, user_sign_in)/>
-        <Nav/>
         <main class="min-h-[80vh] flex items-center justify-center px-4">
             <div class="card p-8 w-full max-w-sm">
                 <h1 class=[H1, "text-center"].join(" ")>
@@ -248,7 +247,6 @@ pub fn SignInPage() -> impl IntoView {
                 </p>
             </div>
         </main>
-        <Footer/>
     }
 }
 
@@ -313,7 +311,6 @@ pub fn RegisterPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, user_register)/>
-        <Nav/>
         <main class="max-w-2xl mx-auto px-4 py-8">
             // 表单卡片：relative 让弹框相对于此定位
             <div class="card p-8 relative">
@@ -425,7 +422,6 @@ pub fn RegisterPage() -> impl IntoView {
                 </Show>
             </div>
         </main>
-        <Footer/>
     }
 }
 
@@ -453,7 +449,6 @@ pub fn UserActivatePage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, user_activate)/>
-        <Nav/>
         <main class="min-h-[80vh] flex items-center justify-center px-4">
             <div class="card p-8 text-center max-w-md">
                 <Suspense fallback=move || view! { <p class="text-gray-400">{move || t!(i18n, loading)}</p> }>
@@ -486,6 +481,5 @@ pub fn UserActivatePage() -> impl IntoView {
                 </Suspense>
             </div>
         </main>
-        <Footer/>
     }
 }

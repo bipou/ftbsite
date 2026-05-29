@@ -6,7 +6,7 @@ use leptos_meta::Title;
 use leptos_router::hooks::use_query_map;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{ArticleCard, CategorySelect, FootballCard, Footer, Nav, Pagination};
+use crate::components::{ArticleCard, CategorySelect, FootballCard, Pagination};
 use crate::models::FootballsResult;
 use crate::pages::write::get_all_categories;
 
@@ -140,7 +140,6 @@ pub fn FootballsPage() -> impl IntoView {
 
     view! {
         <Title text=title_text/>
-        <Nav/>
         <main class=WIDE>
             <p class={[TEXT_WARN, "text-center", "mb-2"].join(" ")}>
                 {move || t!(i18n, site_warn)}
@@ -233,6 +232,5 @@ pub fn FootballsPage() -> impl IntoView {
                 </Suspense>
             </div>
         </main>
-        <Footer/>
     }
 }

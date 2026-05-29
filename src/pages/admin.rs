@@ -6,7 +6,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::{use_params_map, use_query_map};
 
-use crate::components::{Footer, Nav, Pagination, UserIntro, UserTopics};
+use crate::components::{Pagination, UserIntro, UserTopics};
 use crate::models::{Football, FootballsResult, User, UsersResult};
 
 use crate::shared::common::{Either3, Either7};
@@ -297,7 +297,6 @@ pub fn AdminPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, admin_dashboard)/>
-        <Nav/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
@@ -340,7 +339,6 @@ pub fn AdminPage() -> impl IntoView {
                 }}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 
@@ -365,7 +363,6 @@ pub fn AdminUsersPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, admin_users)/>
-        <Nav/>
         <main class="max-w-7xl mx-auto px-4 py-8">
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
@@ -464,7 +461,6 @@ pub fn AdminUsersPage() -> impl IntoView {
                 }}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 
@@ -485,7 +481,6 @@ pub fn AdminUserDetailPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, admin_users)/>
-        <Nav/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
@@ -572,7 +567,6 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                 }}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 
@@ -600,7 +594,6 @@ pub fn AdminFootballsPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, admin_footballs)/>
-        <Nav/>
         <main class="max-w-5xl mx-auto px-4 py-8">
             <Suspense fallback=move || view! {
                 <div class="text-center py-16 text-gray-400">{move || t!(i18n, loading)}</div>
@@ -672,7 +665,6 @@ pub fn AdminFootballsPage() -> impl IntoView {
                 }}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 

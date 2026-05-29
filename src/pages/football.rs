@@ -9,7 +9,6 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
 
-use crate::components::{Footer, Nav};
 use crate::models::{Football, FootballEvent, FootballStats, TeamLineup};
 use crate::shared::fns::get_username_by_id;
 use crate::shared::locale::LocaleA;
@@ -583,7 +582,6 @@ pub fn FootballDetailPage() -> impl IntoView {
     );
 
     view! {
-        <Nav/>
         <main class=MAIN>
             <Suspense fallback=move || view! {
                 <div class=[EMPTY, "text-gray-400"].join(" ")>
@@ -604,7 +602,6 @@ pub fn FootballDetailPage() -> impl IntoView {
                 })}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 

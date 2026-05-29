@@ -7,7 +7,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::{use_params_map, use_query_map};
 
-use crate::components::{Footer, Nav, Pagination, UserIntro, UserTopics};
+use crate::components::{Pagination, UserIntro, UserTopics};
 use crate::models::{User, UserSummary, UsersResult};
 use crate::shared::common::Either3;
 use crate::shared::locale::{LocaleA, use_locale};
@@ -49,7 +49,6 @@ pub fn UsersPage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, users_list)/>
-        <Nav/>
         <main class={WIDE}>
             <h1 class={H1}>
                 {move || t!(i18n, users_list)}
@@ -104,7 +103,6 @@ pub fn UsersPage() -> impl IntoView {
                 })}
             </Suspense>
         </main>
-        <Footer/>
     }
 }
 
@@ -120,7 +118,6 @@ pub fn UserProfilePage() -> impl IntoView {
     );
 
     view! {
-        <Nav/>
         <main class={MAIN}>
             <Suspense fallback=move || view! { <div class={[EMPTY, "text-gray-400"].join(" ")}>{move || t!(i18n, loading)}</div> }>
                 {move || data.get().map(|result| match result {
@@ -161,6 +158,5 @@ pub fn UserProfilePage() -> impl IntoView {
                 })}
             </Suspense>
         </main>
-        <Footer/>
     }
 }

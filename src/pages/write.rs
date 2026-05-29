@@ -3,9 +3,7 @@ use crate::page_title;
 use leptos::prelude::*;
 use leptos_meta::Title;
 
-use crate::components::{
-    CaptchaCore, CaptchaState, CategorySelect, Footer, MarkdownEditor, Nav, TopicInput,
-};
+use crate::components::{CaptchaCore, CaptchaState, CategorySelect, MarkdownEditor, TopicInput};
 use crate::shared::constant::{H1, WIDE};
 use crate::shared::locale::LocaleA;
 
@@ -164,7 +162,6 @@ pub fn WriteArticlePage() -> impl IntoView {
 
     view! {
         <Title text=move || page_title!(i18n, write_article)/>
-        <Nav/>
         <main class=WIDE>
             <h1 class=H1>{move || t!(i18n, write_article)}</h1>
 
@@ -257,6 +254,5 @@ pub fn WriteArticlePage() -> impl IntoView {
                 </div>
             </Show>
         </main>
-        <Footer/>
     }
 }

@@ -104,6 +104,7 @@ pub fn CaptchaCore() -> impl IntoView {
     let cap_ph = t_display!(i18n, captcha_placeholder).to_string();
 
     view! {
+        <Suspense fallback=|| ()>
         <div class="space-y-3 border-t pt-4 mt-4">
             <label class="form-label">{move || t!(i18n, captcha_label)}</label>
             <div class="flex items-center gap-2">
@@ -128,5 +129,6 @@ pub fn CaptchaCore() -> impl IntoView {
             </div>
             <input type="hidden" name="captcha_token" value=move || state.token.get() />
         </div>
+        </Suspense>
     }
 }

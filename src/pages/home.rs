@@ -5,7 +5,7 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{ArticleCard, FootballCard, Footer, Nav};
+use crate::components::{ArticleCard, FootballCard};
 use crate::models::Football;
 
 use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_SUBTLE, TEXT_WARN, WIDE};
@@ -80,7 +80,6 @@ pub fn HomePage() -> impl IntoView {
 
     view! {
         <Title text=move || site_title!(i18n)/>
-        <Nav/>
         <main class={WIDE}>
             <div class="mb-10 text-center">
                 <p class={[TEXT_SUBTLE, "text-sm", "max-w-2xl", "mx-auto"].join(" ")}>
@@ -108,6 +107,5 @@ pub fn HomePage() -> impl IntoView {
                 })}
             </Suspense>
         </main>
-        <Footer/>
     }
 }

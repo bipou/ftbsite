@@ -10,6 +10,7 @@ use leptos_router::{
     path,
 };
 
+use crate::components::{Footer, Nav};
 use crate::i18n::{I18nContextProvider, Locale, use_i18n};
 use crate::models::AuthUser;
 use crate::pages::{
@@ -104,10 +105,12 @@ pub fn App() -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/football_site.css"/>
 
         <I18nContextProvider>
-            <Suspense fallback=|| view! { <LoadingFallback/> }>
-                <Router>
-                    <SetLocaleFromUrl/>
+            <Router>
+                <SetLocaleFromUrl/>
+                <Nav/>
+                <Suspense fallback=|| view! { <LoadingFallback/> }>
                     <Routes fallback=|| view! { <NotFound/> }>
+                        // 各页面组件不再包含 Nav/Footer，统一由此层提供
                         <Route path=path!("/")                            view=HomePage/>
                         <Route path=path!("/:locale/")                    view=HomePage/>
                         <Route path=path!("/:locale/register")            view=RegisterPage/>
@@ -126,8 +129,9 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/:locale/admin/users")         view=AdminUsersPage/>
                         <Route path=path!("/:locale/admin/users/:username") view=AdminUserDetailPage/>
                     </Routes>
-                </Router>
-            </Suspense>
+                </Suspense>
+                <Footer/>
+            </Router>
         </I18nContextProvider>
     }
 }
