@@ -11,9 +11,9 @@ RUN rustup target add wasm32-unknown-unknown \
 WORKDIR /build
 COPY . .
 RUN if [ -z "$FEATURES" ]; then \
-        cargo leptos build --release; \
+        cargo leptos build --release -v; \
     else \
-        cargo leptos build --release --features "$FEATURES"; \
+        cargo leptos build --release --features "$FEATURES" -v; \
     fi \
     && rm -rf /usr/local/cargo/registry \
     && rm -rf target/wasm32-unknown-unknown target/release/build target/release/deps target/release/incremental
