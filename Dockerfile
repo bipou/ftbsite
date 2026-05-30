@@ -6,7 +6,7 @@ RUN rustup target add wasm32-unknown-unknown \
     && apt-get update \
     && apt-get install -y --no-install-recommends pkg-config libssl-dev cmake make perl \
     && rm -rf /var/lib/apt/lists/* \
-    && cargo install cargo-leptos --locked
+    && cargo install cargo-leptos
 
 WORKDIR /build
 COPY . .
