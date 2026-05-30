@@ -29,7 +29,7 @@ extern "C" {
 
 use crate::shared::constant::{BG_CARD, FLEX_BETWEEN, HOVER_NO_UNDERLINE, NO_UNDERLINE};
 use leptos_i18n::Locale as LocaleTrait;
-use leptos_router::hooks::use_navigate;
+use leptos_router::hooks::{use_location, use_navigate};
 
 #[component]
 fn Logo() -> impl IntoView {
@@ -89,6 +89,7 @@ fn LangDropdown() -> impl IntoView {
     let navigate = use_navigate();
     let nav = navigate.clone();
     let loc_str = use_locale();
+    let location = use_location();
     view! {
         <div class="relative inline-block">
             <button
@@ -112,10 +113,10 @@ fn LangDropdown() -> impl IntoView {
                             on:click={
                                 let navigate = nav.clone();
                                 let new_loc = new_loc.clone();
-                                let old = loc_str.get();
-                                let path = leptos_router::hooks::use_location().pathname.get();
-                                let rest = path.strip_prefix(&["/", &old].join("")).unwrap_or(&path).to_string();
                                 move |_| {
+                                    let old = loc_str.get_untracked();
+                                    let path = location.pathname.get_untracked();
+                                    let rest = path.strip_prefix(&["/", &old].join("")).unwrap_or(&path).to_string();
                                     i18n.set_locale(locale);
                                     navigate(&["/", &new_loc, &rest].join(""), Default::default());
                                     set_open.set(false);

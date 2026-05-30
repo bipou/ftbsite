@@ -84,15 +84,16 @@ pub fn Footer() -> impl IntoView {
     };
 
     view! {
-        <footer class={["mt-16 border-t border-gray-200 dark:border-gray-700", BG_CARD].join(" ")}>
+        <footer class={["mt-8 border-t border-gray-200 dark:border-gray-700", BG_CARD].join(" ")}>
             <div class={[WIDE, "text-center text-sm", TEXT_SUBTLE, "space-y-2"].join(" ")}>
                 <p class=TEXT_WARN>
                     {move || t!(i18n, site_warn)}
                 </p>
+                <a href="https://irust.net" target="_blank">
+                    {move || t!(i18n, based_on)}
+                </a>
                 {google_ads}
                 <p>
-                    <a href="https://irust.net" target="_blank">{move || t!(i18n, based_on)}</a>
-                    " - "
                     {move || t!(i18n, site_name)}
                     " ©2024-2026 "
                     {move || t!(i18n, copyright)}

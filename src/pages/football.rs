@@ -415,6 +415,7 @@ fn AnalysisCard(
     view! {
         <div class="mb-6">
             <div class=[TEXT_XS_MUTED, "mb-2"].join(" ")>
+                <Suspense fallback=|| ()>
                 {move || {
                     if is_ai {
                                             t_display!(i18n, analysis_ai).to_string()
@@ -422,6 +423,7 @@ fn AnalysisCard(
                         author_name.get().flatten().unwrap_or_default()
                     }
                 }}
+                </Suspense>
                 {" · "}
                 {generated_at}
             </div>

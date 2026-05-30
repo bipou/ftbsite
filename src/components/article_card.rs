@@ -79,7 +79,9 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
 
             <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
                 <span class=["text-sm", TEXT_XS_MUTED].join(" ")>
-                    {move || author_name.get().flatten().unwrap_or_default()}
+                    <Suspense fallback=|| ()>
+                        {move || author_name.get().flatten().unwrap_or_default()}
+                    </Suspense>
                 </span>
                 <span class="text-sm text-gray-400">
                     {move || t!(i18n, football_hits)}{football.hits}
