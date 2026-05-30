@@ -84,13 +84,11 @@ pub async fn get_auth_user() -> Result<Option<AuthUser>, ServerFnError> {
 }
 
 pub type AuthResource = Resource<Result<Option<AuthUser>, ServerFnError>>;
+pub type AuthSignal = RwSignal<Option<AuthUser>>;
 
 /// Call inside any reactive scope to get the current user (if signed in).
 pub fn use_auth() -> Option<AuthUser> {
-    use_context::<AuthResource>()
-        .and_then(|r| r.get())
-        .and_then(|r| r.ok())
-        .flatten()
+    use_context::<AuthSignal>().and_then(|s| s.get())
 }
 
 #[component]
@@ -100,6 +98,13 @@ pub fn App() -> impl IntoView {
     // Auth 资源：SSR 异步解析，不阻塞首屏渲染
     let auth_res: AuthResource = Resource::new(|| (), |_| get_auth_user());
     provide_context(auth_res);
+
+    // Auth 信号：由 Effect 从 Resource 同步，Nav 读取信号不触发 Suspense
+    let auth_signal: AuthSignal = RwSignal::new(None);
+    provide_context(auth_signal);
+    Effect::new(move |_| {
+        auth_signal.set(auth_res.get().and_then(|r| r.ok()).flatten());
+    });
 
     view! {
         <Stylesheet id="leptos" href="/pkg/football_site.css"/>

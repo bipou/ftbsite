@@ -2,7 +2,7 @@ use crate::i18n::t;
 use crate::i18n::use_i18n;
 use crate::shared::constant::{BG_CARD, TEXT_SUBTLE, TEXT_WARN, WIDE};
 use leptos::prelude::*;
-#[cfg(feature = "oth")]
+#[cfg(all(feature = "oth", feature = "hydrate"))]
 use leptos_router::hooks::use_location;
 
 #[cfg(feature = "hydrate")]
@@ -27,8 +27,10 @@ extern "C" {
 #[cfg(feature = "oth")]
 #[component]
 fn AdBanner() -> impl IntoView {
+    #[cfg(feature = "hydrate")]
     let location = use_location();
     let counter = RwSignal::new(0u32);
+    #[cfg(feature = "hydrate")]
     let is_first = RwSignal::new(true);
 
     // 路由变化时递增 counter → inner_html 强制重建 <ins> DOM
