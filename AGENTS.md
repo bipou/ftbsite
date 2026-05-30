@@ -9,7 +9,7 @@
 ## 编码规范
 
 ### 规则
-1. 遵循 Leptos 规范和实践，同构模式，cargo-leptos 工具
+1. 严格依据最新资料，遵循 Leptos 规范和实践，同构模式，cargo-leptos 工具
 2. view! 中用 t!, 无法用 t! 时备选 t_display, 用 td_string 须特别说明，禁 t_string
 3. view! 分支或栈溢：Either 是首选；拆分为独立组件是根本；标准库也好，禁 into_any
 4. 样式须级联，禁并列组件重复样式

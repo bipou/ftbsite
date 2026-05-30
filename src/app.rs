@@ -3,7 +3,7 @@ use crate::shared::constant::TEXT_SUBTLE;
 use crate::shared::locale::{LocaleA, is_valid_locale};
 use crate::site_title;
 use leptos::prelude::*;
-use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
+use leptos_meta::{HashedStylesheet, MetaTags, Title, provide_meta_context};
 use leptos_router::{
     components::{Route, Router, Routes},
     hooks::use_location,
@@ -43,8 +43,9 @@ pub fn shell(options: leptos::config::LeptosOptions) -> impl IntoView {
                 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
                 <link rel="icon" href="/favicon.ico"/>
                 <AutoReload options=options.clone()/>
-                <HydrationScripts options/>
+                <HydrationScripts options=options.clone()/>
                 <MetaTags/>
+                <HashedStylesheet options/>
                 <script>
                     {r#"(function(){var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.add("light")}else if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches)){document.documentElement.classList.add("dark")}})()"#}
                 </script>
@@ -107,8 +108,6 @@ pub fn App() -> impl IntoView {
     });
 
     view! {
-        <Stylesheet id="leptos" href="/pkg/football_site.css"/>
-
         <I18nContextProvider>
             <Router>
                 <SetLocaleFromUrl/>
