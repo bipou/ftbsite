@@ -27,7 +27,7 @@ RUN apt-get update \
 
 COPY --from=builder /build/target/site /app/site
 COPY --from=builder /build/target/release/football_site /app/
-COPY --from=builder /build/target/release/hash.txt /app/site/hash.txt
+COPY --from=builder /build/target/release/hash.txt /app/hash.txt
 
 WORKDIR /app
 ENV LEPTOS_OUTPUT_NAME=football_site
