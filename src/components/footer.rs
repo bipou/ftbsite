@@ -84,7 +84,7 @@ pub fn Footer() -> impl IntoView {
     };
 
     view! {
-        <footer class={["mt-8 border-t border-gray-200 dark:border-gray-700", BG_CARD].join(" ")}>
+        <footer class={["border-t border-gray-200 dark:border-gray-700", BG_CARD].join(" ")}>
             <div class={[WIDE, "text-center text-sm", TEXT_SUBTLE, "space-y-2"].join(" ")}>
                 <p class=TEXT_WARN>
                     {move || t!(i18n, site_warn)}

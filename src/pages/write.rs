@@ -34,6 +34,7 @@ pub async fn get_all_categories() -> Result<Vec<crate::models::Category>, Server
 pub async fn post_analysis(
     title: String,
     category_id: String,
+    summary: String,
     topic_csv: String,
     content: String,
     status: i8,
@@ -49,6 +50,16 @@ pub async fn post_analysis(
         if captcha::verify_token(&captcha_token, &captcha_answer).is_none() {
             return Err(ServerFnError::new("captcha_invalid"));
         }
+    }
+
+    // 摘要不能为空（发布时）
+    if status != -1 && summary.trim().is_empty() {
+        return Err(ServerFnError::new("summary_required"));
+    }
+
+    // 摘要限 200 字符
+    if summary.chars().count() > 200 {
+        return Err(ServerFnError::new("summary_too_long"));
     }
 
     let headers: HeaderMap = leptos_axum::extract().await?;
@@ -73,7 +84,7 @@ pub async fn post_analysis(
     let content = crate::server::upload::move_uploads(&content, "football", draft)
         .map_err(|e| ServerFnError::new(e))?;
 
-    analysis_db::insert_analysis(&fid, &content, &user.id)
+    analysis_db::insert_analysis(&fid, &content, &user.id, &summary)
         .await
         .map_err(|e| ServerFnError::new(e))?;
 
@@ -121,6 +132,7 @@ pub fn WriteArticlePage() -> impl IntoView {
 
     let title = RwSignal::new(String::new());
     let category_id = RwSignal::new(String::new());
+    let summary = RwSignal::new(String::new());
     let topic_csv = RwSignal::new(String::new());
     let content = RwSignal::new("## Share Analysis\n\n在此撰写您的足球分析…".to_string());
     let (success, set_success) = signal(false);
@@ -141,6 +153,7 @@ pub fn WriteArticlePage() -> impl IntoView {
         post_action.dispatch(PostAnalysis {
             title: title.get(),
             category_id: category_id.get(),
+            summary: summary.get(),
             topic_csv: topic_csv.get(),
             content: content.get(),
             status,
@@ -178,6 +191,18 @@ pub fn WriteArticlePage() -> impl IntoView {
                             placeholder=title_ph
                             prop:value=title
                             on:input=move |ev| title.set(event_target_value(&ev))
+                        />
+                    </div>
+
+                    <div>
+                        <label class="form-label">{move || t!(i18n, article_summary)}</label>
+                        <textarea
+                            rows="3"
+                            maxlength="200"
+                            required
+                            class="form-input w-full"
+                            prop:value=summary
+                            on:input=move |ev| summary.set(event_target_value(&ev))
                         />
                     </div>
 
@@ -223,6 +248,10 @@ pub fn WriteArticlePage() -> impl IntoView {
                             t_display!(i18n, not_sign_in).to_string()
                         } else if raw.contains("user_not_found") {
                             t_display!(i18n, user_not_found).to_string()
+                        } else if raw.contains("summary_too_long") {
+                            t_display!(i18n, summary_too_long).to_string()
+                        } else if raw.contains("summary_required") {
+                            t_display!(i18n, summary_required).to_string()
                         } else {
                             raw
                         };

@@ -26,16 +26,18 @@ fn mdhm8(dt: &Sdt) -> String {
 struct FootballDoc {
     id: RecordId,
     category_id: RecordId,
-    season: String,
-    home_team: String,
-    away_team: String,
-    kick_off_at: Sdt,
+    #[serde(default)]
+    season: Option<String>,
+    #[serde(default)]
+    home_team: Option<String>,
+    #[serde(default)]
+    away_team: Option<String>,
+    #[serde(default)]
+    kick_off_at: Option<Sdt>,
     created_at: Sdt,
     updated_at: Sdt,
     #[serde(default)]
     hits: Option<i64>,
-    #[serde(default)]
-    stars: Option<i64>,
     status: i8,
     s: Option<String>,
     wdl: Option<u8>,
@@ -257,14 +259,11 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
     let topics = topic_db::get_topics_by_football_id(&doc.id).await?;
     let category = category_db::get_category_by_id(&doc.category_id).await?;
     let analyses = analysis_db::get_analyses_by_football_id(&doc.id).await?;
-    let summary = if doc.ana_type == 2 {
-        analyses
-            .iter()
-            .find(|a| a.status == 1)
-            .map(|a| a.summary.clone())
-    } else {
-        None
-    };
+    let summary = analyses
+        .iter()
+        .find(|a| a.status == 1)
+        .and_then(|a| a.summary.clone())
+        .filter(|s| !s.is_empty());
 
     Ok(Football {
         id: fid,
@@ -272,12 +271,11 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
         season: doc.season,
         home_team: doc.home_team,
         away_team: doc.away_team,
-        kick_off_at_mdhm: mdhm(&doc.kick_off_at),
-        kick_off_at_mdhm8: mdhm8(&doc.kick_off_at),
+        kick_off_at_mdhm: doc.kick_off_at.as_ref().map(|k| mdhm(k)),
+        kick_off_at_mdhm8: doc.kick_off_at.as_ref().map(|k| mdhm8(k)),
         created_at: common::ymdhmsz8(&doc.created_at),
         updated_at: common::ymdhmsz8(&doc.updated_at),
         hits: doc.hits.unwrap_or(0).max(0) as u64,
-        stars: doc.stars.unwrap_or(0).max(0) as u64,
         status: doc.status,
         #[cfg(feature = "oth")]
         il_odds: il_pair(&lines),
@@ -314,7 +312,7 @@ async fn enrich(doc: FootballDoc) -> Result<Football, String> {
 /// 首页取最新 12 篇（limit 为总数上限，Rust 层分组截取）
 pub async fn get_home_footballs(limit: i64) -> Result<Vec<Football>, String> {
     let mut res = get_db()
-        .query("SELECT * FROM footballs WHERE status >= 1 ORDER BY created_at DESC LIMIT $limit")
+        .query("SELECT * FROM footballs WHERE status >= 1 ORDER BY updated_at DESC LIMIT $limit")
         .bind(("limit", limit))
         .await
         .map_err(|e| e.to_string())?;
@@ -557,7 +555,7 @@ pub async fn insert_article(title: &str, category_id: &str, status: i8) -> Resul
     let rid = common::into_rid(category_id, "categories");
     let mut res = get_db()
         .query(
-            "CREATE footballs SET article_title = $title, category_id = $cid, ana_type = 0, status = $status, home_team = '', away_team = '', season = '', kick_off_at = time::now(), created_at = time::now(), updated_at = time::now()"
+            "CREATE footballs SET article_title = $title, category_id = $cid, ana_type = 0, status = $status, created_at = time::now(), updated_at = time::now()"
         )
         .bind(("title", title.to_string()))
         .bind(("cid", rid))

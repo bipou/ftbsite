@@ -8,7 +8,7 @@ use crate::shared::fns::{GetUploadNonce, PreviewMd, UploadImage};
 #[component]
 pub fn MarkdownEditor(
     name: &'static str,
-    #[prop(into)] value: Signal<String>,
+    value: RwSignal<String>,
     #[prop(default = 15)] rows: u32,
     #[prop(into, default = "user".to_string())] scope: String,
 ) -> impl IntoView {
@@ -24,6 +24,11 @@ pub fn MarkdownEditor(
         if changed {
             set_markdown.set(value.get());
         }
+    });
+
+    // 回写：markdown 变更 → 同步到外部 value
+    Effect::new(move |_| {
+        value.set(markdown.get());
     });
 
     // 预取上传 nonce（组件挂载时请求一次，30 分钟有效）

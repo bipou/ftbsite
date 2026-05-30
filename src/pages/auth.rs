@@ -356,7 +356,7 @@ pub fn RegisterPage() -> impl IntoView {
                             <label class="form-label">
                                 {move || t!(i18n, register_intro)}
                             </label>
-                            <MarkdownEditor name="introduction" rows=4 value="## About Me\n我关注足球数据与计算。".to_string() />
+                            <MarkdownEditor name="introduction" rows=4 value=RwSignal::new("## About Me\n我关注足球数据与计算。".to_string()) />
                         </div>
                         </div>
                         <CaptchaCore/>

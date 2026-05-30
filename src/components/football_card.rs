@@ -71,7 +71,9 @@ fn ResultSection(
             </div>
         }),
         _ => Either::Left(view! {
-            <p class=[TEXT_XS_MUTED, ITALIC].join(" ")>{move || t!(i18n, not_full)}</p>
+            <div class="text-xs mb-2">
+                <p class=[TEXT_XS_MUTED, ITALIC, "my-0"].join(" ")>{move || t!(i18n, not_full)}</p>
+            </div>
         }),
     }
 }
@@ -102,9 +104,11 @@ fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
         return Either::Left(view! {
-            <p class=[TEXT_XS_MUTED, ITALIC, "mb-2"].join(" ")>
-                {move || t!(i18n, not_calc)}
-            </p>
+            <div class="text-xs mb-2">
+                <p class=[TEXT_XS_MUTED, ITALIC, "my-0"].join(" ")>
+                    {move || t!(i18n, not_calc)}
+                </p>
+            </div>
         });
     }
     let init = odds.first().cloned();
@@ -175,14 +179,23 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(football.status)].join(" ");
     let title = football.title();
     let season = football.season;
+    let article_title = football.article_title;
     let kick_off = football.kick_off_at_mdhm8;
     let status = football.status;
     let hits = football.hits;
     let topics = football.topics;
-    let summary = football.summary;
+    let summary = football.summary.map(|s| {
+        if s.chars().count() > 40 {
+            let mut t: String = s.chars().take(40).collect();
+            t.push_str("...");
+            t
+        } else {
+            s
+        }
+    });
     let summary_view = summary.map(|s| {
         view! {
-            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-2">{s}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
         }
     });
     let detail_path = [
@@ -215,14 +228,29 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             </div>
 
             <div class=["text-sm", TEXT_SUBTLE, "mb-3", "space-x-2"].join(" ")>
-                <span>{season}</span>
+                {if let Some(ref season) = season {
+                    Either::Left(view! { <span>{season.clone()}</span> })
+                } else {
+                    Either::Right(())
+                }}
                 <CatBadge name=cat_name kid=cat_kid/>
-                <span class="text-blue-500">{kick_off}</span>
+                {if let Some(ref at) = article_title {
+                    Either::Left(view! { <span class=BADGE_GRAY>{at.clone()}</span> })
+                } else {
+                    Either::Right(())
+                }}
+                {if let Some(ref ko) = kick_off {
+                    Either::Left(view! { <span class="text-blue-500">{ko.clone()}</span> })
+                } else {
+                    Either::Right(())
+                }}
             </div>
 
+            {summary_view}
+            <div class="mt-2">
             {extra}
             <ResultSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
-            {summary_view}
+            </div>
 
             <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
                 <div class="flex flex-wrap gap-1">

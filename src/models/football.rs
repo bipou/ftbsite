@@ -94,16 +94,15 @@ pub struct FootballAnalysis {
     pub football_id: String,
     /// AI 分析为 None，用户分析指向 users 表
     pub user_id: Option<String>,
-    /// 赛后 AI 分析的摘要，其他类型为空串
-    pub summary: String,
+    /// 摘要，落库 footballs 则为 None
+    #[serde(default)]
+    pub summary: Option<String>,
     /// Markdown 原文（落库的唯一文本字段）
     pub content: String,
     /// 渲染后的 HTML（服务端转换，不落库）
     pub content_html: String,
     /// AI 模型名，用户分析为空串
     pub ai_model: String,
-    /// 生成/发表时间
-    pub generated_at: String,
     /// 0=草稿 1=发布 -1=删除
     pub status: i8,
 }
@@ -113,17 +112,21 @@ pub struct FootballAnalysis {
 pub struct Football {
     pub id: String,
     pub category_id: String,
-    pub season: String,
-    pub home_team: String,
-    pub away_team: String,
+    #[serde(default)]
+    pub season: Option<String>,
+    #[serde(default)]
+    pub home_team: Option<String>,
+    #[serde(default)]
+    pub away_team: Option<String>,
     /// Formatted "MM-DD HH:MM" UTC
-    pub kick_off_at_mdhm: String,
+    #[serde(default)]
+    pub kick_off_at_mdhm: Option<String>,
     /// Formatted "MM-DD HH:MM" UTC+8
-    pub kick_off_at_mdhm8: String,
+    #[serde(default)]
+    pub kick_off_at_mdhm8: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub hits: u64,
-    pub stars: u64,
     /// Status: 4=both,3=picks,2=hot,1=published,0=submit,-1=draft,-2=deleted
     pub status: i8,
     /// 正式赛果——比分，如 "3:1"（footballs 表直存，未完成则为 None）
@@ -147,6 +150,7 @@ pub struct Football {
     #[serde(default)]
     pub events: Vec<FootballEvent>,
     pub stats: Option<FootballStats>,
+    #[serde(default)]
     pub summary: Option<String>,
     pub analyses: Vec<FootballAnalysis>,
     /// 赛事趣名或文章标题
@@ -159,7 +163,10 @@ pub struct Football {
 
 impl Football {
     pub fn title(&self) -> String {
-        [&self.home_team, " vs ", &self.away_team].join("")
+        match (&self.home_team, &self.away_team) {
+            (Some(h), Some(a)) => [h.as_str(), " vs ", a.as_str()].join(""),
+            _ => self.article_title.clone().unwrap_or_default(),
+        }
     }
 }
 

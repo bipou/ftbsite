@@ -1,7 +1,7 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC, MAIN, NO_DATA,
-    SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC,
+    MAIN, NO_DATA, SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -11,7 +11,7 @@ use leptos_router::hooks::use_params_map;
 
 use crate::models::{Football, FootballEvent, FootballStats, TeamLineup};
 use crate::shared::fns::get_username_by_id;
-use crate::shared::locale::LocaleA;
+use crate::shared::locale::{LocaleA, use_locale};
 
 #[server]
 pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, ServerFnError> {
@@ -27,35 +27,75 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 #[component]
 fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale();
+    let category = f.category;
+    let cat_kid = category
+        .as_ref()
+        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+    let cat = Memo::new(move |_| {
+        let loc = i18n.get_locale().to_string();
+        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+    });
+    let article_title = f.article_title;
+    let home_team = f.home_team.clone();
+    let away_team = f.away_team.clone();
+    let season = f.season.clone();
+    let kick_off_mdhm = f.kick_off_at_mdhm;
+    let kick_off_mdhm8 = f.kick_off_at_mdhm8;
     let title_text = {
-        let ht = f.home_team.clone();
-        let at = f.away_team.clone();
+        let ht = home_team.clone().unwrap_or_default();
+        let at = away_team.clone().unwrap_or_default();
         move || [&ht, " vs ", &at, " – ", &site_title!(i18n)].join("")
     };
-    let loc = i18n.get_locale().to_string();
-    let cat = Memo::new(move |_| f.category.as_ref().and_then(|c| c.name.get(&loc).cloned()));
     view! {
         <Title text=title_text/>
         <div class=CARD_SECTION>
             <div class="flex items-start justify-between flex-wrap gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
-                        {f.home_team} <span class="text-gray-400 mx-2">"vs"</span> {f.away_team}
+                        {home_team.unwrap_or_default()} <span class="text-gray-400 mx-2">"vs"</span> {away_team.unwrap_or_default()}
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
-                        <span>{move || t!(i18n, football_season)}{f.season}</span>
-                        {move || if cat.get().is_some() {
-                            Either::Left(view! { <span class=BADGE_GRAY>{cat.get().unwrap_or_default()}</span> })
+                        {if let Some(ref s) = season {
+                            Either::Left(view! {
+                                <span>{move || t!(i18n, football_season)}{s.clone()}</span>
+                            })
+                        } else {
+                            Either::Right(())
+                        }}
+                        {move || {
+                            let n = cat.get();
+                            if n.is_none() {
+                                Either::Left(())
+                            } else if let Some(kid) = &cat_kid {
+                                let href = ["/", &loc_str.get(), "/footballs?category=", kid].join("");
+                                Either::Right(Either::Left(view! {
+                                    <a href=href class=BADGE_GRAY_NO_UL>{n.unwrap_or_default()}</a>
+                                }))
+                            } else {
+                                Either::Right(Either::Right(
+                                    view! { <span class=BADGE_GRAY>{n.unwrap_or_default()}</span> },
+                                ))
+                            }
+                        }}
+                        {if let Some(ref at) = article_title {
+                            Either::Left(view! { <span class=BADGE_GRAY>{at.clone()}</span> })
                         } else {
                             Either::Right(())
                         }}
                     </div>
                 </div>
-                <div class="text-right text-sm text-gray-500">
-                    <div>{move || t!(i18n, football_kick_off)}</div>
-                    <div class="font-semibold text-blue-600">{f.kick_off_at_mdhm8}</div>
-                    <div class=TEXT_XS_MUTED>"UTC: " {f.kick_off_at_mdhm}</div>
-                </div>
+                {if let (Some(mdhm8), Some(mdhm)) = (kick_off_mdhm8.as_ref(), kick_off_mdhm.as_ref()) {
+                    Either::Left(view! {
+                        <div class="text-right text-sm text-gray-500">
+                            <div>{move || t!(i18n, football_kick_off)}</div>
+                            <div class="font-semibold text-blue-600">{mdhm8.clone()}</div>
+                            <div class=TEXT_XS_MUTED>"UTC: " {mdhm.clone()}</div>
+                        </div>
+                    })
+                } else {
+                    Either::Right(())
+                }}
             </div>
             <div class=["mt-3", TEXT_XS_MUTED, "flex", "gap-4", "flex-wrap"].join(" ")>
                 <span>{move || t!(i18n, football_created)} ": " {f.created_at}</span>
@@ -369,21 +409,52 @@ fn StatRowInt(#[prop(into)] label: Signal<String>, hv: u16, av: u16) -> impl Int
 // ── 分析文章 ────────────────────────────────────────────────────────────
 
 #[component]
-fn ArticleHeader(
-    #[prop(into)] title: Option<String>,
-    #[prop(into)] created: String,
-    hits: u64,
-) -> impl IntoView {
+fn ArticleHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
-    let title_text = title.unwrap_or_default();
+    let title_text = f.article_title.unwrap_or_default();
+    let loc_str = use_locale();
+    let category = f.category;
+    let season = f.season;
+    let cat_kid = category
+        .as_ref()
+        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+    let cat = Memo::new(move |_| {
+        let loc = i18n.get_locale().to_string();
+        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+    });
     view! {
         <div class=CARD_SECTION>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                 {title_text}
             </h1>
+            <div class="text-sm text-gray-500 space-x-3 mb-3">
+                {if let Some(ref s) = season {
+                    Either::Left(view! {
+                        <span>{move || t!(i18n, football_season)}{s.clone()}</span>
+                    })
+                } else {
+                    Either::Right(())
+                }}
+                {move || {
+                    let n = cat.get();
+                    if n.is_none() {
+                        Either::Left(())
+                    } else if let Some(kid) = &cat_kid {
+                        let href = ["/", &loc_str.get(), "/footballs?category=", kid].join("");
+                        Either::Right(Either::Left(view! {
+                            <a href=href class=BADGE_GRAY_NO_UL>{n.unwrap_or_default()}</a>
+                        }))
+                    } else {
+                        Either::Right(Either::Right(
+                            view! { <span class=BADGE_GRAY>{n.unwrap_or_default()}</span> },
+                        ))
+                    }
+                }}
+            </div>
             <div class=["mt-3", TEXT_XS_MUTED, "flex", "gap-4", "flex-wrap"].join(" ")>
-                <span>{move || t!(i18n, football_created)} ": " {created}</span>
-                <span>{move || t!(i18n, football_hits)} {hits}</span>
+                <span>{move || t!(i18n, football_created)} ": " {f.created_at}</span>
+                <span>{move || t!(i18n, football_updated)} ": " {f.updated_at}</span>
+                <span>{move || t!(i18n, football_hits)}{f.hits}</span>
             </div>
         </div>
     }
@@ -393,13 +464,14 @@ fn ArticleHeader(
 fn AnalysisCard(
     analysis: crate::models::FootballAnalysis,
     #[prop(into)] ana_type: u8,
+    #[prop(into)] created_at: String,
+    #[prop(into)] updated_at: String,
 ) -> impl IntoView {
     let i18n = use_i18n();
     let is_ai = ana_type > 0;
 
     // 提取所需字段，避免 view! 中移动冲突
     let user_id = analysis.user_id.clone();
-    let generated_at = analysis.generated_at;
     let content_html = analysis.content_html;
 
     let author_name = Resource::new(
@@ -425,7 +497,9 @@ fn AnalysisCard(
                 }}
                 </Suspense>
                 {" · "}
-                {generated_at}
+                {created_at}
+                {" · "}
+                {updated_at}
             </div>
             <div inner_html=content_html></div>
             {if is_ai {
@@ -443,6 +517,8 @@ fn AnalysisCard(
 fn AnalysisSection(
     analyses: Vec<crate::models::FootballAnalysis>,
     #[prop(into)] ana_type: u8,
+    #[prop(into)] created_at: String,
+    #[prop(into)] updated_at: String,
 ) -> impl IntoView {
     let i18n = use_i18n();
     if analyses.is_empty() {
@@ -453,7 +529,7 @@ fn AnalysisSection(
             <h2 class=SECTION_H2>{move || t!(i18n, football_analysis)}</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none">
                 {analyses.into_iter().map(|a| view! {
-                    <AnalysisCard analysis=a ana_type=ana_type/>
+                    <AnalysisCard analysis=a ana_type=ana_type created_at=created_at.clone() updated_at=updated_at.clone()/>
                 }).collect::<Vec<_>>()}
             </div>
         </div>
@@ -509,6 +585,7 @@ fn ResultDetail(
 #[component]
 fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale();
     if topics.is_empty() {
         Either::Left(())
     } else {
@@ -518,8 +595,9 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
                 <div class=FLEX_WRAP_GAP>
                     {topics.iter().map(|t| {
                         let kid = crate::shared::common::record_key(&t.id).to_string();
+                        let href = ["/", &loc_str.get(), "/footballs?topic=", &kid].join("");
                         view! {
-                            <a href=["/footballs?topic=", &kid].join("") class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
+                            <a href=href class=BADGE_BLUE_NO_UL>{t.name.clone()}</a>
                         }
                     }).collect::<Vec<_>>()}
                 </div>
@@ -539,19 +617,20 @@ fn FootballDetail(f: Football) -> impl IntoView {
     let events = f.events;
     let stats = f.stats;
     let analyses = f.analyses;
+    let created_at = f.created_at;
+    let updated_at = f.updated_at;
     let topics = f.topics;
     let result_s = f.result_s;
     let result_wdl = f.result_wdl;
     let result_tg = f.result_tg;
     let result_gd = f.result_gd;
-    let article_title = f.article_title;
     view! {
         <p class={[TEXT_WARN, "text-center", "mb-4"].join(" ")}>
             {move || t!(i18n, site_warn)}
         </p>
         {if ana_type == 0 {
             Either::Left(view! {
-                <ArticleHeader title=article_title created=f.created_at hits=f.hits/>
+                <ArticleHeader f=header_f/>
             })
         } else {
             Either::Right(view! {
@@ -565,7 +644,16 @@ fn FootballDetail(f: Football) -> impl IntoView {
                 </div>
             })
         }}
-        <AnalysisSection analyses=analyses ana_type=ana_type/>
+        {if let Some(s) = analyses.iter().find(|a| a.status == 1).and_then(|a| a.summary.clone()).filter(|s| !s.is_empty()) {
+            Either::Left(view! {
+                <div class=CARD_SECTION>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">{s}</p>
+                </div>
+            })
+        } else {
+            Either::Right(())
+        }}
+        <AnalysisSection analyses=analyses ana_type=ana_type created_at=created_at updated_at=updated_at/>
         <DetailTopicsSection topics=topics/>
     }
 }

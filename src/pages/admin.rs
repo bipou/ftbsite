@@ -627,11 +627,14 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                     {d.items.into_iter().map(|football| {
                                         let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, ana_type, article_title, .. } = football;
                                         let url = ["/", &loc_str.get(), "/admin/footballs/", &crate::shared::common::record_key(&id)].join("");
-                                                                                let title = if ana_type == 0 {
-                                                                                    article_title.unwrap_or_else(|| [&home_team, " vs ", &away_team].join(""))
-                                                                                } else {
-                                                                                    [&home_team, " vs ", &away_team].join("")
-                                                                                };
+                                        let ht = home_team.unwrap_or_default();
+                                        let at = away_team.unwrap_or_default();
+                                        let title = if ana_type == 0 {
+                                            article_title.unwrap_or_else(|| [&ht, " vs ", &at].join(""))
+                                        } else {
+                                            [&ht, " vs ", &at].join("")
+                                        };
+                                        let s = season.unwrap_or_default();
                                         view! {
                                             <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                 <div class="flex-1 min-w-0">
@@ -642,7 +645,7 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                                         {title}
                                                     </a>
                                                     <p class="text-xs text-gray-400 mt-1">
-                                                        {season} " · " {kick_off_at_mdhm8}
+                                                        {s} " · " {kick_off_at_mdhm8}
                                                     </p>
                                                 </div>
                                                 // 状态操作按钮
