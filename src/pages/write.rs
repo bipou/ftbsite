@@ -1,5 +1,6 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
+use crate::server_error_text;
 use leptos::prelude::*;
 use leptos_meta::Title;
 
@@ -148,10 +149,7 @@ pub fn WriteArticlePage() -> impl IntoView {
     let content = RwSignal::new("## Share Analysis\n\n在此撰写您的足球分析…".to_string());
     let (success, set_success) = signal(false);
     let (article_title, set_article_title) = signal(String::new());
-    // 校验状态
-    let title_err = RwSignal::new(false);
     let cat_err = RwSignal::new(false);
-    let summary_err = RwSignal::new(false);
     let content_err = RwSignal::new(false);
 
     let post_action = ServerAction::<PostAnalysis>::new();
@@ -165,15 +163,18 @@ pub fn WriteArticlePage() -> impl IntoView {
         }
     });
 
+    let form_ref = NodeRef::<leptos::html::Form>::new();
+
     let submit = move |status: i8| {
-        // 发布时客户端校验
         if status != -1 {
-            title_err.set(title.get().trim().is_empty());
+            if let Some(f) = form_ref.get() {
+                if !f.report_validity() {
+                    return;
+                }
+            }
             cat_err.set(category_id.get().trim().is_empty());
-            summary_err.set(summary.get().trim().is_empty());
-            let ce = content.get().trim().is_empty();
-            content_err.set(ce);
-            if title_err.get() || cat_err.get() || summary_err.get() || ce {
+            content_err.set(content.get().trim().is_empty());
+            if cat_err.get() || content_err.get() {
                 return;
             }
         }
@@ -211,6 +212,7 @@ pub fn WriteArticlePage() -> impl IntoView {
                 style:transition="all 0.3s"
             >
                 <div class="space-y-4">
+                    <form node_ref=form_ref on:submit=|ev| ev.prevent_default()>
                     <div>
                         <input
                             type="text"
@@ -218,9 +220,8 @@ pub fn WriteArticlePage() -> impl IntoView {
                             placeholder=title_ph
                             required
                             prop:value=title
-                            on:input=move |ev| { title_err.set(false); title.set(event_target_value(&ev)) }
+                            on:input=move |ev| title.set(event_target_value(&ev))
                         />
-                        {move || title_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">标题不能为空</p> })}
                     </div>
 
                     <div>
@@ -231,9 +232,8 @@ pub fn WriteArticlePage() -> impl IntoView {
                             required
                             class="form-input w-full"
                             prop:value=summary
-                            on:input=move |ev| { summary_err.set(false); summary.set(event_target_value(&ev)) }
+                            on:input=move |ev| summary.set(event_target_value(&ev))
                         />
-                        {move || summary_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">摘要不能为空</p> })}
                     </div>
 
                     <CategorySection selected=category_id/>
@@ -272,22 +272,16 @@ pub fn WriteArticlePage() -> impl IntoView {
                             {move || if pending.get() { t_display!(i18n, submitting).to_string() } else { t_display!(i18n, submit_article).to_string() }}
                         </button>
                     </div>
+                    </form>
 
                     {move || post_action.value().get().and_then(|r| r.err()).map(|e| {
                         let raw = e.to_string();
-                        let msg = if raw.contains("captcha_invalid") {
-                            t_display!(i18n, captcha_invalid).to_string()
-                        } else if raw.contains("not_sign_in") {
-                            t_display!(i18n, not_sign_in).to_string()
-                        } else if raw.contains("user_not_found") {
-                            t_display!(i18n, user_not_found).to_string()
-                        } else if raw.contains("summary_too_long") {
-                            t_display!(i18n, summary_too_long).to_string()
-                        } else if raw.contains("title_required") || raw.contains("category_required") || raw.contains("summary_required") || raw.contains("content_required") {
-                            "请填写所有必填项".to_string()
-                        } else {
-                            raw
-                        };
+                        let msg = server_error_text!(i18n, raw,
+                            "captcha_invalid" => captcha_invalid,
+                            "not_sign_in" => not_sign_in,
+                            "user_not_found" => user_not_found,
+                            "summary_too_long" => summary_too_long,
+                        );
                         view! { <p class="text-red-500 text-sm text-center mt-2">{msg}</p> }
                     })}
                 </div>

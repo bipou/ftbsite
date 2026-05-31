@@ -5,6 +5,19 @@ use leptos::either::Either;
 
 pub type Either3<A, B, C> = Either<A, Either<B, C>>;
 
+/// 服务端错误码 → i18n 文本。未匹配则原样返回
+#[macro_export]
+macro_rules! server_error_text {
+    ($i18n:expr, $raw:expr, $($code:literal => $key:ident),+ $(,)?) => {{
+        let raw: &str = &$raw;
+        let mut msg = raw.to_string();
+        $(
+            if raw.contains($code) { msg = $crate::i18n::t_display!($i18n, $key).to_string(); }
+        )*
+        msg
+    }};
+}
+
 // ── Page title macros ────────────────────────────────────────────────────
 
 #[macro_export]

@@ -75,7 +75,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
         <div class=card_class>
             <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
                 <LocaleA
-                    href=detail_path
+                    href=detail_path.clone()
                     target="_blank"
                     rel="noopener noreferrer"
                     class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0"
@@ -108,7 +108,9 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
 
             {if let Some(s) = summary {
                 Either::Left(view! {
-                    <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
+                    <LocaleA href=detail_path.clone() target="_blank" rel="noopener noreferrer" class="no-underline">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
+                    </LocaleA>
                 })
             } else {
                 Either::Right(())

@@ -200,16 +200,18 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             s
         }
     });
-    let summary_view = summary.map(|s| {
-        view! {
-            <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
-        }
-    });
     let detail_path = [
         "/footballs/",
         &crate::shared::common::record_key(&football.id),
     ]
     .join("");
+    let summary_view = summary.map(|s| {
+        view! {
+            <LocaleA href=detail_path.clone() target="_blank" rel="noopener noreferrer" class="no-underline">
+                <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
+            </LocaleA>
+        }
+    });
     let category = football.category;
     let cat_kid = category
         .as_ref()

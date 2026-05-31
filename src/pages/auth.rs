@@ -1,5 +1,6 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
+use crate::server_error_text;
 use leptos::prelude::*;
 use leptos_meta::Title;
 use leptos_router::hooks::use_params_map;
@@ -185,10 +186,6 @@ pub fn SignInPage() -> impl IntoView {
 
     let btn = Signal::derive(move || t_display!(i18n, sign_in).to_string());
     let pending = Signal::derive(move || t_display!(i18n, signing_in).to_string());
-    let sig_err = RwSignal::new(false);
-    let pwd_err = RwSignal::new(false);
-    let sig = RwSignal::new(String::new());
-    let pwd = RwSignal::new(String::new());
 
     view! {
         <Title text=move || page_title!(i18n, user_sign_in)/>
@@ -199,28 +196,16 @@ pub fn SignInPage() -> impl IntoView {
                 </h1>
 
                 <div class="space-y-4">
-                    <ActionForm action=action on:submit=move |ev| {
-                        sig_err.set(sig.get().trim().is_empty());
-                        pwd_err.set(pwd.get().trim().is_empty());
-                        if sig_err.get() || pwd_err.get() {
-                            ev.prevent_default();
-                        }
-                    }>
+                    <ActionForm action=action>
                         <div>
                             <label class="form-label">{move || t!(i18n, sign_in_account)}</label>
                             <input type="text" name="signature" required
-                                   class="form-input " autocomplete="username"
-                                   prop:value=sig
-                                   on:input=move |ev| { sig_err.set(false); sig.set(event_target_value(&ev)) }/>
-                            {move || sig_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入账号</p> })}
+                                   class="form-input " autocomplete="username"/>
                         </div>
                         <div>
                             <label class="form-label">{move || t!(i18n, sign_in_password)}</label>
                             <input type="password" name="password" required
-                                   class="form-input " autocomplete="current-password"
-                                   prop:value=pwd
-                                   on:input=move |ev| { pwd_err.set(false); pwd.set(event_target_value(&ev)) }/>
-                            {move || pwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入密码</p> })}
+                                   class="form-input " autocomplete="current-password"/>
                         </div>
 
                         <CaptchaCore/>
@@ -239,19 +224,13 @@ pub fn SignInPage() -> impl IntoView {
                         // Error
                         {move || action.value().get().and_then(|r| r.err()).map(|e| {
                             let raw = e.to_string();
-                            let msg = if raw.contains("captcha_invalid") {
-                                t_display!(i18n, captcha_invalid).to_string()
-                            } else if raw.contains("sign_in_incorrect") {
-                                t_display!(i18n, sign_in_incorrect).to_string()
-                            } else if raw.contains("sign_in_not_activation") {
-                                t_display!(i18n, sign_in_not_activation).to_string()
-                            } else if raw.contains("sign_in_banned") {
-                                t_display!(i18n, sign_in_banned).to_string()
-                            } else if raw.contains("sign_in_security_problem") {
-                                t_display!(i18n, sign_in_security_problem).to_string()
-                            } else {
-                                raw
-                            };
+                            let msg = server_error_text!(i18n, raw,
+                                "captcha_invalid" => captcha_invalid,
+                                "sign_in_incorrect" => sign_in_incorrect,
+                                "sign_in_not_activation" => sign_in_not_activation,
+                                "sign_in_banned" => sign_in_banned,
+                                "sign_in_security_problem" => sign_in_security_problem,
+                            );
                             view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
                         })}
                     </ActionForm>
@@ -304,15 +283,7 @@ pub fn RegisterPage() -> impl IntoView {
     let action = ServerAction::<Register>::new();
     let (success, set_success) = signal(false);
     let (reg_username, set_reg_username) = signal(String::new());
-    let uname = RwSignal::new(String::new());
-    let email = RwSignal::new(String::new());
-    let rpwd = RwSignal::new(String::new());
-    let rcpwd = RwSignal::new(String::new());
     let intro = RwSignal::new("## About Me\n我关注足球数据与计算。".to_string());
-    let uname_err = RwSignal::new(false);
-    let email_err = RwSignal::new(false);
-    let rpwd_err = RwSignal::new(false);
-    let rcpwd_err = RwSignal::new(false);
     let intro_err = RwSignal::new(false);
 
     Effect::new(move |_| {
@@ -351,49 +322,30 @@ pub fn RegisterPage() -> impl IntoView {
                      style:transition="all 0.3s"
                 >
                     <ActionForm action=action on:submit=move |ev| {
-                        uname_err.set(uname.get().trim().is_empty());
-                        email_err.set(email.get().trim().is_empty());
-                        let pw = rpwd.get();
-                        rpwd_err.set(pw.trim().is_empty());
-                        rcpwd_err.set(rcpwd.get() != pw);
                         intro_err.set(intro.get().trim().is_empty());
-                        if uname_err.get() || email_err.get() || rpwd_err.get() || rcpwd_err.get() || intro_err.get() {
-                            ev.prevent_default();
-                        }
+                        if intro_err.get() { ev.prevent_default(); }
                     }>
                         <input type="hidden" name="lang" value=move || i18n.get_locale().to_string()/>
                         <div class=GRID_2>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_username)} " *"</label>
                                 <input type="text" name="username" required
-                                       class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"
-                                       prop:value=uname
-                                       on:input=move |ev| { uname_err.set(false); uname.set(event_target_value(&ev)) }/>
-                                {move || uname_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入用户名</p> })}
+                                       class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"/>
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_email)} " *"</label>
                                 <input type="email" name="email" required
-                                       class="form-input " autocomplete="email"
-                                       prop:value=email
-                                       on:input=move |ev| { email_err.set(false); email.set(event_target_value(&ev)) }/>
-                                {move || email_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入邮箱</p> })}
+                                       class="form-input " autocomplete="email"/>
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_password)} " *"</label>
                                 <input type="password" name="password" required
-                                       class="form-input " autocomplete="new-password"
-                                       prop:value=rpwd
-                                       on:input=move |ev| { rpwd_err.set(false); rpwd.set(event_target_value(&ev)) }/>
-                                {move || rpwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入密码</p> })}
+                                       class="form-input " autocomplete="new-password"/>
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_confirm_password)} " *"</label>
                                 <input type="password" name="confirm_password" required
-                                       class="form-input " autocomplete="new-password"
-                                       prop:value=rcpwd
-                                       on:input=move |ev| { rcpwd_err.set(false); rcpwd.set(event_target_value(&ev)) }/>
-                                {move || rcpwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">密码不匹配</p> })}
+                                       class="form-input " autocomplete="new-password"/>
                             </div>
                         </div>
                         <div class="space-y-4 mt-4">
@@ -424,19 +376,13 @@ pub fn RegisterPage() -> impl IntoView {
                         // Error
                         {move || action.value().get().and_then(|r| r.err()).map(|e| {
                             let raw = e.to_string();
-                            let msg = if raw.contains("captcha_invalid") {
-                                t_display!(i18n, captcha_invalid).to_string()
-                            } else if raw.contains("register_password_mismatch") {
-                                t_display!(i18n, register_password_mismatch).to_string()
-                            } else if raw.contains("register_password_weak") {
-                                t_display!(i18n, register_password_weak).to_string()
-                            } else if raw.contains("register_exist") {
-                                t_display!(i18n, register_exist).to_string()
-                            } else if raw.contains("upload_failed") {
-                                t_display!(i18n, upload_failed).to_string()
-                            } else {
-                                raw
-                            };
+                            let msg = server_error_text!(i18n, raw,
+                                "captcha_invalid" => captcha_invalid,
+                                "register_password_mismatch" => register_password_mismatch,
+                                "register_password_weak" => register_password_weak,
+                                "register_exist" => register_exist,
+                                "upload_failed" => upload_failed,
+                            );
                             view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
                         })}
                     </ActionForm>
