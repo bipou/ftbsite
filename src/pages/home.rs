@@ -20,20 +20,9 @@ pub struct HomeData {
 #[server]
 pub async fn get_home_data() -> Result<HomeData, ServerFnError> {
     use crate::server::football_db;
-    let all = football_db::get_home_footballs(9)
+    let (user, pre, post) = football_db::get_home_footballs(9)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    let mut user = Vec::new();
-    let mut pre = Vec::new();
-    let mut post = Vec::new();
-    for f in all {
-        match f.ana_type {
-            0 if user.len() < 3 => user.push(f),
-            1 if pre.len() < 3 => pre.push(f),
-            2 if post.len() < 3 => post.push(f),
-            _ => {}
-        }
-    }
     Ok(HomeData { user, pre, post })
 }
 
