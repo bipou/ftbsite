@@ -20,7 +20,7 @@ pub struct HomeData {
 #[server]
 pub async fn get_home_data() -> Result<HomeData, ServerFnError> {
     use crate::server::football_db;
-    let all = football_db::get_home_footballs(12)
+    let all = football_db::get_home_footballs(9)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     let mut user = Vec::new();

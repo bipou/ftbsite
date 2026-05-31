@@ -18,11 +18,6 @@ pub fn use_locale() -> Memo<String> {
     })
 }
 
-/// 语言代码列表
-pub fn locale_codes() -> Vec<String> {
-    Locale::get_all().iter().map(|l| l.to_string()).collect()
-}
-
 /// 校验给定字符串是否为支持的语言代码
 pub fn is_valid_locale(code: &str) -> bool {
     Locale::get_all().iter().any(|l| l.to_string() == code)

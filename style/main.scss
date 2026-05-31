@@ -125,10 +125,10 @@ input,button,textarea,select{font:inherit}
 // ── Typography ─────────────────────────────────────────────────────────────────
 .text-xs{font-size:.75rem}.text-sm{font-size:.875rem}.text-base{font-size:1rem}
 .text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}
-.text-3xl{font-size:1.875rem}.text-5xl{font-size:3rem}.text-7xl{font-size:4.5rem}
+.text-7xl{font-size:4.5rem}
 .font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}
 .text-center{text-align:center}.text-right{text-align:right}.text-left{text-align:left}
-.leading-tight{line-height:1.25}.uppercase{text-transform:uppercase}
+.leading-tight{line-height:1.25}
 .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .whitespace-nowrap{white-space:nowrap}.no-underline{text-decoration:none}
 .no-underline:hover{text-decoration:none}.italic{font-style:italic}
@@ -158,7 +158,6 @@ input,button,textarea,select{font:inherit}
 // ── Positioning ────────────────────────────────────────────────────────────────
 .sticky{position:sticky}.top-0{top:0}.top-full{top:100%}.z-50{z-index:50}
 .fixed{position:fixed}.inset-0{top:0;right:0;bottom:0;left:0}.right-0{right:0}
-.align-text-top{vertical-align:text-top}
 .relative{position:relative}.absolute{position:absolute}
 .left-1\/2{left:50%}.-translate-x-1\/2{transform:translateX(-50%)}
 
@@ -170,7 +169,6 @@ input,button,textarea,select{font:inherit}
 .btn{display:inline-flex;align-items:center;padding:.375rem .75rem;border-radius:6px;font-size:.875rem;font-weight:500;cursor:pointer;border:1px solid transparent;transition:background .15s,color .15s;justify-content:center}
 .btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8;text-decoration:none}
 .btn-secondary{background:#f3f4f6;color:#374151}.btn-secondary:hover{background:#e5e7eb;text-decoration:none}
-.btn-danger{background:#dc2626;color:#fff}
 @include dark {
   .btn-secondary{background:#374151;color:#e5e7eb}
   .btn-secondary:hover{background:#4b5563}
@@ -273,13 +271,6 @@ article.prose-sm img{max-width:100%}
 }
 
 // ── Shared component classes ─────────────────────────────────────────────────
-// Category filter bar: base styles for all child links
-.cat-bar a {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  text-decoration: none;
-}
-
 // Table row with bottom border
 .table-row {
   border-bottom: 1px solid #e5e7eb;

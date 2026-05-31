@@ -58,7 +58,6 @@
   "write_article": "剖析分享",
   "article_summary": "摘要（限200字）",
   "summary_too_long": "摘要不能超过200字",
-  "summary_required": "摘要不能为空",
   "analysis_content": "剖析内容（支持 Markdown 语法）",
   "article_title": "文章标题",
   "save_draft": "存草稿",

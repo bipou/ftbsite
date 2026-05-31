@@ -185,6 +185,10 @@ pub fn SignInPage() -> impl IntoView {
 
     let btn = Signal::derive(move || t_display!(i18n, sign_in).to_string());
     let pending = Signal::derive(move || t_display!(i18n, signing_in).to_string());
+    let sig_err = RwSignal::new(false);
+    let pwd_err = RwSignal::new(false);
+    let sig = RwSignal::new(String::new());
+    let pwd = RwSignal::new(String::new());
 
     view! {
         <Title text=move || page_title!(i18n, user_sign_in)/>
@@ -195,16 +199,28 @@ pub fn SignInPage() -> impl IntoView {
                 </h1>
 
                 <div class="space-y-4">
-                    <ActionForm action=action>
+                    <ActionForm action=action on:submit=move |ev| {
+                        sig_err.set(sig.get().trim().is_empty());
+                        pwd_err.set(pwd.get().trim().is_empty());
+                        if sig_err.get() || pwd_err.get() {
+                            ev.prevent_default();
+                        }
+                    }>
                         <div>
                             <label class="form-label">{move || t!(i18n, sign_in_account)}</label>
                             <input type="text" name="signature" required
-                                   class="form-input " autocomplete="username"/>
+                                   class="form-input " autocomplete="username"
+                                   prop:value=sig
+                                   on:input=move |ev| { sig_err.set(false); sig.set(event_target_value(&ev)) }/>
+                            {move || sig_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入账号</p> })}
                         </div>
                         <div>
                             <label class="form-label">{move || t!(i18n, sign_in_password)}</label>
                             <input type="password" name="password" required
-                                   class="form-input " autocomplete="current-password"/>
+                                   class="form-input " autocomplete="current-password"
+                                   prop:value=pwd
+                                   on:input=move |ev| { pwd_err.set(false); pwd.set(event_target_value(&ev)) }/>
+                            {move || pwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入密码</p> })}
                         </div>
 
                         <CaptchaCore/>
@@ -288,6 +304,16 @@ pub fn RegisterPage() -> impl IntoView {
     let action = ServerAction::<Register>::new();
     let (success, set_success) = signal(false);
     let (reg_username, set_reg_username) = signal(String::new());
+    let uname = RwSignal::new(String::new());
+    let email = RwSignal::new(String::new());
+    let rpwd = RwSignal::new(String::new());
+    let rcpwd = RwSignal::new(String::new());
+    let intro = RwSignal::new("## About Me\n我关注足球数据与计算。".to_string());
+    let uname_err = RwSignal::new(false);
+    let email_err = RwSignal::new(false);
+    let rpwd_err = RwSignal::new(false);
+    let rcpwd_err = RwSignal::new(false);
+    let intro_err = RwSignal::new(false);
 
     Effect::new(move |_| {
         if let Some(Ok(name)) = action.value().get() {
@@ -324,28 +350,50 @@ pub fn RegisterPage() -> impl IntoView {
                      style:pointer-events=move || if success.get() { "none" } else { "auto" }
                      style:transition="all 0.3s"
                 >
-                    <ActionForm action=action>
+                    <ActionForm action=action on:submit=move |ev| {
+                        uname_err.set(uname.get().trim().is_empty());
+                        email_err.set(email.get().trim().is_empty());
+                        let pw = rpwd.get();
+                        rpwd_err.set(pw.trim().is_empty());
+                        rcpwd_err.set(rcpwd.get() != pw);
+                        intro_err.set(intro.get().trim().is_empty());
+                        if uname_err.get() || email_err.get() || rpwd_err.get() || rcpwd_err.get() || intro_err.get() {
+                            ev.prevent_default();
+                        }
+                    }>
                         <input type="hidden" name="lang" value=move || i18n.get_locale().to_string()/>
                         <div class=GRID_2>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_username)} " *"</label>
                                 <input type="text" name="username" required
-                                       class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"/>
+                                       class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"
+                                       prop:value=uname
+                                       on:input=move |ev| { uname_err.set(false); uname.set(event_target_value(&ev)) }/>
+                                {move || uname_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入用户名</p> })}
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_email)} " *"</label>
                                 <input type="email" name="email" required
-                                       class="form-input " autocomplete="email"/>
+                                       class="form-input " autocomplete="email"
+                                       prop:value=email
+                                       on:input=move |ev| { email_err.set(false); email.set(event_target_value(&ev)) }/>
+                                {move || email_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入邮箱</p> })}
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_password)} " *"</label>
                                 <input type="password" name="password" required
-                                       class="form-input " autocomplete="new-password"/>
+                                       class="form-input " autocomplete="new-password"
+                                       prop:value=rpwd
+                                       on:input=move |ev| { rpwd_err.set(false); rpwd.set(event_target_value(&ev)) }/>
+                                {move || rpwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入密码</p> })}
                             </div>
                             <div>
                                 <label class="form-label">{move || t!(i18n, register_confirm_password)} " *"</label>
                                 <input type="password" name="confirm_password" required
-                                       class="form-input " autocomplete="new-password"/>
+                                       class="form-input " autocomplete="new-password"
+                                       prop:value=rcpwd
+                                       on:input=move |ev| { rcpwd_err.set(false); rcpwd.set(event_target_value(&ev)) }/>
+                                {move || rcpwd_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">密码不匹配</p> })}
                             </div>
                         </div>
                         <div class="space-y-4 mt-4">
@@ -356,7 +404,8 @@ pub fn RegisterPage() -> impl IntoView {
                             <label class="form-label">
                                 {move || t!(i18n, register_intro)}
                             </label>
-                            <MarkdownEditor name="introduction" rows=4 value=RwSignal::new("## About Me\n我关注足球数据与计算。".to_string()) />
+                            <MarkdownEditor name="introduction" rows=4 value=intro required=true/>
+                            {move || intro_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入简介</p> })}
                         </div>
                         </div>
                         <CaptchaCore/>

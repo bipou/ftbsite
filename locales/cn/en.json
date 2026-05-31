@@ -56,9 +56,8 @@
   "analysis_ai_label": "AI-generated content, for reference only",
 
   "write_article": "Analysis Share",
-  "article_summary": "Summary (max 200 chars)",
-  "summary_too_long": "Summary exceeds 200 characters",
-  "summary_required": "Summary is required",
+  "article_summary": "Summary (200 chars max)",
+  "summary_too_long": "Summary cannot exceed 200 characters",
   "analysis_content": "Analysis Content (supports Markdown syntax)",
   "article_title": "Article Title",
   "save_draft": "Save Draft",

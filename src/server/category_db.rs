@@ -38,19 +38,21 @@ pub async fn get_category_by_id(rid: &RecordId) -> Result<Option<Category>, Stri
     Ok(doc.map(into_category))
 }
 
-pub async fn get_categories_by_levels(levels: &[u8]) -> Result<Vec<Category>, String> {
-    if levels.is_empty() {
-        return Ok(vec![]);
+/// 批量取类别
+pub async fn get_categories_batch(rids: &[&RecordId]) -> Result<HashMap<String, Category>, String> {
+    if rids.is_empty() {
+        return Ok(HashMap::new());
     }
-    let q = format!(
-        "SELECT * FROM categories WHERE level IN [{}] ORDER BY level ASC",
-        levels
-            .iter()
-            .map(|l| l.to_string())
-            .collect::<Vec<_>>()
-            .join(",")
-    );
+    let in_clause = rids
+        .iter()
+        .map(|r| rid_str(r))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let q = format!("SELECT * FROM categories WHERE id IN [{}]", in_clause);
     let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
     let docs: Vec<CategoryDoc> = res.take(0).map_err(|e| e.to_string())?;
-    Ok(docs.into_iter().map(into_category).collect())
+    Ok(docs
+        .into_iter()
+        .map(|d| (rid_str(&d.id), into_category(d)))
+        .collect())
 }

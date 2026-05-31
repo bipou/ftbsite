@@ -1,4 +1,4 @@
-use crate::i18n::{t, t_display, use_i18n};
+use crate::i18n::{t, t_display, td_string, use_i18n};
 use crate::page_title;
 use crate::site_title;
 use leptos::either::Either;
@@ -9,7 +9,7 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 use crate::components::{Pagination, UserIntro, UserTopics};
 use crate::models::{Football, FootballsResult, User, UsersResult};
 
-use crate::shared::common::{Either3, Either7};
+use crate::shared::common::Either3;
 use crate::shared::constant::{
     EMPTY, GRID_2, GRID_3, H1, HOVER_SHADOW, MAIN, NO_DATA, NO_UNDERLINE,
 };
@@ -268,14 +268,17 @@ fn FootballStatusButtons(
                         class=move || ["text-xs", "px-2", "py-1", "rounded", "transition-colors", cls, hl()].join(" ")
                         on:click=onclick(s)
                     >
-                        {move || match s {
-                            4 => Either7::Left(t!(i18n, status_both)),
-                            3 => Either7::Right(Either::Left(t!(i18n, status_picks))),
-                            2 => Either7::Right(Either::Right(Either::Left(t!(i18n, status_hot)))),
-                            1 => Either7::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_publish))))),
-                            0 => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_submit)))))),
-                            -1 => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Left(t!(i18n, status_draft))))))),
-                            _ => Either7::Right(Either::Right(Either::Right(Either::Right(Either::Right(Either::Right(t!(i18n, status_deleted))))))),
+                        {move || {
+                            let loc = i18n.get_locale();
+                            match s {
+                                4 => td_string!(loc, status_both),
+                                3 => td_string!(loc, status_picks),
+                                2 => td_string!(loc, status_hot),
+                                1 => td_string!(loc, status_publish),
+                                0 => td_string!(loc, status_submit),
+                                -1 => td_string!(loc, status_draft),
+                                _ => td_string!(loc, status_deleted),
+                            }
                         }}
                     </button>
                 }

@@ -40,25 +40,85 @@ pub async fn get_topics_by_football_id(football_rid: &RecordId) -> Result<Vec<To
         .await
         .map_err(|e| e.to_string())?;
     let topic_rids: Vec<RecordId> = res.take(0).map_err(|e| e.to_string())?;
+    topics_by_rids(&topic_rids).await
+}
 
-    // Deduplicate topic ids
+/// 批量取多场比赛的话题
+pub async fn get_topics_batch(football_rids: &[&RecordId]) -> Result<Vec<Vec<Topic>>, String> {
+    if football_rids.is_empty() {
+        return Ok(vec![]);
+    }
+    let in_clause = football_rids
+        .iter()
+        .map(|r| rid_str(r))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let q = format!(
+        "SELECT football_id, topic_id FROM topics_rel WHERE football_id IN [{}]",
+        in_clause
+    );
+    let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
+    #[derive(Debug, Deserialize, SurrealValue)]
+    struct Rel {
+        football_id: RecordId,
+        topic_id: RecordId,
+    }
+    let rels: Vec<Rel> = res.take(0).map_err(|e| e.to_string())?;
+
+    // 收集去重 topic IDs
+    let mut all_tids = Vec::new();
+    for r in &rels {
+        let tid = rid_str(&r.topic_id);
+        if !all_tids.contains(&tid) {
+            all_tids.push(tid);
+        }
+    }
+    let topic_map = if all_tids.is_empty() {
+        std::collections::HashMap::new()
+    } else {
+        let in_clause = all_tids.join(", ");
+        let q = format!(
+            "SELECT * FROM topics WHERE id IN [{}] ORDER BY quotes DESC",
+            in_clause
+        );
+        let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
+        let docs: Vec<TopicDoc> = res.take(0).map_err(|e| e.to_string())?;
+        docs.into_iter()
+            .map(|d| (rid_str(&d.id), into_topic(d)))
+            .collect()
+    };
+
+    // 按 football_id 分组
+    let mut result = vec![Vec::new(); football_rids.len()];
+    let idx_map: std::collections::HashMap<String, usize> = football_rids
+        .iter()
+        .enumerate()
+        .map(|(i, r)| (rid_str(r), i))
+        .collect();
+    for rel in &rels {
+        let fid = rid_str(&rel.football_id);
+        let tid = rid_str(&rel.topic_id);
+        if let (Some(&i), Some(t)) = (idx_map.get(&fid), topic_map.get(&tid)) {
+            result[i].push(t.clone());
+        }
+    }
+    Ok(result)
+}
+
+async fn topics_by_rids(topic_rids: &[RecordId]) -> Result<Vec<Topic>, String> {
     let mut tids: Vec<String> = Vec::new();
-    for rid in &topic_rids {
+    for rid in topic_rids {
         let tid = rid_str(rid);
         if !tids.contains(&tid) {
             tids.push(tid);
         }
     }
-
     if tids.is_empty() {
         return Ok(vec![]);
     }
-
-    // Build IN clause with deduplicated ids
-    let in_clause = tids.join(", ");
     let q = format!(
         "SELECT * FROM topics WHERE id IN [{}] ORDER BY quotes DESC",
-        in_clause
+        tids.join(", ")
     );
     let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
     let docs: Vec<TopicDoc> = res.take(0).map_err(|e| e.to_string())?;

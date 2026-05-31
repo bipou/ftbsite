@@ -52,9 +52,20 @@ pub async fn post_analysis(
         }
     }
 
-    // 摘要不能为空（发布时）
-    if status != -1 && summary.trim().is_empty() {
-        return Err(ServerFnError::new("summary_required"));
+    // 必填校验（除话题外均为必填）
+    if status != -1 {
+        if title.trim().is_empty() {
+            return Err(ServerFnError::new("title_required"));
+        }
+        if category_id.trim().is_empty() {
+            return Err(ServerFnError::new("category_required"));
+        }
+        if summary.trim().is_empty() {
+            return Err(ServerFnError::new("summary_required"));
+        }
+        if content.trim().is_empty() {
+            return Err(ServerFnError::new("content_required"));
+        }
     }
 
     // 摘要限 200 字符
@@ -137,6 +148,11 @@ pub fn WriteArticlePage() -> impl IntoView {
     let content = RwSignal::new("## Share Analysis\n\n在此撰写您的足球分析…".to_string());
     let (success, set_success) = signal(false);
     let (article_title, set_article_title) = signal(String::new());
+    // 校验状态
+    let title_err = RwSignal::new(false);
+    let cat_err = RwSignal::new(false);
+    let summary_err = RwSignal::new(false);
+    let content_err = RwSignal::new(false);
 
     let post_action = ServerAction::<PostAnalysis>::new();
     let cap_state = CaptchaState::new();
@@ -150,6 +166,17 @@ pub fn WriteArticlePage() -> impl IntoView {
     });
 
     let submit = move |status: i8| {
+        // 发布时客户端校验
+        if status != -1 {
+            title_err.set(title.get().trim().is_empty());
+            cat_err.set(category_id.get().trim().is_empty());
+            summary_err.set(summary.get().trim().is_empty());
+            let ce = content.get().trim().is_empty();
+            content_err.set(ce);
+            if title_err.get() || cat_err.get() || summary_err.get() || ce {
+                return;
+            }
+        }
         post_action.dispatch(PostAnalysis {
             title: title.get(),
             category_id: category_id.get(),
@@ -189,9 +216,11 @@ pub fn WriteArticlePage() -> impl IntoView {
                             type="text"
                             class="form-input w-full text-lg font-semibold"
                             placeholder=title_ph
+                            required
                             prop:value=title
-                            on:input=move |ev| title.set(event_target_value(&ev))
+                            on:input=move |ev| { title_err.set(false); title.set(event_target_value(&ev)) }
                         />
+                        {move || title_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">标题不能为空</p> })}
                     </div>
 
                     <div>
@@ -202,11 +231,13 @@ pub fn WriteArticlePage() -> impl IntoView {
                             required
                             class="form-input w-full"
                             prop:value=summary
-                            on:input=move |ev| summary.set(event_target_value(&ev))
+                            on:input=move |ev| { summary_err.set(false); summary.set(event_target_value(&ev)) }
                         />
+                        {move || summary_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">摘要不能为空</p> })}
                     </div>
 
                     <CategorySection selected=category_id/>
+                    {move || cat_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请选择类别</p> })}
 
                     <TopicInput csv_out=topic_csv/>
 
@@ -216,7 +247,9 @@ pub fn WriteArticlePage() -> impl IntoView {
                             name="content"
                             value=content
                             scope="football"
+                            required=true
                         />
+                        {move || content_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">内容不能为空</p> })}
                     </div>
 
                     <CaptchaCore/>
@@ -250,8 +283,8 @@ pub fn WriteArticlePage() -> impl IntoView {
                             t_display!(i18n, user_not_found).to_string()
                         } else if raw.contains("summary_too_long") {
                             t_display!(i18n, summary_too_long).to_string()
-                        } else if raw.contains("summary_required") {
-                            t_display!(i18n, summary_required).to_string()
+                        } else if raw.contains("title_required") || raw.contains("category_required") || raw.contains("summary_required") || raw.contains("content_required") {
+                            "请填写所有必填项".to_string()
                         } else {
                             raw
                         };

@@ -48,8 +48,7 @@ pub async fn send_activation_email(
         .build();
 
     // SMTP 发送是同步阻塞的，放入 spawn_blocking 避免占用 tokio worker 线程
-    let email_clone = email.clone();
-    tokio::task::spawn_blocking(move || mailer.send(&email_clone))
+    tokio::task::spawn_blocking(move || mailer.send(&email))
         .await
         .map_err(|e| e.to_string())?
         .map_err(|e| e.to_string())?;

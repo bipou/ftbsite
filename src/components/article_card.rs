@@ -3,8 +3,7 @@ use crate::i18n::{t, t_display, use_i18n};
 use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
-    BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_TITLE, FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE,
-    TEXT_XS_MUTED,
+    BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
 use crate::shared::fns::get_username_by_id;
 use crate::shared::locale::{LocaleA, use_locale};
@@ -34,7 +33,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     .join("");
 
     let status = football.status;
-    let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status)].join(" ");
+    let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
     let badge = status_badge(status);
     let badge_or_label = if !badge.is_empty() {
         badge.to_string()
@@ -79,7 +78,7 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
                     href=detail_path
                     target="_blank"
                     rel="noopener noreferrer"
-                    class=CARD_TITLE
+                    class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0"
                 >
                     {title}
                 </LocaleA>

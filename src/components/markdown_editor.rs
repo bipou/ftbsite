@@ -11,6 +11,7 @@ pub fn MarkdownEditor(
     value: RwSignal<String>,
     #[prop(default = 15)] rows: u32,
     #[prop(into, default = "user".to_string())] scope: String,
+    #[prop(default = false)] required: bool,
 ) -> impl IntoView {
     let i18n = use_i18n();
     let (markdown, set_markdown) = signal(value.get());
@@ -158,6 +159,7 @@ pub fn MarkdownEditor(
                     rows=rows
                     class="form-input"
                     node_ref=textarea_ref
+                    required=required
                     prop:value=move || markdown.get()
                     on:input=move |ev| {
                         set_markdown.set(event_target_value(&ev));
