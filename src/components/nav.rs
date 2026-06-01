@@ -129,10 +129,8 @@ fn ThemeToggle() -> impl IntoView {
         }
     };
     view! {
-        <button
-            on:click=on_click
-            class="flex items-center justify-center rounded-full border-0 bg-transparent cursor-pointer"
-        >
+        <button on:click=on_click
+            class="border-0 bg-transparent cursor-pointer">
             "☀️"
         </button>
     }
