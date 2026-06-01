@@ -70,19 +70,6 @@ fn NavLeft() -> impl IntoView {
 }
 
 #[component]
-fn Random() -> impl IntoView {
-    let i18n = use_i18n();
-    let loc_str = use_locale();
-    view! {
-        <a href=move || ["/", &loc_str.get(), "/rand"].join("") target="_blank" rel="noopener noreferrer"
-            class=["text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors", NO_UNDERLINE].join(" ")
-        >
-            {move || t!(i18n, rand)}
-        </a>
-    }
-}
-
-#[component]
 fn LangDropdown() -> impl IntoView {
     let i18n = use_i18n();
     let (open, set_open) = signal(false);
@@ -144,9 +131,9 @@ fn ThemeToggle() -> impl IntoView {
     view! {
         <button
             on:click=on_click
-            class="w-7 h-7 flex items-center justify-center rounded-full border-0 bg-transparent cursor-pointer text-base leading-1"
+            class="w-6 h-6 flex items-center justify-center rounded-full border-0 bg-transparent cursor-pointer"
         >
-            "🌓"
+            "☀️"
         </button>
     }
 }
@@ -215,7 +202,6 @@ fn HamburgerMenu() -> impl IntoView {
                             {move || t!(i18n, nav_user)}
                         </LocaleA>
                     </div>
-                    <Random/>
                 </div>
                 <hr/>
                 <div class="px-4 py-3 flex flex-col gap-2">
@@ -251,12 +237,11 @@ fn HamburgerMenu() -> impl IntoView {
 fn NavRight() -> impl IntoView {
     view! {
         <div class="flex items-center gap-3 text-sm">
+            <ThemeToggle/>
             <LangDropdown/>
             <div class="hidden sm:flex items-center gap-3">
-                <Random/>
                 <AuthSection/>
             </div>
-            <ThemeToggle/>
             <HamburgerMenu/>
         </div>
     }

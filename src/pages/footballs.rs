@@ -13,17 +13,6 @@ use crate::pages::write::get_all_categories;
 use crate::shared::common::{Either3, record_key};
 use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_WARN, WIDE};
 
-// ── Server functions ──────────────────────────────────────────────────────────
-
-/// Returns a random published football ID for the "random" nav button.
-#[server]
-pub async fn get_random_id() -> Result<Option<String>, ServerFnError> {
-    use crate::server::football_db;
-    football_db::get_random_football_id()
-        .await
-        .map_err(|e| ServerFnError::new(e.to_string()))
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FootballsFilter {
     All,
