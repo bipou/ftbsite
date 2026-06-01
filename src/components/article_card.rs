@@ -14,7 +14,7 @@ use leptos::prelude::*;
 #[component]
 pub fn ArticleCard(football: Football) -> impl IntoView {
     let i18n = use_i18n();
-    let title = football.article_title.unwrap_or_default();
+    let title = football.title();
     let summary = football.summary.map(|s| {
         if s.chars().count() > 80 {
             let mut t: String = s.chars().take(80).collect();
@@ -35,12 +35,10 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     let status = football.status;
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
     let badge = status_badge(status);
-    let badge_or_label = if !badge.is_empty() {
-        badge.to_string()
-    } else if is_ai {
-        t_display!(i18n, analysis_ai).to_string()
-    } else {
-        String::new()
+    let badge_or_label = match (badge.is_empty(), is_ai) {
+        (false, _) => badge.to_string(),
+        (true, true) => t_display!(i18n, analysis_ai).to_string(),
+        (true, false) => String::new(),
     };
 
     // 类别
@@ -55,11 +53,10 @@ pub fn ArticleCard(football: Football) -> impl IntoView {
     });
 
     // 用户文章：获取作者 user_id
-    let user_id = if football.ana_type == 0 {
-        football.analyses.first().and_then(|a| a.user_id.clone())
-    } else {
-        None
-    };
+    let user_id = (football.ana_type == 0)
+        .then(|| football.analyses.first())
+        .flatten()
+        .and_then(|a| a.user_id.clone());
 
     let author_name = Resource::new(
         move || user_id.clone(),

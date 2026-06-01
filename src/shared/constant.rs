@@ -1,6 +1,5 @@
 // ── CSS class constants (shared) ────────────────────────────────────────────
 pub const NO_UNDERLINE: &str = "no-underline";
-pub const HOVER_NO_UNDERLINE: &str = "hover:no-underline";
 pub const HOVER_UNDERLINE: &str = "hover:underline";
 pub const BADGE_BLUE_NO_UL: &str = "badge-blue no-underline";
 pub const BADGE_GRAY: &str = "badge-gray";
@@ -31,12 +30,6 @@ pub const SECTION_H2: &str = "text-base font-semibold text-gray-700 dark:text-gr
 pub const FLEX_WRAP_GAP: &str = "flex flex-wrap gap-2";
 pub const CAT_BTN: &str = "text-sm text-gray-600 dark:text-gray-200 px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors";
 pub const CAT_BTN_MORE: &str = "text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-600 rounded bg-transparent px-2 py-0.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
-pub const CARD_TITLE: &str = "font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight truncate";
-pub const ALERT_SUCCESS: &str = "text-green-500 text-sm mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-2";
-pub const ALERT_ERROR: &str = "text-red-500 text-sm mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2";
-
-// ── Nav link patterns ─────────────────────────────────────────────────────
-pub const NAV_LINK: &str = "text-gray-600 dark:text-gray-300 hover:text-blue-600 no-underline";
 
 // ── Config (SSR only) ──────────────────────────────────────────────────────
 #[cfg(feature = "ssr")]

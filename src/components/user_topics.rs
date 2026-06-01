@@ -22,7 +22,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                                 {keywords.into_iter().map(|t| {
                                     let path = ["/footballs?topic=", &crate::shared::common::record_key(&t.id)].join("");
                                     view! {
-                                        <LocaleA href=path class=BADGE_BLUE_NO_UL>{t.name.clone()}</LocaleA>
+                                        <LocaleA href=path class=BADGE_BLUE_NO_UL>{t.name}</LocaleA>
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>
@@ -39,7 +39,7 @@ pub fn UserTopics(keywords: Vec<Topic>, topics: Vec<Topic>) -> impl IntoView {
                                 {topics.into_iter().map(|t| {
                                     let path = ["/footballs?topic=", &crate::shared::common::record_key(&t.id)].join("");
                                     view! {
-                                        <LocaleA href=path class=BADGE_GRAY_NO_UL>{t.name.clone()}</LocaleA>
+                                        <LocaleA href=path class=BADGE_GRAY_NO_UL>{t.name}</LocaleA>
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>

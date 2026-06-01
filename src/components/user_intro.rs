@@ -2,7 +2,7 @@ use crate::i18n::{t, use_i18n};
 use leptos::either::Either;
 use leptos::prelude::*;
 
-const PROSE_CLASS: &str = "prose prose-sm dark:prose-invert max-w-none";
+const PROSE_CLASS: &str = "prose prose-sm max-w-none";
 
 /// 用户简介区块 — 管理页和公开页共用
 #[component]

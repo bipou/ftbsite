@@ -27,7 +27,7 @@ extern "C" {
     fn toggle_theme();
 }
 
-use crate::shared::constant::{BG_CARD, FLEX_BETWEEN, HOVER_NO_UNDERLINE, NO_UNDERLINE};
+use crate::shared::constant::{BG_CARD, FLEX_BETWEEN, NO_UNDERLINE};
 use leptos_i18n::Locale as LocaleTrait;
 use leptos_router::hooks::{use_location, use_navigate};
 
@@ -36,7 +36,7 @@ fn Logo() -> impl IntoView {
     let i18n = use_i18n();
     view! {
         <span class="inline-flex items-center">
-            <LocaleA href="/" class=["font-bold text-blue-600 dark:text-blue-400 text-2xl site-title", NO_UNDERLINE, HOVER_NO_UNDERLINE].join(" ")>
+            <LocaleA href="/" class=["font-bold text-blue-600 dark:text-blue-400 text-2xl site-title", NO_UNDERLINE].join(" ")>
                 {move || t!(i18n, site_name)}
             </LocaleA>
             <a href="/doc" class="inline-flex items-center justify-center text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 h-6 px-2 ml-2 no-underline" target="_blank" rel="noopener noreferrer">
@@ -181,11 +181,7 @@ fn HamburgerMenu() -> impl IntoView {
                 {move || if open.get() { "✕" } else { "☰" }}
             </button>
 
-            {move || if open.get() {
-                Some(view! { <div class="fixed inset-0 z-40" on:click=move |_| set_open.set(false)></div> })
-            } else {
-                None
-            }}
+            {move || open.get().then(|| view! { <div class="fixed inset-0 z-40" on:click=move |_| set_open.set(false)></div> })}
 
             <div
                 class=move || ["hm-menu border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg absolute top-full mt-2 z-50 whitespace-nowrap", BG_CARD, if open.get() { "" } else { "hidden" }].join(" ")

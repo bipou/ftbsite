@@ -632,10 +632,9 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                         let url = ["/", &loc_str.get(), "/admin/footballs/", &crate::shared::common::record_key(&id)].join("");
                                         let ht = home_team.unwrap_or_default();
                                         let at = away_team.unwrap_or_default();
-                                        let title = if ana_type == 0 {
-                                            article_title.unwrap_or_else(|| [&ht, " vs ", &at].join(""))
-                                        } else {
-                                            [&ht, " vs ", &at].join("")
+                                        let title = match ana_type {
+                                            0 => article_title.unwrap_or_else(|| [&ht, " vs ", &at].join("")),
+                                            _ => [&ht, " vs ", &at].join(""),
                                         };
                                         let s = season.unwrap_or_default();
                                         view! {

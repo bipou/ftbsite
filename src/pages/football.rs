@@ -28,6 +28,7 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let loc_str = use_locale();
+    let title = f.title();
     let category = f.category;
     let cat_kid = category
         .as_ref()
@@ -43,15 +44,13 @@ fn FootballHeader(f: Football) -> impl IntoView {
     let kick_off_mdhm = f.kick_off_at_mdhm;
     let kick_off_mdhm8 = f.kick_off_at_mdhm8;
     let title_text = {
-        let ht = home_team.clone().unwrap_or_default();
-        let at = away_team.clone().unwrap_or_default();
+        let base = title.clone();
         let st = article_title.clone();
+        let has_teams = home_team.is_some() && away_team.is_some();
         move || {
-            let base = [&ht, " vs ", &at].join("");
-            let with_sub = if let Some(ref t) = st {
-                [&base, " - ", t].join("")
-            } else {
-                base
+            let with_sub = match (has_teams, &st) {
+                (true, Some(t)) => [&base, " - ", t].join(""),
+                _ => base.clone(),
             };
             [&with_sub, " – ", &site_title!(i18n)].join("")
         }
@@ -420,7 +419,7 @@ fn StatRowInt(#[prop(into)] label: Signal<String>, hv: u16, av: u16) -> impl Int
 #[component]
 fn ArticleHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
-    let title_text = f.article_title.unwrap_or_default();
+    let title_text = f.title();
     let page_title_text = title_text.clone();
     let loc_str = use_locale();
     let category = f.category;
@@ -538,7 +537,7 @@ fn AnalysisSection(
     Either::Right(view! {
         <div class=CARD_SECTION>
             <h2 class=SECTION_H2>{move || t!(i18n, football_analysis)}</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none">
+            <div class="prose prose-sm max-w-none">
                 {analyses.into_iter().map(|a| view! {
                     <AnalysisCard analysis=a ana_type=ana_type created_at=created_at.clone() updated_at=updated_at.clone()/>
                 }).collect::<Vec<_>>()}

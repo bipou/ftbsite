@@ -65,17 +65,11 @@ pub fn FootballsPage() -> impl IntoView {
     // /footballs?topic=xxx  /footballs?category=xxx  /footballs?picks  /footballs?hot
     let filter = move || {
         let q = query.read();
-        if q.get("topic").is_some() {
-            "topic".to_string()
-        } else if q.get("category").is_some() {
-            "category".to_string()
-        } else if q.get("picks").is_some() {
-            "picks".to_string()
-        } else if q.get("hot").is_some() {
-            "hot".to_string()
-        } else {
-            String::new()
-        }
+        ["topic", "category", "picks", "hot"]
+            .iter()
+            .find(|&&k| q.get(k).is_some())
+            .map(|&k| k.to_string())
+            .unwrap_or_default()
     };
     let filter_id = move || {
         let q = query.read();

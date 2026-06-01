@@ -39,9 +39,8 @@ pub fn CategorySelect(
                         >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
                     })
                 } else {
-                    let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                     Either::Right(view! {
-                        <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
+                        <a href=move || ["/", &loc_str.get(), "/footballs?category=", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
                     })
                 }
             }).collect::<Vec<_>>()}
@@ -61,9 +60,8 @@ pub fn CategorySelect(
                                 >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
                             })
                         } else {
-                            let url = ["/", &loc_str.get(), "/footballs?category=", &kid].join("");
                             Either::Right(view! {
-                                <a href=url class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
+                                <a href=move || ["/", &loc_str.get(), "/footballs?category=", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
                             })
                         }
                     }).collect::<Vec<_>>()}
