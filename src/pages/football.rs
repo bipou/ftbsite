@@ -45,7 +45,16 @@ fn FootballHeader(f: Football) -> impl IntoView {
     let title_text = {
         let ht = home_team.clone().unwrap_or_default();
         let at = away_team.clone().unwrap_or_default();
-        move || [&ht, " vs ", &at, " – ", &site_title!(i18n)].join("")
+        let st = article_title.clone();
+        move || {
+            let base = [&ht, " vs ", &at].join("");
+            let with_sub = if let Some(ref t) = st {
+                [&base, " - ", t].join("")
+            } else {
+                base
+            };
+            [&with_sub, " – ", &site_title!(i18n)].join("")
+        }
     };
     view! {
         <Title text=title_text/>
@@ -412,6 +421,7 @@ fn StatRowInt(#[prop(into)] label: Signal<String>, hv: u16, av: u16) -> impl Int
 fn ArticleHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let title_text = f.article_title.unwrap_or_default();
+    let page_title_text = title_text.clone();
     let loc_str = use_locale();
     let category = f.category;
     let season = f.season;
@@ -423,6 +433,7 @@ fn ArticleHeader(f: Football) -> impl IntoView {
         category.as_ref().and_then(|c| c.name.get(&loc).cloned())
     });
     view! {
+        <Title text=move || [&page_title_text, " – ", &site_title!(i18n)].join("")/>
         <div class=CARD_SECTION>
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                 {title_text}
