@@ -34,7 +34,9 @@ pub fn SlidePanel(
             <button class=SLIDE_CLOSE on:click=move |_| close.run(())>"✕"</button>
             <div class=SLIDE_BODY>
                 {content}
-                {google_ads}
+                <div class="flex justify-center">
+                    {google_ads}
+                </div>
                 <div class="text-center mt-6">
                     <button class="slide-close-bottom" on:click=move |_| on_close.run(())>
                         {move || t!(i18n, close)}
