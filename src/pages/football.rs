@@ -27,7 +27,7 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
 fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let loc_str = use_locale();
-    let title = f.title();
+    let base = f.title();
     let category = f.category;
     let cat_kid = category
         .as_ref()
@@ -36,23 +36,19 @@ fn FootballHeader(f: Football) -> impl IntoView {
         let loc = i18n.get_locale().to_string();
         category.as_ref().and_then(|c| c.name.get(&loc).cloned())
     });
-    let article_title = f.article_title;
     let home_team = f.home_team;
     let away_team = f.away_team;
     let season = f.season;
+    let article_title = f.article_title;
     let kick_off_mdhm = f.kick_off_at_mdhm;
     let kick_off_mdhm8 = f.kick_off_at_mdhm8;
-    let title_text = {
-        let base = title;
-        let st = article_title.clone();
-        let has_teams = home_team.is_some() && away_team.is_some();
-        move || {
-            let with_sub = match (has_teams, &st) {
-                (true, Some(t)) => [&base, " - ", t].join(""),
-                _ => base.clone(),
-            };
-            [&with_sub, " – ", &site_title!(i18n)].join("")
-        }
+    let sub = article_title.clone();
+    let title_text = move || {
+        let s = match &sub {
+            Some(t) => [&base, " - ", t].join(""),
+            None => base.clone(),
+        };
+        [&s, " – ", &site_title!(i18n)].join("")
     };
     view! {
         <Title text=title_text/>
@@ -336,16 +332,17 @@ fn StatsSection(stats: Option<FootballStats>) -> impl IntoView {
         Some(s) => s,
         None => return Either::Left(()),
     };
-    let pos_label = t_display!(i18n, football_possession).to_string();
-    let shots_label = t_display!(i18n, football_stat_shots).to_string();
-    let sots_label = t_display!(i18n, football_stat_shots_on).to_string();
-    let corn_label = t_display!(i18n, football_stat_corners).to_string();
-    let foul_label = t_display!(i18n, football_stat_fouls).to_string();
-    let offs_label = t_display!(i18n, football_stat_offsides).to_string();
-    let yc_label = t_display!(i18n, football_stat_yellow_cards).to_string();
-    let rc_label = t_display!(i18n, football_stat_red_cards).to_string();
-    let pass_label = t_display!(i18n, football_stat_passes).to_string();
-    let pacc_label = t_display!(i18n, football_stat_pass_accuracy).to_string();
+    let pos_label = Signal::derive(move || t_display!(i18n, football_possession).to_string());
+    let shots_label = Signal::derive(move || t_display!(i18n, football_stat_shots).to_string());
+    let sots_label = Signal::derive(move || t_display!(i18n, football_stat_shots_on).to_string());
+    let corn_label = Signal::derive(move || t_display!(i18n, football_stat_corners).to_string());
+    let foul_label = Signal::derive(move || t_display!(i18n, football_stat_fouls).to_string());
+    let offs_label = Signal::derive(move || t_display!(i18n, football_stat_offsides).to_string());
+    let yc_label = Signal::derive(move || t_display!(i18n, football_stat_yellow_cards).to_string());
+    let rc_label = Signal::derive(move || t_display!(i18n, football_stat_red_cards).to_string());
+    let pass_label = Signal::derive(move || t_display!(i18n, football_stat_passes).to_string());
+    let pacc_label =
+        Signal::derive(move || t_display!(i18n, football_stat_pass_accuracy).to_string());
     Either::Right(view! {
         <div class=CARD_SECTION>
             <h2 class=SECTION_H2>{move || t!(i18n, football_stats)}</h2>
@@ -492,7 +489,7 @@ fn AnalysisCard(
     view! {
         <div class="mb-6">
             <div class=[TEXT_XS_MUTED, "mb-2"].join(" ")>
-                <Suspense fallback=|| ()>
+                <Suspense fallback=|| "">
                 {move || {
                     if is_ai {
                                             t_display!(i18n, analysis_ai).to_string()

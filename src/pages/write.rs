@@ -198,12 +198,12 @@ pub fn WriteArticlePage() -> impl IntoView {
 
     let pending = post_action.pending();
 
-    let title_ph = t_display!(i18n, article_title).to_string();
+    let title_ph = untrack(|| t_display!(i18n, article_title).to_string());
 
     view! {
         <Title text=move || page_title!(i18n, write_article)/>
         <main class=WIDE>
-            <h1 class=H1>{move || t!(i18n, write_article)}</h1>
+                    <h1 class=H1>{move || t!(i18n, write_article)}</h1>
 
             <div style:opacity=move || if success.get() { "0.35" } else { "1" }
                 style:filter=move || if success.get() { "blur(4px)" } else { "none" }

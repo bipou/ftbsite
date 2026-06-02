@@ -194,7 +194,7 @@ input,button,textarea,select{font:inherit}
 .slide-overlay,.slide-panel{display:none}.slide-overlay.open,.slide-panel.open{display:flex}
 .slide-overlay.open{position:fixed;top:52px;right:0;bottom:0;left:0;z-index:49;background:rgba(0,0,0,.45);animation:fadeIn .2s ease}
 @include dark{.slide-overlay.open{background:rgba(0,0,0,.65)}}
-.slide-panel.open{position:fixed;left:5%;right:5%;bottom:auto;top:60px;z-index:51;max-height:calc(100vh - 60px);background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.15);animation:slideIn .2s ease;flex-direction:column;overflow:hidden}
+.slide-panel.open{position:fixed;left:0;right:0;top:60px;z-index:51;max-height:calc(100vh - 60px);max-width:72rem;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.15);animation:slideIn .2s ease;flex-direction:column;overflow:hidden}
 @include dark{.slide-panel.open{background:#1f2937}}
 .slide-close{position:sticky;top:0;margin:8px 12px 0 auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid #d1d5db;background:transparent;font-size:20px;color:#6b7280;cursor:pointer;z-index:5;flex-shrink:0}.slide-close:hover{background:#f3f4f6;color:#374151;border-color:#9ca3af}
 @include dark{.slide-close{border-color:#4b5563;color:#9ca3af}.slide-close:hover{background:#374151;color:#e5e7eb;border-color:#6b7280}}
@@ -204,7 +204,7 @@ input,button,textarea,select{font:inherit}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideInDesktop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-@media(min-width:768px){.slide-panel.open{left:5%;right:5%;transform:none;border-radius:8px;animation:slideInDesktop .2s ease}.slide-sized-sm{width:calc(72rem*0.4);max-width:40vw}.slide-sized-md{width:calc(72rem*0.7);max-width:70vw}.slide-sized-lg{width:90%;max-width:90%}.slide-body{padding:0 32px 24px}}
+@media(min-width:768px){.slide-panel.open{left:0;right:0;border-radius:8px;animation:slideInDesktop .2s ease}.slide-sized-sm{width:calc(72rem*0.4);max-width:40vw}.slide-sized-md{width:80%;max-width:80vw}.slide-sized-lg{width:72rem;max-width:90%}.slide-body{padding:0 32px 24px}}
 
 // ── Cards ──────────────────────────────────────────────────────────────────────
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}

@@ -29,7 +29,7 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     let badge = status_badge(status);
     let badge_or_label = match (badge.is_empty(), is_ai) {
         (false, _) => badge.to_string(),
-        (true, true) => t_display!(i18n, analysis_ai).to_string(),
+        (true, true) => untrack(|| t_display!(i18n, analysis_ai).to_string()),
         (true, false) => String::new(),
     };
 
@@ -99,8 +99,8 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
 
             <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
                 <span class=["text-sm", TEXT_XS_MUTED].join(" ")>
-                    <Suspense fallback=|| ()>
-                        {move || author_name.get().flatten().unwrap_or_default()}
+                    <Suspense fallback=|| "">
+                                            {move || author_name.get().flatten().unwrap_or_default()}
                     </Suspense>
                 </span>
                 <span class="text-sm text-gray-400">

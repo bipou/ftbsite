@@ -331,7 +331,7 @@ pub fn RegisterForm() -> impl IntoView {
                         <label class="form-label">
                             {move || t!(i18n, register_intro)}
                         </label>
-                        <MarkdownEditor name="introduction" rows=4 value=intro required=true/>
+                        <MarkdownEditor name="introduction" rows=8 value=intro required=true/>
                         {move || intro_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入简介</p> })}
                     </div>
                     </div>

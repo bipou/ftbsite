@@ -1,4 +1,5 @@
-use crate::i18n::{t, t_display, use_i18n};
+use crate::i18n::{t, use_i18n};
+use crate::page_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -97,65 +98,51 @@ pub fn FootballsPage() -> impl IntoView {
         |(f, fi, fid)| async move { get_footballs_page(f, fi, fid).await },
     );
 
-    // h1 和页面标题的筛选后缀
-    let heading_suffix = Memo::new(move |_| match filter_sig.get().0.as_str() {
-        "category" => {
-            let fid = filter_sig.get().1;
-            if fid.is_empty() {
-                String::new()
-            } else {
-                cats_res
-                    .get()
-                    .and_then(|r| r.ok())
-                    .and_then(|cats| {
-                        cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
-                            let name = c
-                                .name
-                                .get(&i18n.get_locale().to_string())
-                                .cloned()
-                                .unwrap_or_default();
-                            [" | ", &name].join("")
+    // h1 标题后缀和页面标题
+    let heading_suffix = RwSignal::new(String::new());
+    Effect::new(move |_| {
+        heading_suffix.set(match filter_sig.get().0.as_str() {
+            "category" => {
+                let fid = filter_sig.get().1;
+                if fid.is_empty() {
+                    String::new()
+                } else {
+                    cats_res
+                        .get()
+                        .and_then(|r| r.ok())
+                        .and_then(|cats| {
+                            cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
+                                let name = c
+                                    .name
+                                    .get(&i18n.get_locale().to_string())
+                                    .cloned()
+                                    .unwrap_or_default();
+                                [" | ", &name].join("")
+                            })
                         })
-                    })
-                    .unwrap_or_default()
+                        .unwrap_or_default()
+                }
             }
-        }
-        "topic" => String::new(),
-        _ => String::new(),
-    });
-
-    // 页面标题：跟随筛选变化，静态部分预计算避免 Memo 访问已释放信号
-    let list_title = t_display!(i18n, football_list).to_string();
-    let site_name_title = t_display!(i18n, site_name).to_string();
-    let site_slogan_title = t_display!(i18n, site_slogan).to_string();
-    let title_text = Memo::new(move |_| {
-        let suffix = heading_suffix.get();
-        [
-            &list_title,
-            &suffix,
-            " – ",
-            &site_name_title,
-            " | ",
-            &site_slogan_title,
-        ]
-        .join("")
+            "topic" => String::new(),
+            _ => String::new(),
+        });
     });
 
     view! {
-        <Title text=title_text/>
-        <main class=WIDE>
+        <Title text=move || page_title!(i18n, football_list)/>
+                <main class=WIDE>
             <p class={[TEXT_WARN, "text-center", "mb-2"].join(" ")}>
                 {move || t!(i18n, site_warn)}
             </p>
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     {move || t!(i18n, football_list)}
-                    <Suspense fallback=|| ()>
-                        {move || heading_suffix.get()}
+                    <Suspense fallback=|| "">
+                                            {move || heading_suffix.get()}
                     </Suspense>
                 </h1>
                 <a
-                    href=move || ["/", &i18n.get_locale().to_string(), "/footballs/share-analysis"].join("")
+                    href=move || ["/", &i18n.get_locale().to_string(), "/footballs/analysis/new"].join("")
                     class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-3 text-lg transition-colors no-underline"
                 >
                     {move || t!(i18n, write_article)}
@@ -181,7 +168,7 @@ pub fn FootballsPage() -> impl IntoView {
                             {move || t!(i18n, status_hot)}
                         </a>
                         <Suspense fallback=|| ()>
-                            {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
+                                                    {move || cats_res.get().map(|r| r.ok()).flatten().map(|cats| {
                                 view! { <CategorySelect all=cats expandable=true/> }
                             })}
                         </Suspense>

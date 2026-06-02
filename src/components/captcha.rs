@@ -101,11 +101,11 @@ pub fn CaptchaCore() -> impl IntoView {
         state.refresh_trigger.get()
     });
 
-    let cap_ph = t_display!(i18n, captcha_placeholder).to_string();
+    let cap_ph = untrack(|| t_display!(i18n, captcha_placeholder).to_string());
 
     view! {
         <Suspense fallback=|| ()>
-        <div class="space-y-3 border-t pt-4 mt-4">
+                <div class="space-y-3 border-t pt-4 mt-4">
             <label class="form-label">{move || t!(i18n, captcha_label)}</label>
             <div class="flex items-center gap-2">
                 <div class="rounded overflow-hidden cursor-pointer shrink-0"

@@ -293,7 +293,7 @@ fn NavRight() -> impl IntoView {
 #[component]
 pub fn Nav() -> impl IntoView {
     view! {
-        <nav class={[BG_CARD, "border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm"].join(" ")}>
+        <nav class={[BG_CARD, "border-b border-gray-200 dark:border-gray-700 sticky top-0 shadow-sm"].join(" ")} style="z-index:52">
             <div class="max-w-6xl mx-auto px-4">
                 <div class={[FLEX_BETWEEN, "h-12"].join(" ")}>
                     <NavLeft/>

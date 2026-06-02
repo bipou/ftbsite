@@ -14,7 +14,7 @@ pub fn MarkdownEditor(
     #[prop(default = false)] required: bool,
 ) -> impl IntoView {
     let i18n = use_i18n();
-    let (markdown, set_markdown) = signal(value.get());
+    let (markdown, set_markdown) = signal(value.get_untracked());
     let (show_preview, set_show_preview) = signal(false);
     let textarea_ref = NodeRef::<Textarea>::new();
     let file_input_ref = NodeRef::<Input>::new();
@@ -82,7 +82,7 @@ pub fn MarkdownEditor(
         if let Some(Ok(url)) = upload_action.value().get() {
             let cursor = cursor_pos.get_untracked();
             let i18n = use_i18n();
-            let alt = t_display!(i18n, image).to_string();
+            let alt = untrack(|| t_display!(i18n, image).to_string());
             let md = ["![", &alt, "](", &url, ")"].join("");
             set_markdown.update(|v| {
                 if cursor < v.len() {

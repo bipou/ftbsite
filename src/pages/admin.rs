@@ -152,9 +152,9 @@ fn UserStatusButtons(
         move |_| {
             status.set(s);
             let label = match s {
-                1 => t_display!(i18n, status_active).to_string(),
-                0 => t_display!(i18n, status_inactive).to_string(),
-                _ => t_display!(i18n, status_banned).to_string(),
+                1 => untrack(|| t_display!(i18n, status_active).to_string()),
+                0 => untrack(|| t_display!(i18n, status_inactive).to_string()),
+                _ => untrack(|| t_display!(i18n, status_banned).to_string()),
             };
             feedback.set(Some(
                 [
@@ -224,13 +224,13 @@ fn FootballStatusButtons(
         move |_| {
             status.set(s);
             let label = match s {
-                4 => t_display!(i18n, status_both).to_string(),
-                3 => t_display!(i18n, status_picks).to_string(),
-                2 => t_display!(i18n, status_hot).to_string(),
-                1 => t_display!(i18n, status_publish).to_string(),
-                0 => t_display!(i18n, status_submit).to_string(),
-                -1 => t_display!(i18n, status_draft).to_string(),
-                _ => t_display!(i18n, status_deleted).to_string(),
+                4 => untrack(|| t_display!(i18n, status_both).to_string()),
+                3 => untrack(|| t_display!(i18n, status_picks).to_string()),
+                2 => untrack(|| t_display!(i18n, status_hot).to_string()),
+                1 => untrack(|| t_display!(i18n, status_publish).to_string()),
+                0 => untrack(|| t_display!(i18n, status_submit).to_string()),
+                -1 => untrack(|| t_display!(i18n, status_draft).to_string()),
+                _ => untrack(|| t_display!(i18n, status_deleted).to_string()),
             };
             feedback.set(Some(
                 [

@@ -132,10 +132,10 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/")                            view=HomePage/>
                         <Route path=path!("/:locale/")                    view=HomePage/>
                         <Route path=path!("/:locale/footballs")           view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/analysis/new") view=WriteArticlePage/>
                         <Route path=path!("/:locale/footballs/:id")       view=FootballsPage/>
                         <Route path=path!("/:locale/footballs/category/:cid") view=FootballsPage/>
                         <Route path=path!("/:locale/footballs/topic/:tid") view=FootballsPage/>
-                        <Route path=path!("/:locale/footballs/share-analysis") view=WriteArticlePage/>
                         <Route path=path!("/:locale/users")               view=UsersPage/>
                         <Route path=path!("/:locale/users/:id")     view=UsersPage/>
                         <Route path=path!("/:locale/users/:id/activate")  view=UserActivatePage/>
@@ -164,7 +164,7 @@ pub fn App() -> impl IntoView {
                         _ => SLIDE_SIZED_SM.to_string(),
                     });
                     view! {
-                        <SlidePanel open=open on_close=on_close panel_class=size>
+                        <SlidePanel open=open on_close=on_close panel_class=size show_footer=false>
                             {move || {
                                 let mode = auth_panel.as_ref().and_then(|ap| ap.get());
                                 match mode {
