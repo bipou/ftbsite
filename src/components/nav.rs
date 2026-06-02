@@ -1,9 +1,11 @@
-use crate::app::use_auth;
+use crate::app::{AuthMode, AuthPanelSignal, use_auth};
 use crate::i18n::t;
 use crate::i18n::{Locale, td_string, use_i18n};
+use crate::pages::auth::SignOut;
 use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
+use leptos::server::ServerAction;
 
 #[cfg(feature = "hydrate")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -73,8 +75,7 @@ fn NavLeft() -> impl IntoView {
 fn LangDropdown() -> impl IntoView {
     let i18n = use_i18n();
     let (open, set_open) = signal(false);
-    let navigate = use_navigate();
-    let nav = navigate.clone();
+    let nav = use_navigate();
     let loc_str = use_locale();
     let location = use_location();
     view! {
@@ -99,7 +100,6 @@ fn LangDropdown() -> impl IntoView {
                         <button
                             on:click={
                                 let navigate = nav.clone();
-                                let new_loc = new_loc.clone();
                                 move |_| {
                                     let old = loc_str.get_untracked();
                                     let path = location.pathname.get_untracked();
@@ -139,26 +139,57 @@ fn ThemeToggle() -> impl IntoView {
 #[component]
 fn AuthSection() -> impl IntoView {
     let i18n = use_i18n();
+    let auth_panel = use_context::<AuthPanelSignal>();
+    let sign_out_action = ServerAction::<SignOut>::new();
+    let auth_res = use_context::<crate::app::AuthResource>();
+    let navigate = leptos_router::hooks::use_navigate();
+
+    // 签出成功后刷新 auth 并跳首页
+    Effect::new(move |_| {
+        if sign_out_action.value().get().is_some() {
+            if let Some(ref res) = auth_res {
+                res.refetch();
+            }
+            let loc = i18n.get_locale().to_string();
+            navigate(&["/", &loc, "/"].join(""), Default::default());
+        }
+    });
+
     move || {
         let auth = use_auth();
-        if let Some(user) = auth {
-            Either::Left(view! {
+        match auth {
+            Some(user) => Either::Left(view! {
                 <span class="text-gray-700 dark:text-gray-200 font-medium hidden sm:inline text-base">
                     {user.username}
                 </span>
-                <LocaleA href="/sign-out" class=["text-sm text-gray-500 hover:text-red-500", NO_UNDERLINE].join(" ")>
+                <button class="text-sm text-gray-500 hover:text-red-500 border-0 bg-transparent cursor-pointer" on:click=move |_| {
+                    sign_out_action.dispatch(SignOut {});
+                }>
                     {move || t!(i18n, sign_out)}
-                </LocaleA>
-            })
-        } else {
-            Either::Right(view! {
-                <LocaleA href="/sign-in" class="nav-links text-sm">
+                </button>
+            }),
+            None => Either::Right(view! {
+                <button class="nav-links text-sm border-0 bg-transparent cursor-pointer" on:click={
+                    let ap = auth_panel.clone();
+                    move |_| {
+                        if let Some(ref ap) = ap {
+                            ap.set(Some(AuthMode::SignIn));
+                        }
+                    }
+                }>
                     {move || t!(i18n, sign_in)}
-                </LocaleA>
-                <LocaleA href="/register" class="nav-links text-sm">
+                </button>
+                <button class="nav-links text-sm border-0 bg-transparent cursor-pointer" on:click={
+                    let ap = auth_panel.clone();
+                    move |_| {
+                        if let Some(ref ap) = ap {
+                            ap.set(Some(AuthMode::Register));
+                        }
+                    }
+                }>
                     {move || t!(i18n, register)}
-                </LocaleA>
-            })
+                </button>
+            }),
         }
     }
 }
@@ -187,38 +218,56 @@ fn HamburgerMenu() -> impl IntoView {
                 class=move || ["hm-menu border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg absolute top-full mt-2 z-50 whitespace-nowrap", BG_CARD, if open.get() { "" } else { "hidden" }].join(" ")
                 style="right:1rem"
             >
-                <div class="px-4 py-3 flex flex-col gap-2">
-                    <div class="nav-links flex flex-col gap-2">
-                        <LocaleA href="/footballs" on_click=close>
-                            {move || t!(i18n, nav_football)}
-                        </LocaleA>
-                        <LocaleA href="/users" on_click=close>
-                            {move || t!(i18n, nav_user)}
-                        </LocaleA>
-                    </div>
+                <div class="nav-links px-4 py-3 flex flex-col gap-2 items-center">
+                    <LocaleA href="/footballs" on_click=close>
+                        {move || t!(i18n, nav_football)}
+                    </LocaleA>
+                    <LocaleA href="/users" on_click=close>
+                        {move || t!(i18n, nav_user)}
+                    </LocaleA>
                 </div>
                 <hr/>
-                <div class="px-4 py-3 flex flex-col gap-2">
+                <div class="nav-links px-4 py-3 flex flex-col gap-2 items-center">
                     {move || {
                         let auth = use_auth();
-                        if let Some(user) = auth {
-                            Either::Left(view! {
+                        let auth_panel = use_context::<AuthPanelSignal>();
+                        let sign_out_action = ServerAction::<SignOut>::new();
+                        match auth {
+                            Some(user) => Either::Left(view! {
                                 <span class="text-gray-700 dark:text-gray-200 font-medium text-base">
                                     {user.username}
                                 </span>
-                                <LocaleA href="/sign-out" on_click=close class="hm-signout text-sm hover:text-red-500">
+                                <button class="hm-signout text-sm border-0 bg-transparent cursor-pointer" on:click=move |_| {
+                                    sign_out_action.dispatch(SignOut {});
+                                    set_open.set(false);
+                                }>
                                     {move || t!(i18n, sign_out)}
-                                </LocaleA>
-                            })
-                        } else {
-                            Either::Right(view! { <div class="nav-links text-sm flex flex-col gap-2">
-                                <LocaleA href="/sign-in" on_click=close>
+                                </button>
+                            }),
+                            None => Either::Right(view! {
+                                <button class="nav-links text-sm border-0 bg-transparent cursor-pointer" on:click={
+                                    let ap = auth_panel.clone();
+                                    move |_| {
+                                        if let Some(ref ap) = ap {
+                                            ap.set(Some(AuthMode::SignIn));
+                                        }
+                                        set_open.set(false);
+                                    }
+                                }>
                                     {move || t!(i18n, sign_in)}
-                                </LocaleA>
-                                <LocaleA href="/register" on_click=close>
+                                </button>
+                                <button class="nav-links text-sm border-0 bg-transparent cursor-pointer" on:click={
+                                    let ap = auth_panel.clone();
+                                    move |_| {
+                                        if let Some(ref ap) = ap {
+                                            ap.set(Some(AuthMode::Register));
+                                        }
+                                        set_open.set(false);
+                                    }
+                                }>
                                     {move || t!(i18n, register)}
-                                </LocaleA>
-                            </div> })
+                                </button>
+                            }),
                         }
                     }}
                 </div>

@@ -13,6 +13,7 @@
 
   "more": "更多 ...",
   "collapse": "收起",
+  "close": "关闭",
 
   "loading": "加载中...",
   "no_data": "无数据",
@@ -51,7 +52,6 @@
   "football_stat_red_cards": "红牌",
   "football_stat_passes": "传球",
   "football_stat_pass_accuracy": "传球成功率",
-  "football_ai_label": "本文由 AI 生成，仅供参考",
   "analysis_ai": "AI 分析",
   "analysis_ai_label": "AI 生成，仅供参考",
 
@@ -134,7 +134,6 @@
   "pagination_info": "第 {{current}} / {{total}} 页，共 {{count}} 条",
   "pagination_previous": "← 前页",
   "pagination_next": "后页 →",
-  "pagination_aggregate": "共计",
 
   "admin_dashboard": "管理后台",
   "admin_footballs": "足球管理",

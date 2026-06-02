@@ -31,15 +31,18 @@ pub async fn get_analyses_by_football_id(rid: &RecordId) -> Result<Vec<FootballA
     let docs: Vec<AnalysisDoc> = res.take(0).map_err(|e| e.to_string())?;
     Ok(docs
         .into_iter()
-        .map(|d| FootballAnalysis {
-            id: common::rid_str(&d.id),
-            football_id: common::rid_str(&d.football_id),
-            user_id: d.user_id.as_ref().map(common::rid_str),
-            summary: d.summary,
-            content: d.content.clone(),
-            content_html: render_md(&d.content),
-            ai_model: d.ai_model,
-            status: d.status,
+        .map(|d| {
+            let content_html = render_md(&d.content);
+            FootballAnalysis {
+                id: common::rid_str(&d.id),
+                football_id: common::rid_str(&d.football_id),
+                user_id: d.user_id.as_ref().map(common::rid_str),
+                summary: d.summary,
+                content: d.content,
+                content_html,
+                ai_model: d.ai_model,
+                status: d.status,
+            }
         })
         .collect())
 }

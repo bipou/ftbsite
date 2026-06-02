@@ -3,7 +3,7 @@ use serde::Deserialize;
 use surrealdb::types::{Datetime, RecordId, SurrealValue};
 
 use crate::models::{AuthUser, User, UserSummary, UsersResult};
-use crate::server::{auth as auth_mod, db::get_db, topic_db};
+use crate::server::{CountResult, auth as auth_mod, db::get_db, topic_db};
 use crate::shared::common::{record_key, rid_str};
 use crate::shared::constant;
 
@@ -23,11 +23,6 @@ pub struct UserDoc {
     created_at: Datetime,
     updated_at: Datetime,
     status: i8,
-}
-
-#[derive(Debug, Deserialize, SurrealValue)]
-struct CountResult {
-    count: u64,
 }
 
 // ── RegisterData ─────────────────────────────────────────────────────────
@@ -97,20 +92,11 @@ pub async fn get_users(from: i64) -> Result<UsersResult, String> {
     })
 }
 
-/// Look up a single user by username, including keywords, topics, and
-/// rendered introduction HTML.
-pub async fn get_user_by_username(username: &str) -> Result<Option<User>, String> {
-    let mut resp = get_db()
-        .query("SELECT * FROM users WHERE username = $username LIMIT 1")
-        .bind(("username", username.to_owned()))
-        .await
-        .map_err(|e| e.to_string())?;
-    let docs: Vec<UserDoc> = resp.take(0).map_err(|e| e.to_string())?;
-
-    let Some(d) = docs.into_iter().next() else {
+/// Look up a single user by id, including keywords and topics.
+pub async fn get_user_by_id(rid: &RecordId) -> Result<Option<User>, String> {
+    let Some(d) = get_user_doc_by_id(rid).await? else {
         return Ok(None);
     };
-
     let keywords = topic_db::get_keywords_by_user_id(&d.id)
         .await
         .unwrap_or_else(|e| {
@@ -123,7 +109,6 @@ pub async fn get_user_by_username(username: &str) -> Result<Option<User>, String
             leptos::logging::error!("get_topics_by_user_id: {e}");
             vec![]
         });
-
     Ok(Some(User {
         id: rid_str(&d.id),
         username: d.username,
@@ -141,6 +126,28 @@ pub async fn get_user_by_username(username: &str) -> Result<Option<User>, String
 /// Raw user document lookup by id (accepts full RecordId).
 pub async fn get_user_doc_by_id(rid: &RecordId) -> Result<Option<UserDoc>, String> {
     get_db().select(rid).await.map_err(|e| e.to_string())
+}
+
+/// Auth-only: look up user by username (no keywords/topics).
+pub async fn get_user_by_username(username: &str) -> Result<Option<User>, String> {
+    let mut resp = get_db()
+        .query("SELECT * FROM users WHERE username = $username LIMIT 1")
+        .bind(("username", username.to_owned()))
+        .await
+        .map_err(|e| e.to_string())?;
+    let docs: Vec<UserDoc> = resp.take(0).map_err(|e| e.to_string())?;
+    Ok(docs.into_iter().next().map(|d| User {
+        id: rid_str(&d.id),
+        username: d.username,
+        email: d.email,
+        introduction_html: String::new(),
+        introduction: d.introduction,
+        created_at: common::ymd8(&d.created_at),
+        updated_at: common::ymd8(&d.updated_at),
+        status: d.status,
+        keywords: vec![],
+        topics: vec![],
+    }))
 }
 
 /// Authenticate by email or username + password.

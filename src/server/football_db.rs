@@ -1,21 +1,12 @@
 use crate::shared::common::{self, rid_str};
 use crate::shared::constant;
-use chrono::FixedOffset;
 use serde::Deserialize;
 use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 
 #[cfg(feature = "oth")]
 use crate::models::{Calc, Line};
 use crate::models::{Football, FootballEvent, FootballStats, FootballsResult, TeamLineup};
-use crate::server::{analysis_db, db::get_db};
-
-fn format_date_utc(dt: &Sdt) -> String {
-    dt.format("%m-%d %H:%M").to_string()
-}
-fn format_date_utc8(dt: &Sdt) -> String {
-    let tz8 = FixedOffset::east_opt(8 * 3600).unwrap();
-    dt.with_timezone(&tz8).format("%m-%d %H:%M").to_string()
-}
+use crate::server::{CountResult, analysis_db, db::get_db};
 
 #[derive(Debug, Deserialize, SurrealValue)]
 struct FootballDoc {
@@ -152,11 +143,6 @@ struct CalcDoc {
     gd: String,
     created_at: Sdt,
 }
-#[derive(Debug, Deserialize, SurrealValue)]
-struct CountResult {
-    count: u64,
-}
-
 #[cfg(feature = "oth")]
 fn first_last<T: Clone>(v: &[T]) -> Vec<T> {
     match v.len() {
@@ -229,8 +215,14 @@ fn doc_to_football(doc: FootballDoc, analyses: Vec<crate::models::FootballAnalys
         season: doc.season,
         home_team: doc.home_team,
         away_team: doc.away_team,
-        kick_off_at_mdhm: doc.kick_off_at.as_ref().map(|k| format_date_utc(k)),
-        kick_off_at_mdhm8: doc.kick_off_at.as_ref().map(|k| format_date_utc8(k)),
+        kick_off_at_mdhm: doc
+            .kick_off_at
+            .as_ref()
+            .map(|k| k.format("%m-%d %H:%M").to_string()),
+        kick_off_at_mdhm8: doc.kick_off_at.as_ref().map(|k| {
+            let tz8 = chrono::FixedOffset::east_opt(8 * 3600).unwrap();
+            k.with_timezone(&tz8).format("%m-%d %H:%M").to_string()
+        }),
         created_at: common::ymdhmsz8(&doc.created_at),
         updated_at: common::ymdhmsz8(&doc.updated_at),
         hits: doc.hits.unwrap_or(0).max(0) as u64,

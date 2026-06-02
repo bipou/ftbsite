@@ -1,7 +1,9 @@
 use crate::i18n::t;
-use crate::shared::constant::TEXT_SUBTLE;
+use crate::shared::common::Either3;
+use crate::shared::constant::{SLIDE_SIZED_MD, SLIDE_SIZED_SM, TEXT_SUBTLE};
 use crate::shared::locale::{LocaleA, is_valid_locale};
 use crate::site_title;
+use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::{HashedStylesheet, MetaTags, Title, provide_meta_context};
 use leptos_router::{
@@ -10,20 +12,28 @@ use leptos_router::{
     path,
 };
 
-use crate::components::{Footer, Nav};
+use crate::components::{Footer, Nav, SlidePanel};
 use crate::i18n::{I18nContextProvider, Locale, use_i18n};
 use crate::models::AuthUser;
 use crate::pages::{
     admin::{
         AdminFootballDetailPage, AdminFootballsPage, AdminPage, AdminUserDetailPage, AdminUsersPage,
     },
-    auth::{RegisterPage, SignInPage, SignOutPage, UserActivatePage},
-    football::FootballDetailPage,
+    auth::{RegisterForm, SignInForm, UserActivatePage},
     footballs::FootballsPage,
     home::HomePage,
-    users::{UserProfilePage, UsersPage},
+    users::UsersPage,
     write::WriteArticlePage,
 };
+
+/// 签入/注册面板模式
+#[derive(Clone, Copy, PartialEq)]
+pub enum AuthMode {
+    SignIn,
+    Register,
+}
+
+pub type AuthPanelSignal = RwSignal<Option<AuthMode>>;
 use leptos_i18n::Locale as _;
 
 pub fn shell(options: leptos::config::LeptosOptions) -> impl IntoView {
@@ -107,6 +117,10 @@ pub fn App() -> impl IntoView {
         auth_signal.set(auth_res.get().and_then(|r| r.ok()).flatten());
     });
 
+    // 签入/注册面板控制信号
+    let auth_panel: AuthPanelSignal = RwSignal::new(None);
+    provide_context(auth_panel);
+
     view! {
         <I18nContextProvider>
             <Router>
@@ -117,23 +131,51 @@ pub fn App() -> impl IntoView {
                         // 各页面组件不再包含 Nav/Footer，统一由此层提供
                         <Route path=path!("/")                            view=HomePage/>
                         <Route path=path!("/:locale/")                    view=HomePage/>
-                        <Route path=path!("/:locale/register")            view=RegisterPage/>
-                        <Route path=path!("/:locale/sign-in")             view=SignInPage/>
-                        <Route path=path!("/:locale/sign-out")            view=SignOutPage/>
                         <Route path=path!("/:locale/footballs")           view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/:id")       view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/category/:cid") view=FootballsPage/>
+                        <Route path=path!("/:locale/footballs/topic/:tid") view=FootballsPage/>
                         <Route path=path!("/:locale/footballs/share-analysis") view=WriteArticlePage/>
-                        <Route path=path!("/:locale/footballs/:id")       view=FootballDetailPage/>
                         <Route path=path!("/:locale/users")               view=UsersPage/>
-                        <Route path=path!("/:locale/users/:username")     view=UserProfilePage/>
+                        <Route path=path!("/:locale/users/:id")     view=UsersPage/>
                         <Route path=path!("/:locale/users/:id/activate")  view=UserActivatePage/>
                         <Route path=path!("/:locale/admin")               view=AdminPage/>
                         <Route path=path!("/:locale/admin/footballs")     view=AdminFootballsPage/>
                         <Route path=path!("/:locale/admin/footballs/:id")  view=AdminFootballDetailPage/>
                         <Route path=path!("/:locale/admin/users")         view=AdminUsersPage/>
-                        <Route path=path!("/:locale/admin/users/:username") view=AdminUserDetailPage/>
+                        <Route path=path!("/:locale/admin/users/:id") view=AdminUserDetailPage/>
                     </Routes>
                 </Suspense>
                 <Footer/>
+
+                // ── 签入/注册底部滑出面板 ────────────────────────────────────
+                {
+                    let auth_panel = use_context::<AuthPanelSignal>();
+                    let open = Signal::derive(move || {
+                        auth_panel.as_ref().map(|ap| ap.get().is_some()).unwrap_or(false)
+                    });
+                    let on_close = Callback::new(move |_| {
+                        if let Some(ref ap) = auth_panel {
+                            ap.set(None);
+                        }
+                    });
+                    let size = Signal::derive(move || match auth_panel.as_ref().and_then(|ap| ap.get()) {
+                        Some(AuthMode::Register) => SLIDE_SIZED_MD.to_string(),
+                        _ => SLIDE_SIZED_SM.to_string(),
+                    });
+                    view! {
+                        <SlidePanel open=open on_close=on_close panel_class=size>
+                            {move || {
+                                let mode = auth_panel.as_ref().and_then(|ap| ap.get());
+                                match mode {
+                                    Some(AuthMode::SignIn) => Either3::Left(view! { <SignInForm/> }),
+                                    Some(AuthMode::Register) => Either3::Right(Either::Left(view! { <RegisterForm/> })),
+                                    None => Either3::Right(Either::Right(())),
+                                }
+                            }}
+                        </SlidePanel>
+                    }
+                }
             </Router>
         </I18nContextProvider>
     }

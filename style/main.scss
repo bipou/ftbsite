@@ -68,7 +68,6 @@ input,button,textarea,select{font:inherit}
 }
 
 // ── Hover variants ─────────────────────────────────────────────────────────────
-.hover\:bg-blue-100:hover{background:#dbeafe}
 .hover\:bg-gray-100:hover{background:#f3f4f6}
 .hover\:bg-gray-200:hover{background:#e5e7eb}
 .hover\:bg-blue-200:hover{background:#bfdbfe}
@@ -147,7 +146,6 @@ input,button,textarea,select{font:inherit}
 .w-full{width:100%}.w-8{width:2rem}.w-10{width:2.5rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-16{width:4rem}
 .w-20{width:5rem}.w-48{width:12rem}
 .h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-16{height:4rem}
-.w-7{width:1.75rem}
 .h-\[80vh\]{height:80vh}.min-h-screen{min-height:100vh}.min-h-\[80vh\]{min-height:80vh}
 .max-w-sm{max-width:24rem}.max-w-md{max-width:28rem}.max-w-2xl{max-width:42rem}
 .max-w-4xl{max-width:56rem}.max-w-5xl{max-width:64rem}.max-w-6xl{max-width:$max-w}
@@ -191,6 +189,22 @@ input,button,textarea,select{font:inherit}
   .modal-username{color:#bbf7d0}
   .modal-btn-primary{background:#22c55e}
 }
+
+// ── Slide panel ───────────────────────────────────────────────────────────────
+.slide-overlay,.slide-panel{display:none}.slide-overlay.open,.slide-panel.open{display:flex}
+.slide-overlay.open{position:fixed;top:52px;right:0;bottom:0;left:0;z-index:49;background:rgba(0,0,0,.45);animation:fadeIn .2s ease}
+@include dark{.slide-overlay.open{background:rgba(0,0,0,.65)}}
+.slide-panel.open{position:fixed;left:5%;right:5%;bottom:auto;top:60px;z-index:51;max-height:calc(100vh - 60px);background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.15);animation:slideIn .2s ease;flex-direction:column;overflow:hidden}
+@include dark{.slide-panel.open{background:#1f2937}}
+.slide-close{position:sticky;top:0;margin:8px 12px 0 auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid #d1d5db;background:transparent;font-size:20px;color:#6b7280;cursor:pointer;z-index:5;flex-shrink:0}.slide-close:hover{background:#f3f4f6;color:#374151;border-color:#9ca3af}
+@include dark{.slide-close{border-color:#4b5563;color:#9ca3af}.slide-close:hover{background:#374151;color:#e5e7eb;border-color:#6b7280}}
+.slide-body{flex:1;overflow-y:auto;padding:0 16px 16px;-webkit-overflow-scrolling:touch}
+.slide-close-bottom{display:inline-block;padding:8px 20px;border-radius:4px;border:1px solid #d1d5db;background:transparent;font-size:16px;color:#6b7280;cursor:pointer}.slide-close-bottom:hover{color:#374151;border-color:#9ca3af}
+@include dark{.slide-close-bottom{border-color:#4b5563;color:#9ca3af}.slide-close-bottom:hover{color:#e5e7eb;border-color:#6b7280}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideInDesktop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:768px){.slide-panel.open{left:5%;right:5%;transform:none;border-radius:8px;animation:slideInDesktop .2s ease}.slide-sized-sm{width:calc(72rem*0.4);max-width:40vw}.slide-sized-md{width:calc(72rem*0.7);max-width:70vw}.slide-sized-lg{width:90%;max-width:90%}.slide-body{padding:0 32px 24px}}
 
 // ── Cards ──────────────────────────────────────────────────────────────────────
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -260,7 +274,6 @@ article.prose-sm img{max-width:100%}
 .bg-transparent{background:transparent}
 .cursor-not-allowed{cursor:not-allowed;opacity:.5}
 .cursor-pointer{cursor:pointer}
-.leading-1{line-height:1}
 .line-through{text-decoration:line-through}
 
 // ── Admin action button highlight ──────────────────────────────────────────────
@@ -301,6 +314,6 @@ article.prose-sm img{max-width:100%}
   .lang-list .lang-active { background: rgba(30,58,95,.4); color: #93c5fd; }
 }
 
-.nav-links a, a.nav-links { color: #6b7280; text-decoration: none; }
-.nav-links a:hover, a.nav-links:hover { color: #2563eb; text-decoration: none; }
-@include dark { .nav-links a, a.nav-links { color: #d1d5db; } }
+.nav-links a, a.nav-links, button.nav-links { color: #6b7280; text-decoration: none; }
+.nav-links a:hover, a.nav-links:hover, button.nav-links:hover { color: #2563eb; text-decoration: none; }
+@include dark { .nav-links a, a.nav-links, button.nav-links { color: #d1d5db; } }

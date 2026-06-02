@@ -1,3 +1,4 @@
+use crate::app::{AuthMode, AuthPanelSignal};
 use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
 use crate::server_error_text;
@@ -7,8 +8,7 @@ use leptos_router::hooks::use_params_map;
 
 use crate::components::{CaptchaCore, CaptchaState, MarkdownEditor, TopicInput};
 use crate::shared::common::Either3;
-use crate::shared::constant::{GRID_2, H1, HOVER_UNDERLINE, TEXT_SUBTLE};
-use crate::shared::locale::LocaleA;
+use crate::shared::constant::{GRID_2, H1, HOVER_UNDERLINE};
 use leptos::either::Either;
 
 // ── Server functions ──────────────────────────────────────────────────────────
@@ -155,22 +155,24 @@ pub async fn get_captcha() -> Result<(String, String, u8), ServerFnError> {
     Ok((c.svg, c.token, c.answer))
 }
 
-// ── Sign In page component ────────────────────────────────────────────────────
+// ── Sign In form component（供面板复用）───────────────────────────────────────
 
 #[component]
-pub fn SignInPage() -> impl IntoView {
+pub fn SignInForm() -> impl IntoView {
     let i18n = use_i18n();
-    let loc = i18n.get_locale().to_string();
     let action = ServerAction::<SignIn>::new();
-    let navigate = leptos_router::hooks::use_navigate();
     let auth_res = use_context::<crate::app::AuthResource>();
+    let auth_panel = use_context::<AuthPanelSignal>();
 
     Effect::new(move |_| {
         if let Some(Ok(())) = action.value().get() {
             if let Some(ref res) = auth_res {
                 res.refetch();
             }
-            navigate(&["/", &loc, "/footballs"].join(""), Default::default());
+            // 签入成功后关闭面板
+            if let Some(ref ap) = auth_panel {
+                ap.set(None);
+            }
         }
     });
 
@@ -188,103 +190,78 @@ pub fn SignInPage() -> impl IntoView {
     let pending = Signal::derive(move || t_display!(i18n, signing_in).to_string());
 
     view! {
-        <Title text=move || page_title!(i18n, user_sign_in)/>
-        <main class="min-h-[80vh] flex items-center justify-center px-4">
-            <div class="card p-8 w-full max-w-sm">
-                <h1 class=[H1, "text-center"].join(" ")>
-                    {move || t!(i18n, user_sign_in)}
-                </h1>
+        <div class="card p-6">
+            <div class="space-y-4">
+            <h1 class=[H1, "text-center"].join(" ")>
+                {move || t!(i18n, user_sign_in)}
+            </h1>
 
-                <div class="space-y-4">
-                    <ActionForm action=action>
-                        <div>
-                            <label class="form-label">{move || t!(i18n, sign_in_account)}</label>
-                            <input type="text" name="signature" required
-                                   class="form-input " autocomplete="username"/>
-                        </div>
-                        <div>
-                            <label class="form-label">{move || t!(i18n, sign_in_password)}</label>
-                            <input type="password" name="password" required
-                                   class="form-input " autocomplete="current-password"/>
-                        </div>
-
-                        <CaptchaCore/>
-
-                        <button type="submit"
-                            disabled=move || !cap_state.ok.get() || action.pending().get()
-                            class=move || if cap_state.ok.get() {
-                                "btn-primary w-full justify-center mt-4".to_string()
-                            } else {
-                                "w-full justify-center bg-gray-300 text-gray-500 rounded-lg py-2 px-4 cursor-not-allowed mt-4".to_string()
-                            }
-                        >
-                            {move || if action.pending().get() { pending.get() } else { btn.get() }}
-                        </button>
-
-                        // Error
-                        {move || action.value().get().and_then(|r| r.err()).map(|e| {
-                            let raw = e.to_string();
-                            let msg = server_error_text!(i18n, raw,
-                                "captcha_invalid" => captcha_invalid,
-                                "sign_in_incorrect" => sign_in_incorrect,
-                                "sign_in_not_activation" => sign_in_not_activation,
-                                "sign_in_banned" => sign_in_banned,
-                                "sign_in_security_problem" => sign_in_security_problem,
-                            );
-                            view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
-                        })}
-                    </ActionForm>
+            <ActionForm action=action>
+                <div>
+                    <label class="form-label">{move || t!(i18n, sign_in_account)}</label>
+                    <input type="text" name="signature" required
+                           class="form-input " autocomplete="username"/>
+                </div>
+                <div>
+                    <label class="form-label">{move || t!(i18n, sign_in_password)}</label>
+                    <input type="password" name="password" required
+                           class="form-input " autocomplete="current-password"/>
                 </div>
 
-                <p class="mt-4 text-sm text-center text-gray-500">
-                    {move || t!(i18n, sign_in_new_user)} " "
-                    <LocaleA href="/register" class=["text-blue-500", HOVER_UNDERLINE].join(" ")>{move || t!(i18n, sign_in_create_account)}</LocaleA>
-                </p>
-            </div>
-        </main>
-    }
-}
+                <CaptchaCore/>
 
-// ── Sign Out page component ───────────────────────────────────────────────────
+                <button type="submit"
+                    disabled=move || !cap_state.ok.get() || action.pending().get()
+                    class=move || if cap_state.ok.get() {
+                        "btn-primary w-full justify-center mt-4".to_string()
+                    } else {
+                        "w-full justify-center bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-lg py-2 px-4 cursor-not-allowed mt-4".to_string()
+                    }
+                >
+                    {move || if action.pending().get() { pending.get() } else { btn.get() }}
+                </button>
 
-#[component]
-pub fn SignOutPage() -> impl IntoView {
-    let i18n = use_i18n();
-    let action = ServerAction::<SignOut>::new();
-    let navigate = leptos_router::hooks::use_navigate();
-    let auth_res = use_context::<crate::app::AuthResource>();
+                // Error
+                {move || action.value().get().and_then(|r| r.err()).map(|e| {
+                    let raw = e.to_string();
+                    let msg = server_error_text!(i18n, raw,
+                        "captcha_invalid" => captcha_invalid,
+                        "sign_in_incorrect" => sign_in_incorrect,
+                        "sign_in_not_activation" => sign_in_not_activation,
+                        "sign_in_banned" => sign_in_banned,
+                        "sign_in_security_problem" => sign_in_security_problem,
+                    );
+                    view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
+                })}
+            </ActionForm>
 
-    let loc = i18n.get_locale().to_string();
-
-    Effect::new(move |_| {
-        action.dispatch(SignOut {});
-    });
-    Effect::new(move |_| {
-        if action.value().get().is_some() {
-            if let Some(ref res) = auth_res {
-                res.refetch();
-            }
-            navigate(&["/", &loc, "/"].join(""), Default::default());
-        }
-    });
-
-    view! {
-        <div class="min-h-screen flex items-center justify-center">
-            <p class=[TEXT_SUBTLE, "text-lg"].join(" ")>{move || t!(i18n, signing_out)}</p>
+            <p class="mt-4 text-sm text-center text-gray-500">
+                {move || t!(i18n, sign_in_new_user)} " "
+                <button class=["text-blue-500", HOVER_UNDERLINE, "border-0 bg-transparent cursor-pointer"].join(" ") on:click={
+                    let ap = auth_panel.clone();
+                    move |_| {
+                        if let Some(ref ap) = ap {
+                            ap.set(Some(AuthMode::Register));
+                        }
+                    }
+                }>{move || t!(i18n, sign_in_create_account)}</button>
+            </p>
+        </div>
         </div>
     }
 }
 
-// ── Register page component ───────────────────────────────────────────────────
+// ── Register form component（供面板复用）──────────────────────────────────────
 
 #[component]
-pub fn RegisterPage() -> impl IntoView {
+pub fn RegisterForm() -> impl IntoView {
     let i18n = use_i18n();
     let action = ServerAction::<Register>::new();
     let (success, set_success) = signal(false);
     let (reg_username, set_reg_username) = signal(String::new());
     let intro = RwSignal::new("## About Me\n我关注足球数据与计算。".to_string());
     let intro_err = RwSignal::new(false);
+    let auth_panel = use_context::<AuthPanelSignal>();
 
     Effect::new(move |_| {
         if let Some(Ok(name)) = action.value().get() {
@@ -307,116 +284,127 @@ pub fn RegisterPage() -> impl IntoView {
     let pending_btn = Signal::derive(move || t_display!(i18n, submitting).to_string());
 
     view! {
-        <Title text=move || page_title!(i18n, user_register)/>
-        <main class="max-w-2xl mx-auto px-4 py-8">
-            // 表单卡片：relative 让弹框相对于此定位
-            <div class="card p-8 relative">
-                <h1 class=H1>
-                    {move || t!(i18n, user_register)}
-                </h1>
+        // 表单卡片：relative 让弹框相对于此定位
+        <div class="card p-8 relative">
+            <h1 class=H1>
+                {move || t!(i18n, user_register)}
+            </h1>
 
-                // 表单始终渲染，成功时模糊 + 禁止交互
-                <div style:opacity=move || if success.get() { "0.35" } else { "1" }
-                     style:filter=move || if success.get() { "blur(4px)" } else { "none" }
-                     style:pointer-events=move || if success.get() { "none" } else { "auto" }
-                     style:transition="all 0.3s"
-                >
-                    <ActionForm action=action on:submit=move |ev| {
-                        intro_err.set(intro.get().trim().is_empty());
-                        if intro_err.get() { ev.prevent_default(); }
-                    }>
-                        <input type="hidden" name="lang" value=move || i18n.get_locale().to_string()/>
-                        <div class=GRID_2>
-                            <div>
-                                <label class="form-label">{move || t!(i18n, register_username)} " *"</label>
-                                <input type="text" name="username" required
-                                       class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"/>
-                            </div>
-                            <div>
-                                <label class="form-label">{move || t!(i18n, register_email)} " *"</label>
-                                <input type="email" name="email" required
-                                       class="form-input " autocomplete="email"/>
-                            </div>
-                            <div>
-                                <label class="form-label">{move || t!(i18n, register_password)} " *"</label>
-                                <input type="password" name="password" required
-                                       class="form-input " autocomplete="new-password"/>
-                            </div>
-                            <div>
-                                <label class="form-label">{move || t!(i18n, register_confirm_password)} " *"</label>
-                                <input type="password" name="confirm_password" required
-                                       class="form-input " autocomplete="new-password"/>
-                            </div>
-                        </div>
-                        <div class="space-y-4 mt-4">
+            // 表单始终渲染，成功时模糊 + 禁止交互
+            <div style:opacity=move || if success.get() { "0.35" } else { "1" }
+                 style:filter=move || if success.get() { "blur(4px)" } else { "none" }
+                 style:pointer-events=move || if success.get() { "none" } else { "auto" }
+                 style:transition="all 0.3s"
+            >
+                <ActionForm action=action on:submit=move |ev| {
+                    intro_err.set(intro.get().trim().is_empty());
+                    if intro_err.get() { ev.prevent_default(); }
+                }>
+                    <input type="hidden" name="lang" value=move || i18n.get_locale().to_string()/>
+                    <div class=GRID_2>
                         <div>
-                            <TopicInput/>
+                            <label class="form-label">{move || t!(i18n, register_username)} " *"</label>
+                            <input type="text" name="username" required
+                                   class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"/>
                         </div>
                         <div>
-                            <label class="form-label">
-                                {move || t!(i18n, register_intro)}
-                            </label>
-                            <MarkdownEditor name="introduction" rows=4 value=intro required=true/>
-                            {move || intro_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入简介</p> })}
+                            <label class="form-label">{move || t!(i18n, register_email)} " *"</label>
+                            <input type="email" name="email" required
+                                   class="form-input " autocomplete="email"/>
                         </div>
+                        <div>
+                            <label class="form-label">{move || t!(i18n, register_password)} " *"</label>
+                            <input type="password" name="password" required
+                                   class="form-input " autocomplete="new-password"/>
                         </div>
-                        <CaptchaCore/>
-
-                        <button type="submit"
-                            disabled=move || !cap_state.ok.get() || action.pending().get()
-                            class=move || if cap_state.ok.get() {
-                                "btn-primary w-full justify-center mt-4".to_string()
-                            } else {
-                                "w-full justify-center bg-gray-300 text-gray-500 rounded-lg py-2 px-4 cursor-not-allowed mt-4".to_string()
-                            }
-                        >
-                            {move || if action.pending().get() { pending_btn.get() } else { btn.get() }}
-                        </button>
-
-                        // Error
-                        {move || action.value().get().and_then(|r| r.err()).map(|e| {
-                            let raw = e.to_string();
-                            let msg = server_error_text!(i18n, raw,
-                                "captcha_invalid" => captcha_invalid,
-                                "register_password_mismatch" => register_password_mismatch,
-                                "register_password_weak" => register_password_weak,
-                                "register_exist" => register_exist,
-                                "upload_failed" => upload_failed,
-                            );
-                            view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
-                        })}
-                    </ActionForm>
-                </div>
-
-                <p class="mt-4 text-sm text-center text-gray-500">
-                    {move || t!(i18n, register_have_account)} " "
-                    <LocaleA href="/sign-in" class=["text-blue-500", HOVER_UNDERLINE].join(" ")>{move || t!(i18n, register_go_sign_in)}</LocaleA>
-                </p>
-
-                // 成功弹框
-                <Show when=move || success.get() fallback=|| ()>
-                    <div class="modal-overlay">
-                        <div class="modal-card">
-                            <div class="modal-icon">"✓"</div>
-                            <p class="modal-text">
-                                {move || {
-                                    let name = reg_username.get();
-                                    t_display!(i18n, register_success, username = &name).to_string()
-                                }}
-                            </p>
-                            <div class="modal-actions">
-                                <a href=move || ["/", &i18n.get_locale().to_string(), "/sign-in"].join("") class="btn-primary modal-btn">
-                                                                    {move || t!(i18n, register_go_sign_in)}
-                                                                </a>
-                                                                <a href=move || ["/", &i18n.get_locale().to_string(), "/"].join("") class="modal-btn-primary">
-                                    {move || t!(i18n, go_home)}
-                                </a>
-                            </div>
+                        <div>
+                            <label class="form-label">{move || t!(i18n, register_confirm_password)} " *"</label>
+                            <input type="password" name="confirm_password" required
+                                   class="form-input " autocomplete="new-password"/>
                         </div>
                     </div>
-                </Show>
+                    <div class="space-y-4 mt-4">
+                    <div>
+                        <TopicInput/>
+                    </div>
+                    <div>
+                        <label class="form-label">
+                            {move || t!(i18n, register_intro)}
+                        </label>
+                        <MarkdownEditor name="introduction" rows=4 value=intro required=true/>
+                        {move || intro_err.get().then(|| view! { <p class="text-red-500 text-xs mt-1">请输入简介</p> })}
+                    </div>
+                    </div>
+                    <CaptchaCore/>
+
+                    <button type="submit"
+                        disabled=move || !cap_state.ok.get() || action.pending().get()
+                        class=move || if cap_state.ok.get() {
+                            "btn-primary w-full justify-center mt-4".to_string()
+                        } else {
+                            "w-full justify-center bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-lg py-2 px-4 cursor-not-allowed mt-4".to_string()
+                        }
+                    >
+                        {move || if action.pending().get() { pending_btn.get() } else { btn.get() }}
+                    </button>
+
+                    // Error
+                    {move || action.value().get().and_then(|r| r.err()).map(|e| {
+                        let raw = e.to_string();
+                        let msg = server_error_text!(i18n, raw,
+                            "captcha_invalid" => captcha_invalid,
+                            "register_password_mismatch" => register_password_mismatch,
+                            "register_password_weak" => register_password_weak,
+                            "register_exist" => register_exist,
+                            "upload_failed" => upload_failed,
+                        );
+                        view! { <p class="text-red-500 text-sm text-center">{msg}</p> }
+                    })}
+                </ActionForm>
             </div>
-        </main>
+
+            <p class="mt-4 text-sm text-center text-gray-500">
+                {move || t!(i18n, register_have_account)} " "
+                <button class=["text-blue-500", HOVER_UNDERLINE, "border-0 bg-transparent cursor-pointer"].join(" ") on:click={
+                    let ap = auth_panel.clone();
+                    move |_| {
+                        if let Some(ref ap) = ap {
+                            ap.set(Some(AuthMode::SignIn));
+                        }
+                    }
+                }>{move || t!(i18n, register_go_sign_in)}</button>
+            </p>
+
+            // 成功弹框
+            <Show when=move || success.get() fallback=|| ()>
+                <div class="modal-overlay">
+                    <div class="modal-card">
+                        <div class="modal-icon">"✓"</div>
+                        <p class="modal-text">
+                            {move || {
+                                let name = reg_username.get();
+                                t_display!(i18n, register_success, username = &name).to_string()
+                            }}
+                        </p>
+                        <div class="modal-actions">
+                            <button class="btn-primary modal-btn border-0 cursor-pointer" on:click={
+                                let ap = auth_panel.clone();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>
+                                {move || t!(i18n, register_go_sign_in)}
+                            </button>
+                            <a href=move || ["/", &i18n.get_locale().to_string(), "/"].join("") class="modal-btn-primary">
+                                {move || t!(i18n, go_home)}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </Show>
+        </div>
     }
 }
 
@@ -456,7 +444,21 @@ pub fn UserActivatePage() -> impl IntoView {
                                 {move || t!(i18n, user_activated)}
                             </h1>
                             <p class="text-gray-600 mb-4">{username}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            {move || {
+                                let ap = use_context::<AuthPanelSignal>();
+                                view! {
+                                    <button class="btn-primary border-0 cursor-pointer" on:click={
+                                        let ap = ap.clone();
+                                        move |_| {
+                                            if let Some(ref ap) = ap {
+                                                ap.set(Some(AuthMode::SignIn));
+                                            }
+                                        }
+                                    }>
+                                        {move || t!(i18n, sign_in)}
+                                    </button>
+                                }
+                            }}
                         })),
                         Ok(None) => Either3::Right(Either::Right(view! {
                             <Show when=move || !resent.get() fallback=move || view! {

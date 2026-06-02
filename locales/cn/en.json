@@ -13,6 +13,7 @@
 
   "more": "More ...",
   "collapse": "Collapse",
+  "close": "Close",
 
   "loading": "Loading...",
   "no_data": "No Data",
@@ -51,7 +52,6 @@
   "football_stat_red_cards": "Red cards",
   "football_stat_passes": "Passes",
   "football_stat_pass_accuracy": "Pass accuracy",
-  "football_ai_label": "AI-generated content, for reference only",
   "analysis_ai": "AI Analysis",
   "analysis_ai_label": "AI-generated content, for reference only",
 
@@ -134,7 +134,6 @@
   "pagination_info": "Page {{current}} / {{total}} ({{count}} total)",
   "pagination_previous": "\u2190 Previous",
   "pagination_next": "Next \u2192",
-  "pagination_aggregate": "total",
 
   "admin_dashboard": "Admin Dashboard",
   "admin_footballs": "Football Management",

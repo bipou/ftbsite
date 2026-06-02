@@ -7,7 +7,7 @@ use crate::shared::constant::{
 };
 #[cfg(feature = "oth")]
 use crate::shared::constant::{BADGE_GREEN, BADGE_RED, TEXT_MUTED};
-use crate::shared::locale::{LocaleA, use_locale};
+use crate::shared::locale::use_locale;
 use leptos::either::Either;
 use leptos::prelude::*;
 
@@ -30,7 +30,7 @@ pub(crate) fn status_badge(status: i8) -> &'static str {
 }
 
 #[component]
-fn CatBadge(
+pub(crate) fn CatBadge(
     #[prop(into)] name: Signal<Option<String>>,
     #[prop(into)] kid: Option<String>,
 ) -> impl IntoView {
@@ -40,7 +40,7 @@ fn CatBadge(
         if n.is_none() {
             Either3::Left(())
         } else if let Some(kid) = &kid {
-            let href = ["/", &loc_str.get(), "/footballs?category=", kid].join("");
+            let href = ["/", &loc_str.get(), "/footballs/category/", kid].join("");
             Either3::Right(Either::Left(view! {
                 <a href=href class=BADGE_GRAY_NO_UL>{n.unwrap_or_default()}</a>
             }))
@@ -173,8 +173,9 @@ fn CalcsSection(calcs: Vec<crate::models::Calc>) -> impl IntoView {
 }
 
 #[component]
-pub fn FootballCard(football: Football) -> impl IntoView {
+pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl IntoView {
     let i18n = use_i18n();
+    let loc_str = use_locale();
     let extra = render_card_extra(&football);
     let card_class = [
         "card",
@@ -200,16 +201,17 @@ pub fn FootballCard(football: Football) -> impl IntoView {
             s
         }
     });
-    let detail_path = [
-        "/footballs/",
-        &crate::shared::common::record_key(&football.id),
-    ]
-    .join("");
+    let fid = crate::shared::common::record_key(&football.id).to_string();
+    // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联
     let summary_view = summary.map(|s| {
         view! {
-            <LocaleA href=detail_path.clone() target="_blank" rel="noopener noreferrer" class="no-underline">
+            <button class="no-underline border-0 bg-transparent cursor-pointer p-0 text-left w-full" on:click={
+                let fid = fid.clone();
+                let cb = on_click.clone();
+                move |_| cb.run(fid.clone())
+            }>
                 <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
-            </LocaleA>
+            </button>
         }
     });
     let category = football.category;
@@ -224,34 +226,34 @@ pub fn FootballCard(football: Football) -> impl IntoView {
     view! {
         <div class=card_class>
             <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
-                <LocaleA href=detail_path target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0">
+                <button class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0 border-0 bg-transparent cursor-pointer p-0 text-left" on:click={
+                    let fid = fid.clone();
+                    let cb = on_click.clone();
+                    move |_| cb.run(fid.clone())
+                }>
                     {title}
-                </LocaleA>
-                {let badge = status_badge(status); if !badge.is_empty() {
-                    Either::Left(view! {
+                </button>
+                {let badge = status_badge(status); match badge.is_empty() {
+                    false => Either::Left(view! {
                         <span class="text-sm ml-2 whitespace-nowrap">{badge}</span>
-                    })
-                } else {
-                    Either::Right(())
+                    }),
+                    true => Either::Right(()),
                 }}
             </div>
 
             <div class=["text-sm", TEXT_SUBTLE, "mb-3", "space-x-2"].join(" ")>
-                {if let Some(ref season) = season {
-                    Either::Left(view! { <span>{season.clone()}</span> })
-                } else {
-                    Either::Right(())
+                {match season {
+                    Some(season) => Either::Left(view! { <span>{season}</span> }),
+                    None => Either::Right(()),
                 }}
                 <CatBadge name=cat_name kid=cat_kid/>
-                {if let Some(ref at) = article_title {
-                    Either::Left(view! { <span class=BADGE_GRAY>{at.clone()}</span> })
-                } else {
-                    Either::Right(())
+                {match article_title {
+                    Some(at) => Either::Left(view! { <span class=BADGE_GRAY>{at}</span> }),
+                    None => Either::Right(()),
                 }}
-                {if let Some(ref ko) = kick_off {
-                    Either::Left(view! { <span class="text-blue-500">{ko.clone()}</span> })
-                } else {
-                    Either::Right(())
+                {match kick_off {
+                    Some(ko) => Either::Left(view! { <span class="text-blue-500">{ko}</span> }),
+                    None => Either::Right(()),
                 }}
             </div>
 
@@ -265,10 +267,10 @@ pub fn FootballCard(football: Football) -> impl IntoView {
                 <div class="flex flex-wrap gap-1">
                     {topics.into_iter().map(|topic| {
                         let kid = crate::shared::common::record_key(&topic.id).to_string();
-                        let href = ["/footballs?topic=", &kid].join("");
                         let name = topic.name;
+                        let href = ["/", &loc_str.get(), "/footballs/topic/", &kid].join("");
                         view! {
-                            <LocaleA href=href class=["text-sm", BADGE_BLUE_NO_UL].join(" ")>{name}</LocaleA>
+                            <a href=href class=["text-sm", BADGE_BLUE_NO_UL].join(" ")>{name}</a>
                         }
                     }).collect::<Vec<_>>()}
                 </div>

@@ -1,17 +1,16 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_SECTION, EMPTY, FLEX_WRAP_GAP, ITALIC,
-    MAIN, NO_DATA, SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_SECTION, FLEX_WRAP_GAP, ITALIC,
+    SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
-use leptos_router::hooks::use_params_map;
 
 use crate::models::{Football, FootballEvent, FootballStats, TeamLineup};
 use crate::shared::fns::get_username_by_id;
-use crate::shared::locale::{LocaleA, use_locale};
+use crate::shared::locale::use_locale;
 
 #[server]
 pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, ServerFnError> {
@@ -38,13 +37,13 @@ fn FootballHeader(f: Football) -> impl IntoView {
         category.as_ref().and_then(|c| c.name.get(&loc).cloned())
     });
     let article_title = f.article_title;
-    let home_team = f.home_team.clone();
-    let away_team = f.away_team.clone();
-    let season = f.season.clone();
+    let home_team = f.home_team;
+    let away_team = f.away_team;
+    let season = f.season;
     let kick_off_mdhm = f.kick_off_at_mdhm;
     let kick_off_mdhm8 = f.kick_off_at_mdhm8;
     let title_text = {
-        let base = title.clone();
+        let base = title;
         let st = article_title.clone();
         let has_teams = home_team.is_some() && away_team.is_some();
         move || {
@@ -64,12 +63,11 @@ fn FootballHeader(f: Football) -> impl IntoView {
                         {home_team.unwrap_or_default()} <span class="text-gray-400 mx-2">"vs"</span> {away_team.unwrap_or_default()}
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
-                        {if let Some(ref s) = season {
-                            Either::Left(view! {
+                        {match &season {
+                            Some(s) => Either::Left(view! {
                                 <span>{move || t!(i18n, football_season)}{s.clone()}</span>
-                            })
-                        } else {
-                            Either::Right(())
+                            }),
+                            None => Either::Right(()),
                         }}
                         {move || {
                             let n = cat.get();
@@ -86,23 +84,21 @@ fn FootballHeader(f: Football) -> impl IntoView {
                                 ))
                             }
                         }}
-                        {if let Some(ref at) = article_title {
-                            Either::Left(view! { <span class=BADGE_GRAY>{at.clone()}</span> })
-                        } else {
-                            Either::Right(())
+                        {match &article_title {
+                            Some(at) => Either::Left(view! { <span class=BADGE_GRAY>{at.clone()}</span> }),
+                            None => Either::Right(()),
                         }}
                     </div>
                 </div>
-                {if let (Some(mdhm8), Some(mdhm)) = (kick_off_mdhm8.as_ref(), kick_off_mdhm.as_ref()) {
-                    Either::Left(view! {
+                {match (kick_off_mdhm8.as_ref(), kick_off_mdhm.as_ref()) {
+                    (Some(mdhm8), Some(mdhm)) => Either::Left(view! {
                         <div class="text-right text-sm text-gray-500">
                             <div>{move || t!(i18n, football_kick_off)}</div>
                             <div class="font-semibold text-blue-600">{mdhm8.clone()}</div>
                             <div class=TEXT_XS_MUTED>"UTC: " {mdhm.clone()}</div>
                         </div>
-                    })
-                } else {
-                    Either::Right(())
+                    }),
+                    _ => Either::Right(()),
                 }}
             </div>
             <div class=["mt-3", TEXT_XS_MUTED, "flex", "gap-4", "flex-wrap"].join(" ")>
@@ -438,12 +434,11 @@ fn ArticleHeader(f: Football) -> impl IntoView {
                 {title_text}
             </h1>
             <div class="text-sm text-gray-500 space-x-3 mb-3">
-                {if let Some(ref s) = season {
-                    Either::Left(view! {
+                {match &season {
+                    Some(s) => Either::Left(view! {
                         <span>{move || t!(i18n, football_season)}{s.clone()}</span>
-                    })
-                } else {
-                    Either::Right(())
+                    }),
+                    None => Either::Right(()),
                 }}
                 {move || {
                     let n = cat.get();
@@ -481,7 +476,7 @@ fn AnalysisCard(
     let is_ai = ana_type > 0;
 
     // 提取所需字段，避免 view! 中移动冲突
-    let user_id = analysis.user_id.clone();
+    let user_id = analysis.user_id;
     let content_html = analysis.content_html;
 
     let author_name = Resource::new(
@@ -512,12 +507,11 @@ fn AnalysisCard(
                 {updated_at}
             </div>
             <div inner_html=content_html></div>
-            {if is_ai {
-                Either::Right(view! {
+            {move || match is_ai {
+                true => Either::Right(view! {
                     <p class="text-xs text-gray-400 mt-2">{t_display!(i18n, analysis_ai_label).to_string()}</p>
-                })
-            } else {
-                Either::Left(())
+                }),
+                false => Either::Left(()),
             }}
         </div>
     }
@@ -560,7 +554,7 @@ fn ResultDetail(
             {match (&s, &wdl, &tg, &gd) {
                 (Some(s), Some(wdl), Some(tg), Some(gd)) => {
                     let s = s.clone();
-                    let wdl = wdl.clone();
+                    let wdl = *wdl;
                     let tg = *tg;
                     let gd = *gd;
                     Either::Right(view! {
@@ -596,10 +590,9 @@ fn ResultDetail(
 fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
     let i18n = use_i18n();
     let loc_str = use_locale();
-    if topics.is_empty() {
-        Either::Left(())
-    } else {
-        Either::Right(view! {
+    match topics.is_empty() {
+        true => Either::Left(()),
+        false => Either::Right(view! {
             <div class="card p-4 mb-6">
                 <p class="text-xs text-gray-500 mb-2">{move || t!(i18n, football_keys_tags)}</p>
                 <div class=FLEX_WRAP_GAP>
@@ -612,12 +605,12 @@ fn DetailTopicsSection(topics: Vec<crate::models::Topic>) -> impl IntoView {
                     }).collect::<Vec<_>>()}
                 </div>
             </div>
-        })
+        }),
     }
 }
 
 #[component]
-fn FootballDetail(f: Football) -> impl IntoView {
+pub fn FootballDetail(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let ana_type = f.ana_type;
     let header_f = f.clone();
@@ -638,12 +631,11 @@ fn FootballDetail(f: Football) -> impl IntoView {
         <p class={[TEXT_WARN, "text-center", "mb-4"].join(" ")}>
             {move || t!(i18n, site_warn)}
         </p>
-        {if ana_type == 0 {
-            Either::Left(view! {
+        {match ana_type == 0 {
+            true => Either::Left(view! {
                 <ArticleHeader f=header_f/>
-            })
-        } else {
-            Either::Right(view! {
+            }),
+            false => Either::Right(view! {
                 <div>
                     <FootballHeader f=header_f/>
                     <ResultDetail s=result_s wdl=result_wdl tg=result_tg gd=result_gd/>
@@ -652,7 +644,7 @@ fn FootballDetail(f: Football) -> impl IntoView {
                     <StatsSection stats=stats/>
                     {extra}
                 </div>
-            })
+            }),
         }}
         {if let Some(s) = analyses.iter().find(|a| a.status == 1).and_then(|a| a.summary.clone()).filter(|s| !s.is_empty()) {
             Either::Left(view! {
@@ -665,42 +657,5 @@ fn FootballDetail(f: Football) -> impl IntoView {
         }}
         <AnalysisSection analyses=analyses ana_type=ana_type created_at=created_at updated_at=updated_at/>
         <DetailTopicsSection topics=topics/>
-    }
-}
-
-// ── Three-way view type alias ───────────────────────────────────────────
-type DetailResult<A, B, C> = Either<A, Either<B, C>>;
-
-#[component]
-pub fn FootballDetailPage() -> impl IntoView {
-    let i18n = use_i18n();
-    let params = use_params_map();
-    let id = move || params.read().get("id").unwrap_or_default();
-    let data = Resource::new_blocking(
-        move || id(),
-        |id| async move { get_football_and_increment(id).await },
-    );
-
-    view! {
-        <main class=MAIN>
-            <Suspense fallback=move || view! {
-                <div class=[EMPTY, "text-gray-400"].join(" ")>
-                    {move || t!(i18n, loading)}
-                </div>
-            }>
-                {move || data.get().map(|result| match result {
-                    Err(e) => DetailResult::Left(view! {
-                        <p class="text-red-500 text-center py-8">{e.to_string()}</p>
-                    }),
-                    Ok(None) => DetailResult::Right(Either::Left(view! {
-                        <div class=EMPTY>
-                            <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
-                            <LocaleA href="/footballs" class="btn-primary">{move || t!(i18n, go_list)}</LocaleA>
-                        </div>
-                    })),
-                    Ok(Some(f)) => DetailResult::Right(Either::Right(view! { <FootballDetail f=f/> })),
-                })}
-            </Suspense>
-        </main>
     }
 }

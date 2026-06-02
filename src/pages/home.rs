@@ -5,10 +5,14 @@ use leptos::prelude::*;
 use leptos_meta::Title;
 use serde::{Deserialize, Serialize};
 
-use crate::components::{ArticleCard, FootballCard};
+use crate::components::{ArticleCard, FootballCard, SlidePanel};
 use crate::models::Football;
+use crate::pages::football::{FootballDetail, get_football_and_increment};
 
-use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_SUBTLE, TEXT_WARN, WIDE};
+use crate::shared::common::Either3;
+use crate::shared::constant::{
+    EMPTY, GRID_3, NO_DATA, SLIDE_SIZED_LG, TEXT_SUBTLE, TEXT_WARN, WIDE,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HomeData {
@@ -27,7 +31,11 @@ pub async fn get_home_data() -> Result<HomeData, ServerFnError> {
 }
 
 #[component]
-fn HomeSection(ana_type: u8, footballs: Vec<Football>) -> impl IntoView {
+fn HomeSection(
+    ana_type: u8,
+    footballs: Vec<Football>,
+    on_click: Callback<String>,
+) -> impl IntoView {
     let i18n = use_i18n();
     view! {
         <section class="mb-12">
@@ -39,24 +47,22 @@ fn HomeSection(ana_type: u8, footballs: Vec<Football>) -> impl IntoView {
                     _ => { t_display!(i18n, post_match_review).to_string() },
                 }}
             </h2>
-            {if footballs.is_empty() {
-                Either::Left(view! {
+            {match footballs.is_empty() {
+                true => Either::Left(view! {
                     <div class=EMPTY>
                         <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
                     </div>
-                })
-            } else {
-                Either::Right(view! {
+                }),
+                false => Either::Right(view! {
                     <div class={GRID_3}>
                         {footballs.into_iter().map(|f| {
-                            if f.ana_type == 0 {
-                                Either::Left(view! { <ArticleCard football=f/> })
-                            } else {
-                                Either::Right(view! { <FootballCard football=f/> })
+                            match f.ana_type == 0 {
+                                true => Either::Left(view! { <ArticleCard football=f on_click=on_click/> }),
+                                false => Either::Right(view! { <FootballCard football=f on_click=on_click/> }),
                             }
                         }).collect::<Vec<_>>()}
                     </div>
-                })
+                }),
             }}
         </section>
     }
@@ -66,6 +72,29 @@ fn HomeSection(ana_type: u8, footballs: Vec<Football>) -> impl IntoView {
 pub fn HomePage() -> impl IntoView {
     let i18n = use_i18n();
     let data = Resource::new_blocking(|| (), |_| get_home_data());
+
+    let selected_id: RwSignal<Option<String>> = RwSignal::new(None);
+    let detail_open = Signal::derive(move || selected_id.get().is_some());
+    let detail_data = Resource::new(
+        move || selected_id.get(),
+        |id| async move {
+            match id.filter(|s| !s.is_empty()) {
+                Some(id) => get_football_and_increment(id).await,
+                _ => Ok(None),
+            }
+        },
+    );
+    let detail_close = Callback::new(move |_| selected_id.set(None));
+    let on_card_click = {
+        let navigate = leptos_router::hooks::use_navigate();
+        Callback::new(move |fid: String| {
+            navigate(
+                &["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join(""),
+                Default::default(),
+            );
+            selected_id.set(Some(fid));
+        })
+    };
 
     view! {
         <Title text=move || site_title!(i18n)/>
@@ -88,13 +117,39 @@ pub fn HomePage() -> impl IntoView {
             }>
                 {move || data.get().map(|result| match result {
                     Err(e) => Either::Left(view! { <p class="text-red-500 text-center py-8">{e.to_string()}</p> }),
-                    Ok(d) => Either::Right(view! {
-                        <HomeSection ana_type=0 footballs=d.user/>
-                        <HomeSection ana_type=1 footballs=d.pre/>
-                        <HomeSection ana_type=2 footballs=d.post/>
-                    }),
+                    Ok(d) => {
+                        let cb = on_card_click.clone();
+                        Either::Right(view! {
+                            <HomeSection ana_type=0 footballs=d.user on_click=cb/>
+                            <HomeSection ana_type=1 footballs=d.pre on_click=cb/>
+                            <HomeSection ana_type=2 footballs=d.post on_click=cb/>
+                        })
+                    },
                 })}
             </Suspense>
+
+            // ── 详情底部滑出面板 ──────────────────────────────────────────
+            <SlidePanel open=detail_open on_close=detail_close panel_class=Signal::derive(|| SLIDE_SIZED_LG.to_string())>
+                <Suspense fallback=move || view! {
+                    <div class="flex justify-center py-16">
+                        <div class="text-gray-400">{move || t!(i18n, loading)}</div>
+                    </div>
+                }>
+                    {move || detail_data.get().map(|result| match result {
+                        Err(e) => Either3::Left(view! {
+                            <p class="text-red-500 text-center py-8">{e.to_string()}</p>
+                        }),
+                        Ok(None) => Either3::Right(Either::Left(view! {
+                            <div class=EMPTY>
+                                <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                            </div>
+                        })),
+                        Ok(Some(f)) => Either3::Right(Either::Right(view! {
+                            <FootballDetail f=f/>
+                        })),
+                    })}
+                </Suspense>
+            </SlidePanel>
         </main>
     }
 }

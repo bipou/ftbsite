@@ -1,3 +1,11 @@
+use serde::Deserialize;
+use surrealdb::types::SurrealValue;
+
+#[derive(Debug, Deserialize, SurrealValue)]
+pub(crate) struct CountResult {
+    pub(crate) count: u64,
+}
+
 pub mod analysis_db;
 pub mod auth;
 pub mod captcha;

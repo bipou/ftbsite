@@ -92,8 +92,7 @@ pub async fn post_analysis(
         .map_err(|e| ServerFnError::new(e))?;
 
     // 将临时图片持久化到 /uploads/football/draft/ 或 /uploads/football/active/
-    let draft = status == -1;
-    let content = crate::server::upload::move_uploads(&content, "football", draft)
+    let content = crate::server::upload::move_uploads(&content, "football", status == -1)
         .map_err(|e| ServerFnError::new(e))?;
 
     analysis_db::insert_analysis(&fid, &content, &user.id, &summary)

@@ -31,6 +31,16 @@ pub const FLEX_WRAP_GAP: &str = "flex flex-wrap gap-2";
 pub const CAT_BTN: &str = "text-sm text-gray-600 dark:text-gray-200 px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors";
 pub const CAT_BTN_MORE: &str = "text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-600 rounded bg-transparent px-2 py-0.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors";
 
+// ── Slide panel classes ───────────────────────────────────────────────────
+pub const SLIDE_OVERLAY: &str = "slide-overlay";
+pub const SLIDE_PANEL: &str = "slide-panel";
+pub const SLIDE_OPEN: &str = "open";
+pub const SLIDE_CLOSE: &str = "slide-close";
+pub const SLIDE_BODY: &str = "slide-body";
+pub const SLIDE_SIZED_SM: &str = "slide-sized-sm";
+pub const SLIDE_SIZED_MD: &str = "slide-sized-md";
+pub const SLIDE_SIZED_LG: &str = "slide-sized-lg";
+
 // ── Config (SSR only) ──────────────────────────────────────────────────────
 #[cfg(feature = "ssr")]
 use std::sync::LazyLock;

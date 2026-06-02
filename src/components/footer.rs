@@ -26,7 +26,7 @@ extern "C" {
 
 #[cfg(feature = "oth")]
 #[component]
-fn AdBanner() -> impl IntoView {
+pub fn AdBanner() -> impl IntoView {
     #[cfg(feature = "hydrate")]
     let location = use_location();
     let counter = RwSignal::new(0u32);
@@ -79,7 +79,7 @@ pub fn Footer() -> impl IntoView {
         <small class="text-xs text-gray-500">
             "琼ICP备2024032236号-14"
             " · "
-            "琼公安备案预留位置"
+            "琼公网安备46020002000431号"
         </small>
     };
 

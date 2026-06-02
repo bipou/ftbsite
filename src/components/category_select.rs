@@ -28,62 +28,61 @@ pub fn CategorySelect(
             {low.into_iter().map(|cat| {
                 let kid = record_key(&cat.id).to_string();
                 let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获，避免借用问题
-                if let Some(ref sel) = selected {
-                    let s = sel.clone();
-                    let k = kid.clone();
-                    let k2 = k.clone();
-                    Either::Left(view! {
-                        <button type="button"
-                            class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
-                            on:click=move |_| s.set(k2.clone())
-                        >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
-                    })
-                } else {
-                    Either::Right(view! {
-                        <a href=move || ["/", &loc_str.get(), "/footballs?category=", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
-                    })
+                match &selected {
+                    Some(sel) => {
+                        let s = sel.clone();
+                        let k = kid.clone();
+                        let k2 = k.clone();
+                        Either::Left(view! {
+                            <button type="button"
+                                class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
+                                on:click=move |_| s.set(k2.clone())
+                            >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
+                        })
+                    }
+                    None => Either::Right(view! {
+                        <a href=move || ["/", &loc_str.get(), "/footballs/category/", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
+                    }),
                 }
             }).collect::<Vec<_>>()}
-            {move || if expanded.get() {
-                Either::Left(view! {
+            {move || match expanded.get() {
+                true => Either::Left(view! {
                     {high.clone().into_iter().map(|cat| {
                         let kid = record_key(&cat.id).to_string();
                         let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获
-                        if let Some(ref sel) = selected {
-                            let s = sel.clone();
-                            let k = kid.clone();
-                            let k2 = k.clone();
-                            Either::Left(view! {
-                                <button type="button"
-                                    class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
-                                    on:click=move |_| s.set(k2.clone())
-                                >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
-                            })
-                        } else {
-                            Either::Right(view! {
-                                <a href=move || ["/", &loc_str.get(), "/footballs?category=", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
-                            })
+                        match &selected {
+                            Some(sel) => {
+                                let s = sel.clone();
+                                let k = kid.clone();
+                                let k2 = k.clone();
+                                Either::Left(view! {
+                                    <button type="button"
+                                        class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
+                                        on:click=move |_| s.set(k2.clone())
+                                    >{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</button>
+                                })
+                            }
+                            None => Either::Right(view! {
+                                <a href=move || ["/", &loc_str.get(), "/footballs/category/", &kid].join("") class="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">{move || cat_name.get(&i18n.get_locale().to_string()).cloned().unwrap_or_default()}</a>
+                            }),
                         }
                     }).collect::<Vec<_>>()}
-                })
-            } else {
-                Either::Right(())
+                }),
+                false => Either::Right(()),
             }}
-            {if has_more {
-                Either::Left(view! {
+            {match has_more {
+                true => Either::Left(view! {
                     <button type="button"
                         class=CAT_BTN_MORE
                         on:click=move |_| set_expanded.update(|v| *v = !*v)
                     >
-                        {move || if expanded.get() {
-                            Either::Left(view! { {t_display!(i18n, collapse).to_string()} })
-                        } else {
-                            Either::Right(view! { {t_display!(i18n, more).to_string()} })
+                        {move || match expanded.get() {
+                            true => Either::Left(view! { {t_display!(i18n, collapse).to_string()} }),
+                            false => Either::Right(view! { {t_display!(i18n, more).to_string()} }),
                         }}
                     </button>
-                })
-            } else {
-                Either::Right(())
+                }),
+                false => Either::Right(()),
             }}
         </>
     }

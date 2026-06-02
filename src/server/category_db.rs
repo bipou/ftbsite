@@ -15,20 +15,19 @@ struct CategoryDoc {
     pinned: Option<bool>,
 }
 
-fn into_category(d: CategoryDoc) -> Category {
-    Category {
-        id: rid_str(&d.id),
-        name: d.name,
-        level: d.level,
-        pinned: d.pinned,
-    }
-}
-
 pub async fn get_categories() -> Result<Vec<Category>, String> {
     let mut res = get_db()
         .query("SELECT * FROM categories ORDER BY level ASC")
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<CategoryDoc> = res.take(0).map_err(|e| e.to_string())?;
-    Ok(docs.into_iter().map(into_category).collect())
+    Ok(docs
+        .into_iter()
+        .map(|d| Category {
+            id: rid_str(&d.id),
+            name: d.name,
+            level: d.level,
+            pinned: d.pinned,
+        })
+        .collect())
 }

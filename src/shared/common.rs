@@ -18,6 +18,75 @@ macro_rules! server_error_text {
     }};
 }
 
+/// CSS 类列表拼接，自动过滤空串
+#[macro_export]
+macro_rules! class {
+    ($($part:expr),+ $(,)?) => {
+        [$($part),+].iter().filter(|s| !s.is_empty()).copied().collect::<Vec<_>>().join(" ")
+    };
+}
+
+/// 详情面板信号+回调 — 消除 3 页面重复
+/// 带导航：use_detail_panel!(sel, fetch_fn, "/path", "/prefix/")
+/// 无导航：use_detail_panel!(sel, fetch_fn)
+#[macro_export]
+macro_rules! use_detail_panel {
+    ($sel:ident, $fetch_fn:path, $close_base:expr, $click_prefix:expr) => {
+        let $sel: leptos::prelude::RwSignal<Option<String>> = leptos::prelude::RwSignal::new(None);
+        let detail_open = leptos::prelude::Signal::derive(move || $sel.get().is_some());
+        let detail_data = leptos::prelude::Resource::new(
+            move || $sel.get(),
+            |id| async move {
+                match id.filter(|s| !s.is_empty()) {
+                    Some(id) => $fetch_fn(id).await,
+                    _ => Ok(None),
+                }
+            },
+        );
+        let detail_close = {
+            let navigate = navigate.clone();
+            let loc_str = loc_str.clone();
+            leptos::prelude::Callback::new(move |_| {
+                $sel.set(None);
+                navigate(
+                    &["/", &loc_str.get(), $close_base].join(""),
+                    Default::default(),
+                );
+            })
+        };
+        let on_card_click = {
+            let navigate = navigate.clone();
+            let loc_str = loc_str.clone();
+            leptos::prelude::Callback::new(move |id: String| {
+                $sel.set(Some(id.clone()));
+                navigate(
+                    &["/", &loc_str.get(), $click_prefix, &id].join(""),
+                    Default::default(),
+                );
+            })
+        };
+    };
+    ($sel:ident, $fetch_fn:path) => {
+        let $sel: leptos::prelude::RwSignal<Option<String>> = leptos::prelude::RwSignal::new(None);
+        let detail_open = leptos::prelude::Signal::derive(move || $sel.get().is_some());
+        let detail_data = leptos::prelude::Resource::new(
+            move || $sel.get(),
+            |id| async move {
+                match id.filter(|s| !s.is_empty()) {
+                    Some(id) => $fetch_fn(id).await,
+                    _ => Ok(None),
+                }
+            },
+        );
+        let detail_close = leptos::prelude::Callback::new(move |_| {
+            $sel.set(None);
+        });
+        let on_card_click = leptos::prelude::Callback::new(move |id: String| {
+            $sel.set(Some(id));
+        });
+    };
+}
+
 // ── Page title macros ────────────────────────────────────────────────────
 
 #[macro_export]

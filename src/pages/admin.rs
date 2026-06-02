@@ -8,10 +8,11 @@ use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::components::{Pagination, UserIntro, UserTopics};
 use crate::models::{Football, FootballsResult, User, UsersResult};
+use crate::pages::football::FootballDetail;
 
 use crate::shared::common::Either3;
 use crate::shared::constant::{
-    EMPTY, GRID_2, GRID_3, H1, HOVER_SHADOW, MAIN, NO_DATA, NO_UNDERLINE,
+    EMPTY, GRID_2, GRID_3, H1, HOVER_SHADOW, MAIN, NO_DATA, NO_UNDERLINE, TEXT_WARN,
 };
 use crate::shared::locale::{LocaleA, use_locale};
 
@@ -42,9 +43,11 @@ pub async fn get_my_status() -> Result<Option<i8>, ServerFnError> {
 }
 
 #[server]
-pub async fn admin_get_user(username: String) -> Result<Option<User>, ServerFnError> {
+pub async fn admin_get_user(user_id: String) -> Result<Option<User>, ServerFnError> {
     use crate::server::user_db;
-    user_db::get_user_by_username(&username)
+    use crate::shared::common::into_rid;
+    let rid = into_rid(&user_id, "users");
+    user_db::get_user_by_id(&rid)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
@@ -353,15 +356,21 @@ pub fn AdminUsersPage() -> impl IntoView {
     let loc_str = use_locale();
     let status_res = Resource::new(|| (), |_| get_my_status());
     let query = use_query_map();
-    let from = move || {
-        query
-            .read()
-            .get("from")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(1i64)
-    };
+    let from_sig = RwSignal::new(1i64);
+    Effect::new(move |_| {
+        from_sig.set(
+            query
+                .read()
+                .get("from")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(1),
+        );
+    });
 
-    let data = Resource::new_blocking(move || from(), |f| async move { get_admin_users(f).await });
+    let data = Resource::new_blocking(
+        move || from_sig.get(),
+        |f| async move { get_admin_users(f).await },
+    );
     let update_action = ServerAction::<AdminUpdateUserStatus>::new();
 
     view! {
@@ -397,11 +406,11 @@ pub fn AdminUsersPage() -> impl IntoView {
                             Either::Right(view! {
                                 <div class=[GRID_3, "mb-8"].join(" ")>
                                     {d.items.into_iter().map(|user| {
-                                        let username = user.username.clone();
+                                        let username = user.username;
                                         let uid = user.id.clone();
-                                        let updated = user.updated_at.clone();
+                                        let updated = user.updated_at;
                                         let status = user.status;
-                                        let keywords = user.keywords.clone();
+                                        let keywords = user.keywords;
                                         let initial = username.chars().next().unwrap_or('?');
                                         view! {
                                             <div class="card p-4 hover:shadow-md transition-shadow">
@@ -412,9 +421,7 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                     </div>
                                                     <div class="min-w-0 flex-1">
                                                         <div class="flex items-center gap-2 flex-wrap">
-                                                            <LocaleA
-                                                                                                                            href=["/admin/users/", &username.clone()].join("")
-                                                                                                                            class="font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 text-sm no-underline hover:underline"
+                                                            <LocaleA href=["/admin/users/", &uid].join("") class="font-semibold text-gray-800 dark:text-gray-100 hover:text-blue-600 text-sm no-underline hover:underline">
                                                             >
                                                             {username}
                                                             </LocaleA>
@@ -425,21 +432,20 @@ pub fn AdminUsersPage() -> impl IntoView {
                                                 </div>
 
                                                 // 关键词
-                                                {if !keywords.is_empty() {
-                                                    Either::Left(view! {
+                                                {match keywords.is_empty() {
+                                                    false => Either::Left(view! {
                                                         <div class="flex flex-wrap gap-1 mb-2">
                                                             {keywords.iter().take(6).map(|t| {
                                                                 let kid = crate::shared::common::record_key(&t.id).to_string();
-                                                                let path = ["/footballs?topic=", &kid].join("");
+                                                                let path = ["/", &loc_str.get(), "/footballs/topic/", &kid].join("");
                                                                                                                                 let name = t.name.clone();
                                                                                                                                 view! {
-                                                                                                                                    <LocaleA href=path class="badge-blue no-underline text-xs">{name}</LocaleA>
+                                                                                                                                    <a href=path class="badge-blue no-underline text-xs">{name}</a>
                                                                 }
                                                             }).collect::<Vec<_>>()}
                                                         </div>
-                                                    })
-                                                } else {
-                                                    Either::Right(())
+                                                    }),
+                                                    true => Either::Right(()),
                                                 }}
 
                                                 // 操作按钮
@@ -474,11 +480,14 @@ pub fn AdminUserDetailPage() -> impl IntoView {
     let i18n = use_i18n();
     let status_res = Resource::new(|| (), |_| get_my_status());
     let params = use_params_map();
-    let username = move || params.read().get("username").unwrap_or_default();
+    let uid_sig = RwSignal::new(String::new());
+    Effect::new(move |_| {
+        uid_sig.set(params.read().get("id").unwrap_or_default());
+    });
 
     let data = Resource::new_blocking(
-        move || username(),
-        |u| async move { admin_get_user(u).await },
+        move || uid_sig.get(),
+        |id| async move { admin_get_user(id).await },
     );
     let update_action = ServerAction::<AdminUpdateUserStatus>::new();
 
@@ -510,15 +519,15 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                             </div>
                         })),
                         Ok(Some(user)) => {
-                            let uid = user.id.clone();
-                            let uname = user.username.clone();
-                            let email = user.email.clone();
-                            let created = user.created_at.clone();
-                            let updated = user.updated_at.clone();
+                            let uid = user.id;
+                            let uname = user.username;
+                            let email = user.email;
+                            let created = user.created_at;
+                            let updated = user.updated_at;
                             let status = user.status;
-                            let intro_html = user.introduction_html.clone();
-                            let keywords = user.keywords.clone();
-                            let topics = user.topics.clone();
+                            let intro_html = user.introduction_html;
+                            let keywords = user.keywords;
+                            let topics = user.topics;
                             let initial = uname.chars().next().unwrap_or('?');
                             Either3::Right(Either::Right(view! {
                                 // 面包屑
@@ -581,16 +590,19 @@ pub fn AdminFootballsPage() -> impl IntoView {
     let loc_str = use_locale();
     let status_res = Resource::new(|| (), |_| get_my_status());
     let query = use_query_map();
-    let from = move || {
-        query
-            .read()
-            .get("from")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(1i64)
-    };
+    let from_sig = RwSignal::new(1i64);
+    Effect::new(move |_| {
+        from_sig.set(
+            query
+                .read()
+                .get("from")
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(1),
+        );
+    });
 
     let data = Resource::new_blocking(
-        move || from(),
+        move || from_sig.get(),
         |f| async move { get_admin_footballs(f).await },
     );
     let update_action = ServerAction::<AdminUpdateStatus>::new();
@@ -680,9 +692,14 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
     let i18n = use_i18n();
     let status_res = Resource::new(|| (), |_| get_my_status());
     let params = use_params_map();
-    let id = move || params.read().get("id").unwrap_or_default();
-    let football_res =
-        Resource::new_blocking(move || id(), |i| async move { admin_get_football(i).await });
+    let fid_sig = RwSignal::new(String::new());
+    Effect::new(move |_| {
+        fid_sig.set(params.read().get("id").unwrap_or_default());
+    });
+    let football_res = Resource::new_blocking(
+        move || fid_sig.get(),
+        |i| async move { admin_get_football(i).await },
+    );
     let update_action = ServerAction::<AdminUpdateStatus>::new();
 
     view! {
@@ -735,7 +752,8 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
                                 </div>
 
                                 // 公开详情
-                                <crate::pages::football::FootballDetailPage/>
+                                <FootballDetail f=f.clone()/>
+                                                                <p class={[TEXT_WARN, "text-center", "mt-6", "mb-0"].join(" ")}>{move || t!(i18n, site_warn)}</p>
                             }))
                         }
                     })}

@@ -1,26 +1,16 @@
 use crate::i18n::{t, t_display, use_i18n};
-use crate::shared::locale::use_locale;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
-use leptos_router::hooks::use_query_map;
-use serde::{Deserialize, Serialize};
+use leptos_router::hooks::{use_navigate, use_params_map};
 
-use crate::components::{ArticleCard, CategorySelect, FootballCard, Pagination};
+use crate::components::{ArticleCard, CategorySelect, FootballCard, Pagination, SlidePanel};
 use crate::models::FootballsResult;
+use crate::pages::football::{FootballDetail, get_football_and_increment};
 use crate::pages::write::get_all_categories;
 
 use crate::shared::common::{Either3, record_key};
-use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, TEXT_WARN, WIDE};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum FootballsFilter {
-    All,
-    Picks,
-    Hot,
-    ByCategory(String),
-    ByTopic(String),
-}
+use crate::shared::constant::{EMPTY, GRID_3, NO_DATA, SLIDE_SIZED_LG, TEXT_WARN, WIDE};
 
 #[server]
 pub async fn get_footballs_page(
@@ -51,46 +41,66 @@ pub async fn get_footballs_page(
 #[component]
 pub fn FootballsPage() -> impl IntoView {
     let i18n = use_i18n();
-    let loc_str = use_locale();
-    let query = use_query_map();
+    let params = use_params_map();
+    let navigate = use_navigate();
 
-    // Reactive query params
-    let from = move || {
-        query
-            .read()
-            .get("from")
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(1i64)
+    let initial_id = params.read_untracked().get("id").filter(|s| !s.is_empty());
+    let selected_id: RwSignal<Option<String>> = RwSignal::new(initial_id);
+
+    // 从 URL :id 设置 selected_id（跟踪后续变化）
+    Effect::new(move |_| {
+        selected_id.set(params.read().get("id").filter(|s| !s.is_empty()));
+    });
+
+    // 详情面板信号
+    let detail_open = Signal::derive(move || selected_id.get().is_some());
+    let detail_data = Resource::new_blocking(
+        move || selected_id.get(),
+        |id| async move {
+            match id.filter(|s| !s.is_empty()) {
+                Some(id) => get_football_and_increment(id).await,
+                _ => Ok(None),
+            }
+        },
+    );
+    let detail_close = Callback::new(move |_| selected_id.set(None));
+    let on_card_click = {
+        let navigate = navigate.clone();
+        Callback::new(move |fid: String| {
+            navigate(
+                &["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join(""),
+                Default::default(),
+            );
+            selected_id.set(Some(fid));
+        })
     };
-    // /footballs?topic=xxx  /footballs?category=xxx  /footballs?picks  /footballs?hot
-    let filter = move || {
-        let q = query.read();
-        ["topic", "category", "picks", "hot"]
-            .iter()
-            .find(|&&k| q.get(k).is_some())
-            .map(|&k| k.to_string())
-            .unwrap_or_default()
-    };
-    let filter_id = move || {
-        let q = query.read();
-        q.get("topic")
-            .or_else(|| q.get("category"))
-            .unwrap_or_default()
-    };
+
+    // 路由参数 → 稳定信号（params Memo 路由切换时释放，不能直接捕获）
+    let from_sig = RwSignal::new(1i64);
+    let filter_sig: RwSignal<(String, String)> = RwSignal::new((String::new(), String::new()));
+    Effect::new(move |_| {
+        let p = params.read();
+        from_sig.set(p.get("from").and_then(|v| v.parse().ok()).unwrap_or(1));
+        if let Some(cid) = p.get("cid").filter(|s| !s.is_empty()) {
+            filter_sig.set(("category".into(), cid));
+        } else if let Some(tid) = p.get("tid").filter(|s| !s.is_empty()) {
+            filter_sig.set(("topic".into(), tid));
+        } else {
+            filter_sig.set((String::new(), String::new()));
+        }
+    });
 
     let cats_res = Resource::new(|| (), |_| get_all_categories());
 
     let footballs_res = Resource::new_blocking(
-        move || (from(), filter(), filter_id()),
+        move || (from_sig.get(), filter_sig.get().0, filter_sig.get().1),
         |(f, fi, fid)| async move { get_footballs_page(f, fi, fid).await },
     );
 
-    // h1 和页面标题的筛选后缀，统一定义
-    let heading_suffix = move || match filter().as_str() {
-        "picks" => [" | ", &t_display!(i18n, status_picks).to_string()].join(""),
-        "hot" => [" | ", &t_display!(i18n, status_hot).to_string()].join(""),
-        "topic" | "category" => {
-            let fid = filter_id();
+    // h1 和页面标题的筛选后缀
+    let heading_suffix = Memo::new(move |_| match filter_sig.get().0.as_str() {
+        "category" => {
+            let fid = filter_sig.get().1;
             if fid.is_empty() {
                 String::new()
             } else {
@@ -99,27 +109,37 @@ pub fn FootballsPage() -> impl IntoView {
                     .and_then(|r| r.ok())
                     .and_then(|cats| {
                         cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
-                            let name = c.name.get(&loc_str.get()).cloned().unwrap_or_default();
+                            let name = c
+                                .name
+                                .get(&i18n.get_locale().to_string())
+                                .cloned()
+                                .unwrap_or_default();
                             [" | ", &name].join("")
                         })
                     })
                     .unwrap_or_default()
             }
         }
+        "topic" => String::new(),
         _ => String::new(),
-    };
+    });
 
-    // 页面标题：football_list | 筛选名 – site_name | site_slogan
-    let title_text = move || {
+    // 页面标题：跟随筛选变化，静态部分预计算避免 Memo 访问已释放信号
+    let list_title = t_display!(i18n, football_list).to_string();
+    let site_name_title = t_display!(i18n, site_name).to_string();
+    let site_slogan_title = t_display!(i18n, site_slogan).to_string();
+    let title_text = Memo::new(move |_| {
+        let suffix = heading_suffix.get();
         [
-            &t_display!(i18n, football_list).to_string(),
+            &list_title,
+            &suffix,
             " – ",
-            &t_display!(i18n, site_name).to_string(),
+            &site_name_title,
             " | ",
-            &t_display!(i18n, site_slogan).to_string(),
+            &site_slogan_title,
         ]
         .join("")
-    };
+    });
 
     view! {
         <Title text=title_text/>
@@ -131,11 +151,11 @@ pub fn FootballsPage() -> impl IntoView {
                 <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                     {move || t!(i18n, football_list)}
                     <Suspense fallback=|| ()>
-                        {heading_suffix}
+                        {move || heading_suffix.get()}
                     </Suspense>
                 </h1>
                 <a
-                    href=move || ["/", &loc_str.get(), "/footballs/share-analysis"].join("")
+                    href=move || ["/", &i18n.get_locale().to_string(), "/footballs/share-analysis"].join("")
                     class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-3 text-lg transition-colors no-underline"
                 >
                     {move || t!(i18n, write_article)}
@@ -148,15 +168,15 @@ pub fn FootballsPage() -> impl IntoView {
                         {move || t!(i18n, football_category)}
                     </span>
                     <div class="flex flex-wrap gap-2">
-                        <a href=move || ["/", &loc_str.get(), "/footballs"].join("")
+                        <a href=move || ["/", &i18n.get_locale().to_string(), "/footballs"].join("")
                                                    class="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     {move || t!(i18n, all)}
                                                 </a>
-                                                <a href=move || ["/", &loc_str.get(), "/footballs?picks"].join("")
+                                                <a href=move || ["/", &i18n.get_locale().to_string(), "/footballs?picks"].join("")
                                                     class="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">
                                                     {move || t!(i18n, status_picks)}
                                                 </a>
-                                                <a href=move || ["/", &loc_str.get(), "/footballs?hot"].join("")
+                                                <a href=move || ["/", &i18n.get_locale().to_string(), "/footballs?hot"].join("")
                             class="text-red-500 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50">
                             {move || t!(i18n, status_hot)}
                         </a>
@@ -181,11 +201,11 @@ pub fn FootballsPage() -> impl IntoView {
                             <p class="text-red-500 py-8 text-center">{e.to_string()}</p>
                         }),
                         Ok(data) => {
-                            let pi = data.page_info.clone();
-                            let base = match filter().as_str() {
-                                                            "topic" | "category" => ["/", &loc_str.get(), "/footballs?", &filter(), "=", &filter_id()].join(""),
-                                                            "picks" | "hot" => ["/", &loc_str.get(), "/footballs?", &filter()].join(""),
-                                                            _ => ["/", &loc_str.get(), "/footballs"].join(""),
+                            let pi = data.page_info;
+                            let base = match filter_sig.get().0.as_str() {
+                                "category" => ["/", &i18n.get_locale().to_string(), "/footballs/category/", &filter_sig.get().1].join(""),
+                                "topic" => ["/", &i18n.get_locale().to_string(), "/footballs/topic/", &filter_sig.get().1].join(""),
+                                _ => ["/", &i18n.get_locale().to_string(), "/footballs"].join(""),
                             };
                             if data.items.is_empty() {
                                 Either3::Right(Either::Left(view! {
@@ -194,15 +214,16 @@ pub fn FootballsPage() -> impl IntoView {
                                     </div>
                                 }))
                             } else {
+                                let cb = on_card_click.clone();
                                 Either3::Right(Either::Right(view! {
                                     <div class={GRID_3}>
                                         {data.items.into_iter().map(|f| {
                                             let at = f.ana_type;
+                                            let cb = cb.clone();
                                             view! {
-                                                {if at == 0 {
-                                                    Either::Left(view! { <ArticleCard football=f/> })
-                                                } else {
-                                                    Either::Right(view! { <FootballCard football=f/> })
+                                                {match at == 0 {
+                                                    true => Either::Left(view! { <ArticleCard football=f on_click=cb/> }),
+                                                    false => Either::Right(view! { <FootballCard football=f on_click=cb/> }),
                                                 }}
                                             }
                                         }).collect::<Vec<_>>()}
@@ -214,6 +235,29 @@ pub fn FootballsPage() -> impl IntoView {
                     })}
                 </Suspense>
             </div>
+
+            // ── 详情底部滑出面板 ──────────────────────────────────────────
+            <SlidePanel open=detail_open on_close=detail_close panel_class=Signal::derive(|| SLIDE_SIZED_LG.to_string())>
+                <Suspense fallback=move || view! {
+                    <div class="flex justify-center py-16">
+                        <div class="text-gray-400">{move || t!(i18n, loading)}</div>
+                    </div>
+                }>
+                    {move || detail_data.get().map(|result| match result {
+                        Err(e) => Either3::Left(view! {
+                            <p class="text-red-500 text-center py-8">{e.to_string()}</p>
+                        }),
+                        Ok(None) => Either3::Right(Either::Left(view! {
+                            <div class=EMPTY>
+                                <p class=NO_DATA>{move || t!(i18n, no_data)}</p>
+                            </div>
+                        })),
+                        Ok(Some(f)) => Either3::Right(Either::Right(view! {
+                            <FootballDetail f=f/>
+                        })),
+                    })}
+                </Suspense>
+            </SlidePanel>
         </main>
     }
 }

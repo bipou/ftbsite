@@ -78,8 +78,7 @@ pub fn save_upload(data_url: &str, scope: &str) -> Result<String, ServerFnError>
 
 /// 将 markdown 中 scope/tmp/ 图片 move 到 draft 或 active
 pub fn move_uploads(md: &str, scope: &str, draft: bool) -> Result<String, ServerFnError> {
-    let stage = if draft { "draft" } else { "active" };
-    let dest_dir = uploads_dir(scope, stage);
+    let dest_dir = uploads_dir(scope, if draft { "draft" } else { "active" });
     std::fs::create_dir_all(&dest_dir).map_err(|_| ServerFnError::new("upload_failed"))?;
 
     let tmp_dir = uploads_dir(scope, "tmp");
