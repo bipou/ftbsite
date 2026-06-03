@@ -1,7 +1,9 @@
 use crate::components::football_card::{CatBadge, status_badge, status_class};
 use crate::i18n::{t, t_display, use_i18n};
 use crate::models::Football;
-use crate::shared::constant::{FLEX_BETWEEN, HOVER_SHADOW, TEXT_SUBTLE, TEXT_XS_MUTED};
+use crate::shared::constant::{
+    FLEX_BETWEEN, HOVER_SHADOW, NO_UNDERLINE, TEXT_SUBTLE, TEXT_XS_MUTED,
+};
 use crate::shared::fns::get_username_by_id;
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -23,6 +25,8 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     let updated = football.updated_at;
     let is_ai = football.ana_type > 0;
     let fid = crate::shared::common::record_key(&football.id).to_string();
+    let href = ["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join("");
+    let fid2 = fid.clone();
 
     let status = football.status;
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
@@ -64,16 +68,20 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     view! {
         <div class=card_class>
             <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
-                <button
-                    class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0 border-0 bg-transparent cursor-pointer p-0 text-left"
-                    on:click={
-                        let fid = fid.clone();
-                        let cb = on_click.clone();
-                        move |_| cb.run(fid.clone())
-                    }
-                >
-                    {title}
-                </button>
+                <a
+                                    class=["font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 text-lg leading-tight min-w-0 cursor-pointer p-0 text-left block", NO_UNDERLINE].join(" ")
+                                    href=href.clone()
+                                    on:click={
+                                                                        let fid_val = fid2.clone();
+                                                                        let cb = on_click.clone();
+                                                                        move |ev| {
+                                                                            ev.prevent_default();
+                                                                            cb.run(fid_val.clone())
+                                                                        }
+                                                                    }
+                                >
+                                    {title}
+                                </a>
                 <span class="text-sm ml-2 whitespace-nowrap">
                     {badge_or_label}
                 </span>
@@ -86,13 +94,15 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
 
             {match summary {
                 Some(s) => Either::Left(view! {
-                    <button class="no-underline border-0 bg-transparent cursor-pointer p-0 text-left w-full" on:click={
-                        let fid = fid.clone();
-                        let cb = on_click.clone();
-                        move |_| cb.run(fid.clone())
-                    }>
+                    <a class=["cursor-pointer block p-0 text-left w-full", NO_UNDERLINE].join(" ") href=href.clone() on:click={
+                                                                let cb = on_click.clone();
+                                            move |ev| {
+                                                ev.prevent_default();
+                                                cb.run(fid2.clone())
+                                            }
+                                        }>
                         <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
-                    </button>
+                    </a>
                 }),
                 None => Either::Right(()),
             }}

@@ -3,7 +3,7 @@ use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
     BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
-    TEXT_SUBTLE, TEXT_XS_MUTED,
+    NO_UNDERLINE, TEXT_SUBTLE, TEXT_XS_MUTED,
 };
 #[cfg(feature = "oth")]
 use crate::shared::constant::{BADGE_GREEN, BADGE_RED, TEXT_MUTED};
@@ -202,16 +202,20 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
         }
     });
     let fid = crate::shared::common::record_key(&football.id).to_string();
+    let href = ["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join("");
+    let fid1 = fid.clone();
     // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联
     let summary_view = summary.map(|s| {
         view! {
-            <button class="no-underline border-0 bg-transparent cursor-pointer p-0 text-left w-full" on:click={
-                let fid = fid.clone();
-                let cb = on_click.clone();
-                move |_| cb.run(fid.clone())
-            }>
+            <a class=["cursor-pointer block p-0 text-left w-full", NO_UNDERLINE].join(" ") href=href.clone() on:click={
+                                        let cb = on_click.clone();
+                            move |ev| {
+                                ev.prevent_default();
+                                cb.run(fid.clone())
+                            }
+                        }>
                 <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
-            </button>
+            </a>
         }
     });
     let category = football.category;
@@ -226,13 +230,20 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
     view! {
         <div class=card_class>
             <div class=[FLEX_BETWEEN, "mb-2"].join(" ")>
-                <button class="font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 no-underline text-lg leading-tight min-w-0 border-0 bg-transparent cursor-pointer p-0 text-left" on:click={
-                    let fid = fid.clone();
-                    let cb = on_click.clone();
-                    move |_| cb.run(fid.clone())
-                }>
-                    {title}
-                </button>
+                <a
+                                    class=["font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 text-lg leading-tight min-w-0 cursor-pointer p-0 text-left block", NO_UNDERLINE].join(" ")
+                                    href=href.clone()
+                                    on:click={
+                                                                        let fid_val = fid1.clone();
+                                                                        let cb = on_click.clone();
+                                                                        move |ev| {
+                                                                            ev.prevent_default();
+                                                                            cb.run(fid_val.clone())
+                                                                        }
+                                                                    }
+                                >
+                                    {title}
+                                </a>
                 {let badge = status_badge(status); match badge.is_empty() {
                     false => Either::Left(view! {
                         <span class="text-sm ml-2 whitespace-nowrap">{badge}</span>

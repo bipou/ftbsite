@@ -1,8 +1,11 @@
 use crate::detail_close_nav;
+use crate::detail_open_nav;
 use crate::i18n::{t, use_i18n};
 use crate::page_title;
 use crate::shared::common::{Either3, record_key};
-use crate::shared::constant::{BADGE_BLUE_NO_UL, EMPTY, GRID_3, H1, NO_DATA, SLIDE_SIZED_LG, WIDE};
+use crate::shared::constant::{
+    BADGE_BLUE_NO_UL, EMPTY, GRID_3, H1, NO_DATA, NO_UNDERLINE, SLIDE_SIZED_LG, WIDE,
+};
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -40,7 +43,6 @@ pub fn UsersPage() -> impl IntoView {
     let loc_str = use_locale();
     let params = use_params_map();
     let query = use_query_map();
-    let navigate = leptos_router::hooks::use_navigate();
     let from_sig = RwSignal::new(1i64);
     Effect::new(move |_| {
         from_sig.set(
@@ -57,19 +59,18 @@ pub fn UsersPage() -> impl IntoView {
         |f| async move { get_users_page(f).await },
     );
 
-    // 从 URL :id 初始化并同步 selected_id
+    // 从 URL :id 初始化 selected_id
     let selected_id: RwSignal<Option<String>> = {
         let initial = params.read_untracked().get("id").filter(|s| !s.is_empty());
         RwSignal::new(initial)
     };
-    Effect::new(move |_| {
-        selected_id.set(params.read().get("id").filter(|s| !s.is_empty()));
-    });
 
     let detail_open = Signal::derive(move || selected_id.get().is_some());
+    // 版本计数器：避免 Resource 缓存同一 key，确保每次点击都重新获取
+    let detail_ver: RwSignal<u32> = RwSignal::new(0);
     let detail_data = Resource::new(
-        move || selected_id.get(),
-        |id| async move {
+        move || (selected_id.get(), detail_ver.get()),
+        |(id, _)| async move {
             match id.filter(|s| !s.is_empty()) {
                 Some(id) => get_user_by_id(id).await,
                 None => Ok(None),
@@ -77,17 +78,7 @@ pub fn UsersPage() -> impl IntoView {
         },
     );
     let detail_close = detail_close_nav!(selected_id, i18n, "/users");
-    let on_card_click = {
-        let navigate = navigate.clone();
-        Callback::new(move |uid: String| {
-            let kid = record_key(&uid).to_string();
-            navigate(
-                &["/", &i18n.get_locale().to_string(), "/users/", &kid].join(""),
-                Default::default(),
-            );
-            selected_id.set(Some(kid));
-        })
-    };
+    let on_card_click = detail_open_nav!(selected_id, detail_ver, i18n, "/users/");
 
     view! {
         <Title text=move || page_title!(i18n, users_list)/>
@@ -108,19 +99,41 @@ pub fn UsersPage() -> impl IntoView {
                                     let UserSummary { id, username, updated_at, keywords, .. } = user;
                                     let initial = username.chars().next().unwrap_or('?');
                                     let kid = record_key(&id).to_string();
-                                    let cb = on_card_click.clone();
-                                    view! {
-                                        <button class=[CARD_BLOCK_NO_UL, "w-full text-left border-0 cursor-pointer"].join(" ") on:click={
-                                            let cb = cb.clone();
-                                            let kid = kid.clone();
-                                            move |_| cb.run(kid.clone())
-                                        }>
+                                                                        let kid2 = kid.clone();
+                                    let href = ["/", &loc_str.get(), "/users/", &kid].join("");
+                                                                        let cb = on_card_click.clone();
+                                                                        view! {
+                                        // div 替代 button，避免拦截内层 <a> 的右键菜单
+                                        <div class=[CARD_BLOCK_NO_UL, "w-full text-left cursor-pointer"].join(" ")
+                                            role="button" tabindex="0"
+                                            on:click={
+                                                let cb = cb.clone();
+                                                let kid = kid.clone();
+                                                move |_| cb.run(kid.clone())
+                                            }
+                                            // 键盘无障碍：Enter/Space 触发
+                                            on:keydown={
+                                                let cb2 = cb.clone();
+                                                let kid_k = kid.clone();
+                                                move |ev: leptos::ev::KeyboardEvent| {
+                                                    if ev.key() == "Enter" || ev.key() == " " {
+                                                        ev.prevent_default();
+                                                        cb2.run(kid_k.clone());
+                                                    }
+                                                }
+                                            }
+                                        >
                                             <div class="flex items-start gap-3">
                                                 <div class="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 font-bold text-2xl shrink-0 mt-1">
                                                     {initial.to_string()}
                                                 </div>
                                                 <div class="min-w-0 flex-1">
-                                                    <span class="text-2xl font-bold text-gray-800 dark:text-gray-100 truncate">{username}</span>
+                                                    <a href=href class=["text-2xl font-bold text-gray-800 dark:text-gray-100 truncate hover:text-blue-600", NO_UNDERLINE].join(" ") on:click=move |ev| {
+                                                                                                            ev.prevent_default();
+                                                                                                            cb.run(kid2.clone())
+                                                                                                        }>
+                                                                                                        {username}
+                                                                                                        </a>
                                                     <p class="text-xs text-gray-400 mt-1">{move || t!(i18n, profile_updated)}{updated_at}</p>
                                                     {match keywords.is_empty() {
                                                         false => Either::Left(view! {
@@ -139,7 +152,7 @@ pub fn UsersPage() -> impl IntoView {
                                                     }}
                                                 </div>
                                             </div>
-                                        </button>
+                                        </div>
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>

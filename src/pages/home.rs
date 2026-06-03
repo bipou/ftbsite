@@ -1,4 +1,5 @@
 use crate::detail_close_nav;
+use crate::detail_open_nav;
 use crate::i18n::{t, t_display, use_i18n};
 use crate::site_title;
 use leptos::either::Either;
@@ -75,10 +76,12 @@ pub fn HomePage() -> impl IntoView {
     let data = Resource::new_blocking(|| (), |_| get_home_data());
 
     let selected_id: RwSignal<Option<String>> = RwSignal::new(None);
+    // 版本计数器：避免 Resource 缓存同一 key，确保每次点击都重新获取
+    let detail_ver: RwSignal<u32> = RwSignal::new(0);
     let detail_open = Signal::derive(move || selected_id.get().is_some());
     let detail_data = Resource::new(
-        move || selected_id.get(),
-        |id| async move {
+        move || (selected_id.get(), detail_ver.get()),
+        |(id, _)| async move {
             match id.filter(|s| !s.is_empty()) {
                 Some(id) => get_football_and_increment(id).await,
                 _ => Ok(None),
@@ -86,16 +89,7 @@ pub fn HomePage() -> impl IntoView {
         },
     );
     let detail_close = detail_close_nav!(selected_id, i18n, "");
-    let on_card_click = {
-        let navigate = leptos_router::hooks::use_navigate();
-        Callback::new(move |fid: String| {
-            navigate(
-                &["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join(""),
-                Default::default(),
-            );
-            selected_id.set(Some(fid));
-        })
-    };
+    let on_card_click = detail_open_nav!(selected_id, detail_ver, i18n, "/footballs/");
 
     view! {
         <Title text=move || site_title!(i18n)/>

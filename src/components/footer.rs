@@ -57,7 +57,7 @@ pub fn AdBanner() -> impl IntoView {
     };
 
     view! {
-        <div inner_html=ad_html></div>
+        <div class="overflow-x-hidden max-w-full" inner_html=ad_html></div>
     }
 }
 

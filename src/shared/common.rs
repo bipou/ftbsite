@@ -113,6 +113,28 @@ macro_rules! detail_close_nav {
     }};
 }
 
+/// 详情打开回调 — replaceState 写 URL + 设信号 + 递增版本
+#[macro_export]
+macro_rules! detail_open_nav {
+    ($sel:expr, $ver:expr, $i18n:expr, $prefix:expr) => {{
+        let sel = $sel;
+        let ver = $ver;
+        leptos::prelude::Callback::new(move |fid: String| {
+            #[cfg(feature = "hydrate")]
+            {
+                let url = ["/", &$i18n.get_locale().to_string(), $prefix, &fid].join("");
+                let _ = web_sys::window()
+                    .unwrap()
+                    .history()
+                    .unwrap()
+                    .replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&url));
+            }
+            sel.set(Some(fid));
+            ver.update(|v| *v += 1);
+        })
+    }};
+}
+
 // ── Page title macros ────────────────────────────────────────────────────
 
 #[macro_export]

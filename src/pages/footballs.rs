@@ -1,10 +1,11 @@
 use crate::detail_close_nav;
+use crate::detail_open_nav;
 use crate::i18n::{t, use_i18n};
 use crate::page_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
-use leptos_router::hooks::{use_navigate, use_params_map};
+use leptos_router::hooks::use_params_map;
 
 use crate::components::{ArticleCard, CategorySelect, FootballCard, Pagination, SlidePanel};
 use crate::models::FootballsResult;
@@ -44,21 +45,17 @@ pub async fn get_footballs_page(
 pub fn FootballsPage() -> impl IntoView {
     let i18n = use_i18n();
     let params = use_params_map();
-    let navigate = use_navigate();
 
     let initial_id = params.read_untracked().get("id").filter(|s| !s.is_empty());
     let selected_id: RwSignal<Option<String>> = RwSignal::new(initial_id);
 
-    // 从 URL :id 设置 selected_id（跟踪后续变化）
-    Effect::new(move |_| {
-        selected_id.set(params.read().get("id").filter(|s| !s.is_empty()));
-    });
-
     // 详情面板信号
     let detail_open = Signal::derive(move || selected_id.get().is_some());
+    // 版本计数器：避免 Resource 缓存同一 key，确保每次点击都重新获取
+    let detail_ver: RwSignal<u32> = RwSignal::new(0);
     let detail_data = Resource::new_blocking(
-        move || selected_id.get(),
-        |id| async move {
+        move || (selected_id.get(), detail_ver.get()),
+        |(id, _)| async move {
             match id.filter(|s| !s.is_empty()) {
                 Some(id) => get_football_and_increment(id).await,
                 _ => Ok(None),
@@ -66,16 +63,7 @@ pub fn FootballsPage() -> impl IntoView {
         },
     );
     let detail_close = detail_close_nav!(selected_id, i18n, "/footballs");
-    let on_card_click = {
-        let navigate = navigate.clone();
-        Callback::new(move |fid: String| {
-            navigate(
-                &["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join(""),
-                Default::default(),
-            );
-            selected_id.set(Some(fid));
-        })
-    };
+    let on_card_click = detail_open_nav!(selected_id, detail_ver, i18n, "/footballs/");
 
     // 路由参数 → 稳定信号（params Memo 路由切换时释放，不能直接捕获）
     let from_sig = RwSignal::new(1i64);
@@ -100,33 +88,30 @@ pub fn FootballsPage() -> impl IntoView {
     );
 
     // h1 标题后缀和页面标题
-    let heading_suffix = RwSignal::new(String::new());
-    Effect::new(move |_| {
-        heading_suffix.set(match filter_sig.get().0.as_str() {
-            "category" => {
-                let fid = filter_sig.get().1;
-                if fid.is_empty() {
-                    String::new()
-                } else {
-                    cats_res
-                        .get()
-                        .and_then(|r| r.ok())
-                        .and_then(|cats| {
-                            cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
-                                let name = c
-                                    .name
-                                    .get(&i18n.get_locale().to_string())
-                                    .cloned()
-                                    .unwrap_or_default();
-                                [" | ", &name].join("")
-                            })
+    let heading_suffix = Memo::new(move |_| match filter_sig.get().0.as_str() {
+        "category" => {
+            let fid = filter_sig.get().1;
+            if fid.is_empty() {
+                String::new()
+            } else {
+                cats_res
+                    .get()
+                    .and_then(|r| r.ok())
+                    .and_then(|cats| {
+                        cats.iter().find(|c| record_key(&c.id) == fid).map(|c| {
+                            let name = c
+                                .name
+                                .get(&i18n.get_locale().to_string())
+                                .cloned()
+                                .unwrap_or_default();
+                            [" | ", &name].join("")
                         })
-                        .unwrap_or_default()
-                }
+                    })
+                    .unwrap_or_default()
             }
-            "topic" => String::new(),
-            _ => String::new(),
-        });
+        }
+        "topic" => String::new(),
+        _ => String::new(),
     });
 
     view! {
