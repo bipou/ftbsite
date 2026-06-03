@@ -1,3 +1,4 @@
+use crate::detail_close_nav;
 use crate::i18n::{t, use_i18n};
 use crate::page_title;
 use crate::shared::common::{Either3, record_key};
@@ -75,7 +76,7 @@ pub fn UsersPage() -> impl IntoView {
             }
         },
     );
-    let detail_close = Callback::new(move |_| selected_id.set(None));
+    let detail_close = detail_close_nav!(selected_id, i18n, "/users");
     let on_card_click = {
         let navigate = navigate.clone();
         Callback::new(move |uid: String| {

@@ -1,3 +1,4 @@
+use crate::detail_close_nav;
 use crate::i18n::{t, t_display, use_i18n};
 use crate::site_title;
 use leptos::either::Either;
@@ -84,7 +85,7 @@ pub fn HomePage() -> impl IntoView {
             }
         },
     );
-    let detail_close = Callback::new(move |_| selected_id.set(None));
+    let detail_close = detail_close_nav!(selected_id, i18n, "");
     let on_card_click = {
         let navigate = leptos_router::hooks::use_navigate();
         Callback::new(move |fid: String| {

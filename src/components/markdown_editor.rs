@@ -82,7 +82,7 @@ pub fn MarkdownEditor(
         if let Some(Ok(url)) = upload_action.value().get() {
             let cursor = cursor_pos.get_untracked();
             let i18n = use_i18n();
-            let alt = untrack(|| t_display!(i18n, image).to_string());
+            let alt = t_display!(i18n, image).to_string();
             let md = ["![", &alt, "](", &url, ")"].join("");
             set_markdown.update(|v| {
                 if cursor < v.len() {

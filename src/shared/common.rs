@@ -87,6 +87,32 @@ macro_rules! use_detail_panel {
     };
 }
 
+/// 详情关闭回调 — 导航回列表 + 清 ID
+#[macro_export]
+macro_rules! detail_close_nav {
+    ($sel:expr) => {{
+        let sel = $sel;
+        leptos::prelude::Callback::new(move |_| {
+            sel.set(None);
+        })
+    }};
+    ($sel:expr, $i18n:expr, $base:expr) => {{
+        let sel = $sel;
+        leptos::prelude::Callback::new(move |_| {
+            #[cfg(feature = "hydrate")]
+            {
+                let url = ["/", &$i18n.get_locale().to_string(), $base].join("");
+                let _ = web_sys::window()
+                    .unwrap()
+                    .history()
+                    .unwrap()
+                    .replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(&url));
+            }
+            sel.set(None);
+        })
+    }};
+}
+
 // ── Page title macros ────────────────────────────────────────────────────
 
 #[macro_export]

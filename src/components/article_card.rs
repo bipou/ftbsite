@@ -27,11 +27,11 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     let status = football.status;
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
     let badge = status_badge(status);
-    let badge_or_label = match (badge.is_empty(), is_ai) {
+    let badge_or_label = Memo::new(move |_| match (badge.is_empty(), is_ai) {
         (false, _) => badge.to_string(),
-        (true, true) => untrack(|| t_display!(i18n, analysis_ai).to_string()),
+        (true, true) => t_display!(i18n, analysis_ai).to_string(),
         (true, false) => String::new(),
-    };
+    });
 
     // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联
 
