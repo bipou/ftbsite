@@ -26,7 +26,11 @@ extern "C" {
 
 #[cfg(feature = "oth")]
 #[component]
-pub fn AdBanner() -> impl IntoView {
+pub fn AdBanner(
+    /// 外部触发信号（如面板打开），变化时重建广告位
+    #[prop(into, optional)]
+    trigger: Option<Signal<u32>>,
+) -> impl IntoView {
     #[cfg(feature = "hydrate")]
     let location = use_location();
     let counter = RwSignal::new(0u32);
@@ -45,6 +49,23 @@ pub fn AdBanner() -> impl IntoView {
             push_ad_unit();
         }
     });
+
+    // 外部 trigger 触发重建（如详情面板打开）
+    #[cfg(feature = "hydrate")]
+    if let Some(t) = trigger {
+        let is_first_t = RwSignal::new(true);
+        Effect::new(move |_| {
+            let _ = t.get();
+            if is_first_t.get() {
+                is_first_t.set(false);
+            } else {
+                counter.update(|n| *n += 1);
+                push_ad_unit();
+            }
+        });
+    }
+    #[cfg(not(feature = "hydrate"))]
+    let _ = &trigger;
 
     // counter 嵌入 data-refresh 使每次 inner_html 字符串不同，
     // Leptos 检测到差异后替换 innerHTML → 销毁旧 <ins>、创建新 <ins>

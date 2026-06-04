@@ -17,8 +17,15 @@ pub fn SlidePanel(
     let i18n = use_i18n();
     let content = children();
     let cb = on_close.clone();
+    // 广告触发信号：面板每次打开时递增，通知 AdBanner 重建广告位
+    let ad_trigger = RwSignal::new(0u32);
+    let _ = Effect::new(move |_| {
+        if open.get() {
+            ad_trigger.update(|v| *v += 1);
+        }
+    });
     #[cfg(feature = "oth")]
-    let google_ads = view! { <AdBanner/> };
+    let google_ads = view! { <AdBanner trigger=ad_trigger/> };
     #[cfg(not(feature = "oth"))]
     let google_ads = ();
 
@@ -36,8 +43,8 @@ pub fn SlidePanel(
             <button class=SLIDE_CLOSE on:click=move |_| cb.run(())>"✕"</button>
             <div class=SLIDE_BODY>
                 {content}
+                {google_ads}
                 {show_footer.then(|| view! {
-                    {google_ads}
                     <div class="text-center mt-6">
                         <button class="slide-close-bottom" on:click=move |_| on_close.run(())>
                             {move || t!(i18n, close)}
