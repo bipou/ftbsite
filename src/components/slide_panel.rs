@@ -43,7 +43,6 @@ pub fn SlidePanel(
             <button class=SLIDE_CLOSE on:click=move |_| cb.run(())>"✕"</button>
             <div class=SLIDE_BODY>
                 {content}
-                {google_ads}
                 {show_footer.then(|| view! {
                     <div class="text-center mt-6">
                         <button class="slide-close-bottom" on:click=move |_| on_close.run(())>
@@ -54,6 +53,7 @@ pub fn SlidePanel(
                         {move || t!(i18n, site_warn)}
                     </p>
                 })}
+                {google_ads}
             </div>
         </div>
     }
