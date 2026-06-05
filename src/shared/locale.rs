@@ -23,11 +23,6 @@ pub fn is_valid_locale(code: &str) -> bool {
     Locale::get_all().iter().any(|l| l.to_string() == code)
 }
 
-/// 非组件上下文：拼接带语言前缀的完整路径
-pub fn locale_href(locale_str: &str, path: &str) -> String {
-    format!("/{}{}", locale_str, path)
-}
-
 /// 语言感知链接组件 — 替代 leptos_router::A
 /// 用法：<LocaleA href="/footballs">文本</LocaleA>
 /// 自动在 href 前加上当前语言前缀

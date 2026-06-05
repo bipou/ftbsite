@@ -37,7 +37,7 @@ pub struct UsersResult {
 }
 
 /// Authenticated user state (stored in context).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AuthUser {
     pub username: String,
     pub token: String,
