@@ -1,7 +1,8 @@
-use crate::app::{AuthMode, AuthPanelSignal, use_auth};
+use crate::app::{AuthMode, AuthPanelSignal};
 use crate::i18n::t;
 use crate::i18n::{Locale, td_string, use_i18n};
 use crate::pages::auth::SignOut;
+use crate::shared::auth::use_auth;
 use crate::shared::locale::{LocaleA, use_locale};
 use leptos::either::Either;
 use leptos::prelude::*;
@@ -141,7 +142,7 @@ fn AuthSection() -> impl IntoView {
     let i18n = use_i18n();
     let auth_panel = use_context::<AuthPanelSignal>();
     let sign_out_action = ServerAction::<SignOut>::new();
-    let auth_res = use_context::<crate::app::AuthResource>();
+    let auth_res = use_context::<crate::shared::auth::AuthResource>();
     let navigate = leptos_router::hooks::use_navigate();
 
     // 签出成功后刷新 auth 并跳首页

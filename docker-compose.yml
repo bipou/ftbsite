@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/bipou/football-site:${TAG:-cn}
+    image: ghcr.io/bipou/ftbsite:${TAG:-cn}
     restart: always
     ports:
       - "7600:7600"

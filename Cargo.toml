@@ -1,5 +1,5 @@
 [package]
-name = "football_site"
+name = "ftbsite"
 version = "0.1.0"
 edition = "2024"
 
@@ -76,7 +76,7 @@ codegen-units = 1
 panic         = "abort"
 
 [package.metadata.leptos]
-output-name          = "football_site"
+output-name          = "ftbsite"
 site-root            = "target/site"
 site-pkg-dir         = "pkg"
 style-file           = "style/main.scss"

@@ -4,8 +4,8 @@
 #[tokio::main]
 async fn main() {
     use axum::Router;
-    use football_site::app::{App, shell};
-    use football_site::server::db;
+    use ftbsite::app::{App, shell};
+    use ftbsite::server::db;
     use leptos::prelude::*;
     use leptos_axum::{LeptosRoutes, generate_route_list};
     use tower_http::services::ServeDir;
@@ -32,7 +32,7 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
-    leptos::logging::log!("站点就绪： http://{addr}");
+    leptos::logging::log!("✅ 站点已就绪： http://{addr}");
 
     axum::serve(listener, app.into_make_service())
         .await

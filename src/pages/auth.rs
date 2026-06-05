@@ -161,7 +161,7 @@ pub async fn get_captcha() -> Result<(String, String, u8), ServerFnError> {
 pub fn SignInForm() -> impl IntoView {
     let i18n = use_i18n();
     let action = ServerAction::<SignIn>::new();
-    let auth_res = use_context::<crate::app::AuthResource>();
+    let auth_res = use_context::<crate::shared::auth::AuthResource>();
     let auth_panel = use_context::<AuthPanelSignal>();
 
     Effect::new(move |_| {

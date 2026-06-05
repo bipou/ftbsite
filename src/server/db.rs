@@ -37,7 +37,7 @@ pub async fn init() {
         .await
         .unwrap_or_else(|e| panic!("db health check: {e}"));
 
-    leptos::logging::log!("SurrealDB 就绪： {db_url} ns={db_ns} db={db_name}");
+    leptos::logging::log!("✅ SurrealDB 已连接： {db_url}/{db_ns}/{db_name}");
 }
 
 pub fn get_db() -> &'static Surreal<Client> {

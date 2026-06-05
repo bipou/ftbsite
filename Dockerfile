@@ -26,13 +26,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build/target/site /app/site
-COPY --from=builder /build/target/release/football_site /app/
+COPY --from=builder /build/target/release/ftbsite /app/
 COPY --from=builder /build/target/release/hash.txt /app/hash.txt
 
 WORKDIR /app
-ENV LEPTOS_OUTPUT_NAME=football_site
+ENV LEPTOS_OUTPUT_NAME=ftbsite
 ENV LEPTOS_SITE_ROOT=site
 ENV LEPTOS_SITE_PKG_DIR=pkg
 ENV LEPTOS_SITE_ADDR=0.0.0.0:7600
 ENV LEPTOS_HASH_FILES=true
-CMD ["./football_site"]
+CMD ["./ftbsite"]
