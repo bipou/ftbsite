@@ -1,5 +1,6 @@
-use crate::models::{Category, PageInfo, Topic};
+use crate::models::{PageInfo, Topic};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// 赔率记录（footballs.lines 内嵌数组）—— 仅境外版
 #[cfg(feature = "oth")]
@@ -90,21 +91,15 @@ pub struct FootballStats {
 /// 分析文章（footballs_analyses 表）
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FootballAnalysis {
-    pub id: String,
-    pub football_id: String,
     /// AI 分析为 None，用户分析指向 users 表
     pub user_id: Option<String>,
-    /// 摘要，落库 footballs 则为 None
+    /// 摘要
     #[serde(default)]
     pub summary: Option<String>,
-    /// Markdown 原文（落库的唯一文本字段）
-    pub content: String,
     /// 渲染后的 HTML（服务端转换，不落库）
     pub content_html: String,
     /// AI 模型名，用户分析为空串
     pub ai_model: String,
-    /// 0=草稿 1=发布 -1=删除
-    pub status: i8,
 }
 
 /// A football match with all resolved relations.
@@ -152,12 +147,15 @@ pub struct Football {
     pub stats: Option<FootballStats>,
     #[serde(default)]
     pub summary: Option<String>,
-    pub analyses: Vec<FootballAnalysis>,
+    /// 用户文章的作者 user_id（ana_type=0 时有效）
+    #[serde(default)]
+    pub article_user_id: Option<String>,
     /// 赛事趣名或文章标题
     pub article_title: Option<String>,
     /// 0=文章 >0=赛事
     pub ana_type: u8,
-    pub category: Option<Category>,
+    #[serde(default)]
+    pub category_name: Option<HashMap<String, String>>,
     pub topics: Vec<Topic>,
 }
 

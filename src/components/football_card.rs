@@ -218,13 +218,13 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
             </a>
         }
     });
-    let category = football.category;
-    let cat_kid = category
+    let category_name = football.category_name;
+    let cat_kid = category_name
         .as_ref()
-        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+        .map(|_| crate::shared::common::record_key(&football.category_id).to_string());
     let cat_name = Memo::new(move |_| {
         let loc = i18n.get_locale().to_string();
-        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+        category_name.as_ref().and_then(|c| c.get(&loc).cloned())
     });
 
     view! {

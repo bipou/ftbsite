@@ -23,18 +23,30 @@ pub async fn get_football_and_increment(id: String) -> Result<Option<Football>, 
         .map_err(|e| ServerFnError::new(e.to_string()))
 }
 
+#[server]
+pub async fn get_analyses(
+    id: String,
+) -> Result<Vec<crate::models::FootballAnalysis>, ServerFnError> {
+    use crate::server::analysis_db;
+    use crate::shared::common::into_rid;
+    let rid = into_rid(&id, "footballs");
+    analysis_db::get_analyses_by_football_id(&rid)
+        .await
+        .map_err(|e| ServerFnError::new(e.to_string()))
+}
+
 #[component]
 fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let loc_str = use_locale();
     let base = f.title();
-    let category = f.category;
-    let cat_kid = category
+    let category_name = f.category_name;
+    let cat_kid = category_name
         .as_ref()
-        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+        .map(|_| crate::shared::common::record_key(&f.category_id).to_string());
     let cat = Memo::new(move |_| {
         let loc = i18n.get_locale().to_string();
-        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+        category_name.as_ref().and_then(|c| c.get(&loc).cloned())
     });
     let home_team = f.home_team;
     let away_team = f.away_team;
@@ -415,14 +427,14 @@ fn ArticleHeader(f: Football) -> impl IntoView {
     let title_text = f.title();
     let page_title_text = title_text.clone();
     let loc_str = use_locale();
-    let category = f.category;
+    let category_name = f.category_name;
     let season = f.season;
-    let cat_kid = category
+    let cat_kid = category_name
         .as_ref()
-        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+        .map(|_| crate::shared::common::record_key(&f.category_id).to_string());
     let cat = Memo::new(move |_| {
         let loc = i18n.get_locale().to_string();
-        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+        category_name.as_ref().and_then(|c| c.get(&loc).cloned())
     });
     view! {
         <Title text=move || [&page_title_text, " – ", &site_title!(i18n)].join("")/>
@@ -616,7 +628,6 @@ pub fn FootballDetail(f: Football) -> impl IntoView {
     let away_lineup = f.away_lineup;
     let events = f.events;
     let stats = f.stats;
-    let analyses = f.analyses;
     let created_at = f.created_at;
     let updated_at = f.updated_at;
     let topics = f.topics;
@@ -624,6 +635,9 @@ pub fn FootballDetail(f: Football) -> impl IntoView {
     let result_wdl = f.result_wdl;
     let result_tg = f.result_tg;
     let result_gd = f.result_gd;
+    let football_id = f.id.clone();
+
+    let analyses_res = Resource::new(move || football_id.clone(), |fid| get_analyses(fid));
     view! {
         <p class={[TEXT_WARN, "text-center", "mb-4"].join(" ")}>
             {move || t!(i18n, site_warn)}
@@ -643,16 +657,18 @@ pub fn FootballDetail(f: Football) -> impl IntoView {
                 </div>
             }),
         }}
-        {if let Some(s) = analyses.iter().find(|a| a.status == 1).and_then(|a| a.summary.clone()).filter(|s| !s.is_empty()) {
-            Either::Left(view! {
-                <div class=CARD_SECTION>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">{s}</p>
-                </div>
-            })
-        } else {
-            Either::Right(())
-        }}
-        <AnalysisSection analyses=analyses ana_type=ana_type created_at=created_at updated_at=updated_at/>
+        <Suspense fallback=|| ()>
+            {move || analyses_res.get().and_then(|r| r.ok()).map(|analyses| {
+                view! {
+                    {analyses.first().and_then(|a| a.summary.clone()).filter(|s| !s.is_empty()).map(|s| view! {
+                        <div class=CARD_SECTION>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">{s}</p>
+                        </div>
+                    })}
+                    <AnalysisSection analyses=analyses ana_type=ana_type created_at=created_at.clone() updated_at=updated_at.clone()/>
+                }
+            })}
+        </Suspense>
         <DetailTopicsSection topics=topics/>
     }
 }

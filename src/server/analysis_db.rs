@@ -18,7 +18,6 @@ struct AnalysisDoc {
     ai_model: String,
     #[serde(default)]
     generated_at: Option<Sdt>,
-    status: i8,
 }
 
 /// 获取某场比赛的所有分析文章
@@ -34,14 +33,10 @@ pub async fn get_analyses_by_football_id(rid: &RecordId) -> Result<Vec<FootballA
         .map(|d| {
             let content_html = render_md(&d.content);
             FootballAnalysis {
-                id: common::rid_str(&d.id),
-                football_id: common::rid_str(&d.football_id),
                 user_id: d.user_id.as_ref().map(common::rid_str),
                 summary: d.summary,
-                content: d.content,
                 content_html,
                 ai_model: d.ai_model,
-                status: d.status,
             }
         })
         .collect())
@@ -57,7 +52,7 @@ pub async fn insert_analysis(
     let fid = common::into_rid(football_id, "footballs");
     get_db()
         .query(
-            "CREATE footballs_analyses SET football_id = $fid, content = $content, user_id = $uid, summary = $summary, ai_model = '', status = 1"
+            "CREATE footballs_analyses SET football_id = $fid, content = $content, user_id = $uid, summary = $summary, ai_model = ''"
         )
         .bind(("fid", fid))
         .bind(("content", content.to_string()))

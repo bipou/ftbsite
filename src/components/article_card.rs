@@ -40,20 +40,17 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联
 
     // 类别
-    let category = football.category;
-    let cat_kid = category
+    let category_name = football.category_name;
+    let cat_kid = category_name
         .as_ref()
-        .map(|c| crate::shared::common::record_key(&c.id).to_string());
+        .map(|_| crate::shared::common::record_key(&football.category_id).to_string());
     let cat_name = Memo::new(move |_| {
         let loc = i18n.get_locale().to_string();
-        category.as_ref().and_then(|c| c.name.get(&loc).cloned())
+        category_name.as_ref().and_then(|c| c.get(&loc).cloned())
     });
 
     // 用户文章：获取作者 user_id
-    let user_id = (football.ana_type == 0)
-        .then(|| football.analyses.first())
-        .flatten()
-        .and_then(|a| a.user_id.clone());
+    let user_id = football.article_user_id.clone();
 
     let author_name = Resource::new(
         move || user_id.clone(),

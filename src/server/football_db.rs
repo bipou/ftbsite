@@ -6,7 +6,7 @@ use surrealdb::types::{Datetime as Sdt, RecordId, SurrealValue};
 #[cfg(feature = "oth")]
 use crate::models::{Calc, Line};
 use crate::models::{Football, FootballEvent, FootballStats, FootballsResult, TeamLineup};
-use crate::server::{CountResult, analysis_db, db::get_db};
+use crate::server::{CountResult, db::get_db};
 
 #[derive(Debug, Deserialize, SurrealValue)]
 struct FootballDoc {
@@ -52,6 +52,8 @@ struct FootballDoc {
     #[serde(default)]
     analysis_summary: Option<String>,
     #[serde(default)]
+    article_user_id: Option<RecordId>,
+    #[serde(default)]
     topics_sub: Option<Vec<TopicSubDoc>>,
 }
 
@@ -67,12 +69,13 @@ struct CategorySubDoc {
 struct TopicSubDoc {
     id: RecordId,
     name: String,
+    quotes: i64,
 }
 
 #[cfg(feature = "oth")]
-const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, lines, calcs, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id AND status = 1 LIMIT 1)[0] AS analysis_summary, (SELECT id, name FROM topics WHERE id IN (SELECT VALUE topic_id FROM topics_rel WHERE football_id = $parent.id)) AS topics_sub";
+const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, lines, calcs, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id, (SELECT id, name, quotes FROM topics WHERE id IN (SELECT VALUE topic_id FROM topics_rel WHERE football_id = $parent.id)) AS topics_sub";
 #[cfg(not(feature = "oth"))]
-const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id AND status = 1 LIMIT 1)[0] AS analysis_summary, (SELECT id, name FROM topics WHERE id IN (SELECT VALUE topic_id FROM topics_rel WHERE football_id = $parent.id)) AS topics_sub";
+const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id, (SELECT id, name, quotes FROM topics WHERE id IN (SELECT VALUE topic_id FROM topics_rel WHERE football_id = $parent.id)) AS topics_sub";
 
 #[derive(Debug, Deserialize, SurrealValue)]
 struct LineupPlayerDoc {
@@ -152,7 +155,7 @@ fn first_last<T: Clone>(v: &[T]) -> Vec<T> {
     }
 }
 
-fn doc_to_football(doc: FootballDoc, analyses: Vec<crate::models::FootballAnalysis>) -> Football {
+fn doc_to_football(doc: FootballDoc) -> Football {
     let fid = rid_str(&doc.id);
     #[cfg(feature = "oth")]
     let lines: Vec<Line> = doc
@@ -190,12 +193,7 @@ fn doc_to_football(doc: FootballDoc, analyses: Vec<crate::models::FootballAnalys
         name: p.name.clone(),
         position: p.position.clone(),
     };
-    let category = doc.category_sub.map(|c| crate::models::Category {
-        id: rid_str(&c.id),
-        name: c.name,
-        level: c.level,
-        pinned: c.pinned,
-    });
+    let category_name = doc.category_sub.map(|c| c.name);
     let topics = doc
         .topics_sub
         .map(|v| {
@@ -203,12 +201,17 @@ fn doc_to_football(doc: FootballDoc, analyses: Vec<crate::models::FootballAnalys
                 .map(|t| crate::models::Topic {
                     id: rid_str(&t.id),
                     name: t.name,
-                    quotes: 0,
+                    quotes: t.quotes,
                 })
                 .collect()
         })
         .unwrap_or_default();
     let summary = doc.analysis_summary.filter(|s| !s.is_empty());
+    let article_user_id = doc
+        .article_user_id
+        .as_ref()
+        .map(rid_str)
+        .filter(|uid| !uid.is_empty());
     Football {
         id: fid,
         category_id: rid_str(&doc.category_id),
@@ -308,14 +311,14 @@ fn doc_to_football(doc: FootballDoc, analyses: Vec<crate::models::FootballAnalys
             },
         }),
         summary,
-        analyses,
+        article_user_id,
         article_title: doc.article_title,
         ana_type: doc.ana_type as u8,
         result_s: doc.s,
         result_wdl: doc.wdl,
         result_tg: doc.tg,
         result_gd: doc.gd,
-        category,
+        category_name,
         topics,
     }
 }
@@ -332,10 +335,7 @@ pub async fn get_home_footballs(
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
-    let all: Vec<Football> = docs
-        .into_iter()
-        .map(|d| doc_to_football(d, vec![]))
-        .collect();
+    let all: Vec<Football> = docs.into_iter().map(|d| doc_to_football(d)).collect();
     let mut user = Vec::new();
     let mut pre = Vec::new();
     let mut post = Vec::new();
@@ -364,13 +364,7 @@ pub async fn get_home_footballs(
 
 pub async fn get_football_by_id(rid: &RecordId) -> Result<Option<Football>, String> {
     let doc: Option<FootballDoc> = get_db().select(rid).await.map_err(|e| e.to_string())?;
-    match doc {
-        Some(d) => {
-            let analyses = analysis_db::get_analyses_by_football_id(&d.id).await?;
-            Ok(Some(doc_to_football(d, analyses)))
-        }
-        None => Ok(None),
-    }
+    Ok(doc.map(doc_to_football))
 }
 
 pub async fn get_footballs(
@@ -400,10 +394,7 @@ pub async fn get_footballs(
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
-    let items: Vec<Football> = docs
-        .into_iter()
-        .map(|d| doc_to_football(d, vec![]))
-        .collect();
+    let items: Vec<Football> = docs.into_iter().map(|d| doc_to_football(d)).collect();
     Ok(FootballsResult {
         page_info: common::make_page_info(from, ps, total),
         items,
@@ -434,10 +425,7 @@ pub async fn get_footballs_by_category(
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
-    let items: Vec<Football> = docs
-        .into_iter()
-        .map(|d| doc_to_football(d, vec![]))
-        .collect();
+    let items: Vec<Football> = docs.into_iter().map(|d| doc_to_football(d)).collect();
     Ok(FootballsResult {
         page_info: common::make_page_info(from, ps, total),
         items,
@@ -477,10 +465,7 @@ pub async fn get_footballs_by_topic(
     );
     let mut res = get_db().query(&q).await.map_err(|e| e.to_string())?;
     let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
-    let items: Vec<Football> = docs
-        .into_iter()
-        .map(|d| doc_to_football(d, vec![]))
-        .collect();
+    let items: Vec<Football> = docs.into_iter().map(|d| doc_to_football(d)).collect();
     Ok(FootballsResult {
         page_info: common::make_page_info(from, ps, total),
         items,
@@ -504,10 +489,7 @@ pub async fn get_footballs_admin(from: i64) -> Result<FootballsResult, String> {
         .await
         .map_err(|e| e.to_string())?;
     let docs: Vec<FootballDoc> = res.take(0).map_err(|e| e.to_string())?;
-    let items: Vec<Football> = docs
-        .into_iter()
-        .map(|d| doc_to_football(d, vec![]))
-        .collect();
+    let items: Vec<Football> = docs.into_iter().map(|d| doc_to_football(d)).collect();
     Ok(FootballsResult {
         page_info: common::make_page_info(from, ps, total),
         items,
