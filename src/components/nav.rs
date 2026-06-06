@@ -166,7 +166,10 @@ fn AuthSection() -> impl IntoView {
                 <button class="text-sm text-gray-500 hover:text-red-500 border-0 bg-transparent cursor-pointer" on:click=move |_| {
                     sign_out_action.dispatch(SignOut {});
                 }>
-                    {move || t!(i18n, sign_out)}
+                    {move || match sign_out_action.pending().get() {
+                        true => Either::Left(t!(i18n, signing_out)),
+                        false => Either::Right(t!(i18n, sign_out)),
+                    }}
                 </button>
             }),
             None => Either::Right(view! {
@@ -242,7 +245,10 @@ fn HamburgerMenu() -> impl IntoView {
                                     sign_out_action.dispatch(SignOut {});
                                     set_open.set(false);
                                 }>
-                                    {move || t!(i18n, sign_out)}
+                                    {move || match sign_out_action.pending().get() {
+                                        true => Either::Left(t!(i18n, signing_out)),
+                                        false => Either::Right(t!(i18n, sign_out)),
+                                    }}
                                 </button>
                             }),
                             None => Either::Right(view! {

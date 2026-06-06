@@ -2,7 +2,6 @@
 use crate::class;
 #[cfg(feature = "oth")]
 use crate::components::footer::AdBanner;
-use crate::i18n::{t, use_i18n};
 use crate::shared::constant::{SLIDE_BODY, SLIDE_CLOSE, SLIDE_OPEN, SLIDE_OVERLAY, SLIDE_PANEL};
 use leptos::prelude::*;
 
@@ -11,13 +10,10 @@ pub fn SlidePanel(
     open: Signal<bool>,
     on_close: Callback<()>,
     #[prop(into, default = Signal::derive(|| String::new()))] panel_class: Signal<String>,
-    #[prop(default = true)] show_footer: bool,
     children: Children,
 ) -> impl IntoView {
-    let i18n = use_i18n();
     let content = children();
     let cb = on_close.clone();
-    // 广告触发信号：面板每次打开时递增，通知 AdBanner 重建广告位
     let ad_trigger = RwSignal::new(0u32);
     let _ = Effect::new(move |_| {
         if open.get() {
@@ -43,16 +39,6 @@ pub fn SlidePanel(
             <button class=SLIDE_CLOSE on:click=move |_| cb.run(())>"✕"</button>
             <div class=SLIDE_BODY>
                 {content}
-                {show_footer.then(|| view! {
-                    <div class="text-center mt-6">
-                        <button class="slide-close-bottom" on:click=move |_| on_close.run(())>
-                            {move || t!(i18n, close)}
-                        </button>
-                    </div>
-                    <p class="text-xs text-red-400 dark:text-red-500 text-center mt-1">
-                        {move || t!(i18n, site_warn)}
-                    </p>
-                })}
                 {google_ads}
             </div>
         </div>

@@ -130,7 +130,7 @@ pub fn App() -> impl IntoView {
                         _ => SLIDE_SIZED_SM.to_string(),
                     });
                     view! {
-                        <SlidePanel open=open on_close=on_close panel_class=size show_footer=false>
+                        <SlidePanel open=open on_close=on_close panel_class=size>
                             {move || {
                                 let mode = auth_panel.as_ref().and_then(|ap| ap.get());
                                 match mode {
