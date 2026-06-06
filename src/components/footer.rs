@@ -78,7 +78,7 @@ pub fn AdBanner(
     };
 
     view! {
-        <div class="overflow-x-hidden max-w-full" inner_html=ad_html></div>
+        <div class="ad-container overflow-x-hidden max-w-full" inner_html=ad_html></div>
     }
 }
 

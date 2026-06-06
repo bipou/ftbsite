@@ -204,6 +204,8 @@ input,button,textarea,select{font:inherit}
 
 @media(min-width:768px){.slide-panel.open{left:0;right:0;border-radius:8px}.slide-sized-sm{width:calc(72rem*0.4);max-width:40vw}.slide-sized-md{width:80%;max-width:80vw}.slide-sized-lg{width:72rem;max-width:90%}.slide-body{padding:0 32px 24px}}
 
+.ad-container{contain:layout style paint}
+
 // ── Cards ──────────────────────────────────────────────────────────────────────
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 @include dark {.card{background:#1f2937;border-color:#374151}}
