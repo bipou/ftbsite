@@ -191,7 +191,7 @@ input,button,textarea,select{font:inherit}
 }
 
 // ── Slide panel ───────────────────────────────────────────────────────────────
-.slide-overlay,.slide-panel{display:none}.slide-overlay.open,.slide-panel.open{display:flex}
+.slide-overlay,.slide-panel{visibility:hidden;opacity:0;pointer-events:none}.slide-overlay.open,.slide-panel.open{visibility:visible;opacity:1;pointer-events:auto}
 .slide-overlay.open{position:fixed;top:52px;right:0;bottom:0;left:0;z-index:49;background:rgba(0,0,0,.45);animation:fadeIn .2s ease}
 @include dark{.slide-overlay.open{background:rgba(0,0,0,.65)}}
 .slide-panel.open{position:fixed;left:0;right:0;top:60px;z-index:51;max-height:calc(100vh - 60px);max-width:72rem;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.15);animation:slideIn .2s ease;flex-direction:column;overflow:hidden}
