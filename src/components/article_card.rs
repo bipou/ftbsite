@@ -26,7 +26,6 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
     let is_ai = football.ana_type > 0;
     let fid = crate::shared::common::record_key(&football.id).to_string();
     let href = ["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join("");
-    let fid2 = fid.clone();
 
     let status = football.status;
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
@@ -69,11 +68,11 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
                                     class=["font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 text-lg leading-tight min-w-0 cursor-pointer p-0 text-left block", NO_UNDERLINE].join(" ")
                                     href=href.clone()
                                     on:click={
-                                                                        let fid_val = fid2.clone();
+                                                                        let f = fid.clone();
                                                                         let cb = on_click.clone();
                                                                         move |ev| {
                                                                             ev.prevent_default();
-                                                                            cb.run(fid_val.clone())
+                                                                            cb.run(f.clone())
                                                                         }
                                                                     }
                                 >
@@ -92,10 +91,11 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
             {match summary {
                 Some(s) => Either::Left(view! {
                     <a class=["cursor-pointer block p-0 text-left w-full", NO_UNDERLINE].join(" ") href=href.clone() on:click={
+                                                                let f = fid.clone();
                                                                 let cb = on_click.clone();
                                             move |ev| {
                                                 ev.prevent_default();
-                                                cb.run(fid2.clone())
+                                                cb.run(f.clone())
                                             }
                                         }>
                         <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>

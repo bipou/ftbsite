@@ -669,15 +669,10 @@ pub fn AdminFootballsPage() -> impl IntoView {
                             Either3::Right(Either::Left(view! {
                                 <div class="space-y-3 mb-8">
                                     {d.items.into_iter().map(|football| {
-                                        let Football { id, season, kick_off_at_mdhm8, status, home_team, away_team, ana_type, article_title, .. } = football;
-                                        let url = ["/", &loc_str.get(), "/admin/footballs/", &crate::shared::common::record_key(&id)].join("");
-                                        let ht = home_team.unwrap_or_default();
-                                        let at = away_team.unwrap_or_default();
-                                        let title = match ana_type {
-                                            0 => article_title.unwrap_or_else(|| [&ht, " vs ", &at].join("")),
-                                            _ => [&ht, " vs ", &at].join(""),
-                                        };
-                                        let s = season.unwrap_or_default();
+                                        let url = ["/", &loc_str.get(), "/admin/footballs/", &crate::shared::common::record_key(&football.id)].join("");
+                                        let title = football.title();
+                                        let s = football.season.unwrap_or_default();
+                                        let k = football.kick_off_at_mdhm8;
                                         view! {
                                             <div class="card p-4 flex items-center gap-4 flex-wrap">
                                                 <div class="flex-1 min-w-0">
@@ -688,11 +683,11 @@ pub fn AdminFootballsPage() -> impl IntoView {
                                                         {title}
                                                     </a>
                                                     <p class="text-xs text-gray-400 mt-1">
-                                                        {s} " · " {kick_off_at_mdhm8}
+                                                        {s} " · " {k}
                                                     </p>
                                                 </div>
                                                 // 状态操作按钮
-                                                    <FootballStatusButtons id=id.to_string() initial_status=status action=update_action/>
+                                                    <FootballStatusButtons id=football.id.to_string() initial_status=football.status action=update_action/>
                                             </div>
                                         }
                                     }).collect::<Vec<_>>()}
@@ -767,11 +762,7 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
                         Ok(Some(f)) => {
                             let fid = f.id.clone();
                             let status = f.status;
-                            let title = if f.ana_type == 0 {
-                                f.article_title.clone().unwrap_or_else(|| f.title())
-                            } else {
-                                f.title()
-                            };
+                            let title = f.title();
                             Either3::Right(Either::Right(view! {
                                 // 面包屑
                                 <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">

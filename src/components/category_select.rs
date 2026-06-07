@@ -27,12 +27,12 @@ pub fn CategorySelect(
         <>
             {low.into_iter().map(|cat| {
                 let kid = record_key(&cat.id).to_string();
-                let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获，避免借用问题
+                let cat_name = cat.name.clone();
                 match &selected {
                     Some(sel) => {
-                        let s = sel.clone();
+                        let s = *sel;
                         let k = kid.clone();
-                        let k2 = k.clone();
+                        let k2 = kid.clone();
                         Either::Left(view! {
                             <button type="button"
                                 class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }
@@ -49,12 +49,12 @@ pub fn CategorySelect(
                 true => Either::Left(view! {
                     {high.clone().into_iter().map(|cat| {
                         let kid = record_key(&cat.id).to_string();
-                        let cat_name = cat.name.clone(); // 克隆 HashMap 供闭包捕获
+                        let cat_name = cat.name.clone();
                         match &selected {
                             Some(sel) => {
-                                let s = sel.clone();
+                                let s = *sel;
                                 let k = kid.clone();
-                                let k2 = k.clone();
+                                let k2 = kid.clone();
                                 Either::Left(view! {
                                     <button type="button"
                                         class=move || if s.get() == k { BADGE_BLUE_NO_UL.to_string() } else { CAT_BTN.to_string() }

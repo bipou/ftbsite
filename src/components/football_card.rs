@@ -203,15 +203,15 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
     });
     let fid = crate::shared::common::record_key(&football.id).to_string();
     let href = ["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join("");
-    let fid1 = fid.clone();
     // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联
     let summary_view = summary.map(|s| {
         view! {
             <a class=["cursor-pointer block p-0 text-left w-full", NO_UNDERLINE].join(" ") href=href.clone() on:click={
+                                        let f = fid.clone();
                                         let cb = on_click.clone();
                             move |ev| {
                                 ev.prevent_default();
-                                cb.run(fid.clone())
+                                cb.run(f.clone())
                             }
                         }>
                 <p class="text-sm text-gray-600 dark:text-gray-400 my-0">{s}</p>
@@ -234,11 +234,11 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
                                     class=["font-semibold text-gray-800 dark:text-gray-100 hover:underline hover:text-blue-600 text-lg leading-tight min-w-0 cursor-pointer p-0 text-left block", NO_UNDERLINE].join(" ")
                                     href=href.clone()
                                     on:click={
-                                                                        let fid_val = fid1.clone();
+                                                                        let f = fid.clone();
                                                                         let cb = on_click.clone();
                                                                         move |ev| {
                                                                             ev.prevent_default();
-                                                                            cb.run(fid_val.clone())
+                                                                            cb.run(f.clone())
                                                                         }
                                                                     }
                                 >

@@ -162,7 +162,13 @@ pub struct Football {
 impl Football {
     pub fn title(&self) -> String {
         match (&self.home_team, &self.away_team) {
-            (Some(h), Some(a)) => [h.as_str(), " vs ", a.as_str()].join(""),
+            (Some(h), Some(a)) => {
+                let base = [h.as_str(), " vs ", a.as_str()].join("");
+                match &self.article_title {
+                    Some(at) => [&base, " - ", at].join(""),
+                    None => base,
+                }
+            }
             _ => self.article_title.clone().unwrap_or_default(),
         }
     }

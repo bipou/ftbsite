@@ -40,6 +40,8 @@ fn FootballHeader(f: Football) -> impl IntoView {
     let i18n = use_i18n();
     let loc_str = use_locale();
     let base = f.title();
+    let base2 = base.clone();
+    let title_text = move || [&base2, " \u{2013} ", &site_title!(i18n)].join("");
     let category_name = f.category_name;
     let cat_kid = category_name
         .as_ref()
@@ -48,27 +50,17 @@ fn FootballHeader(f: Football) -> impl IntoView {
         let loc = i18n.get_locale().to_string();
         category_name.as_ref().and_then(|c| c.get(&loc).cloned())
     });
-    let home_team = f.home_team;
-    let away_team = f.away_team;
     let season = f.season;
     let article_title = f.article_title;
     let kick_off_mdhm = f.kick_off_at_mdhm;
     let kick_off_mdhm8 = f.kick_off_at_mdhm8;
-    let sub = article_title.clone();
-    let title_text = move || {
-        let s = match &sub {
-            Some(t) => [&base, " - ", t].join(""),
-            None => base.clone(),
-        };
-        [&s, " – ", &site_title!(i18n)].join("")
-    };
     view! {
         <Title text=title_text/>
         <div class=CARD_SECTION>
             <div class="flex items-start justify-between flex-wrap gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">
-                        {home_team.unwrap_or_default()} <span class="text-gray-400 mx-2">"vs"</span> {away_team.unwrap_or_default()}
+                        {base}
                     </h1>
                     <div class="text-sm text-gray-500 space-x-3">
                         {match &season {
