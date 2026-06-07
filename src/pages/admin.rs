@@ -1,3 +1,4 @@
+use crate::app::{AuthMode, AuthPanelSignal};
 use crate::i18n::{t, t_display, td_string, use_i18n};
 use crate::page_title;
 use crate::site_title;
@@ -311,7 +312,14 @@ pub fn AdminPage() -> impl IntoView {
                     Some(Err(_)) | None => Either3::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500 mb-4">{move || t!(i18n, admin_access_denied)}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            <button class="btn-primary border-0 cursor-pointer" on:click={
+                                let ap = use_context::<AuthPanelSignal>();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>{move || t!(i18n, sign_in)}</button>
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
@@ -383,7 +391,14 @@ pub fn AdminUsersPage() -> impl IntoView {
                     Some(Err(_)) | None => Either3::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500 mb-4">{move || t!(i18n, admin_access_denied)}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            <button class="btn-primary border-0 cursor-pointer" on:click={
+                                let ap = use_context::<AuthPanelSignal>();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>{move || t!(i18n, sign_in)}</button>
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
@@ -501,7 +516,14 @@ pub fn AdminUserDetailPage() -> impl IntoView {
                     Some(Err(_)) | None => Either3::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500 mb-4">{move || t!(i18n, admin_access_denied)}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            <button class="btn-primary border-0 cursor-pointer" on:click={
+                                let ap = use_context::<AuthPanelSignal>();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>{move || t!(i18n, sign_in)}</button>
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
@@ -617,7 +639,14 @@ pub fn AdminFootballsPage() -> impl IntoView {
                     Some(Err(_)) | None => Either3::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500 mb-4">{move || t!(i18n, admin_access_denied)}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            <button class="btn-primary border-0 cursor-pointer" on:click={
+                                let ap = use_context::<AuthPanelSignal>();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>{move || t!(i18n, sign_in)}</button>
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {
@@ -712,7 +741,14 @@ pub fn AdminFootballDetailPage() -> impl IntoView {
                     Some(Err(_)) | None => Either3::Left(view! {
                         <div class=EMPTY>
                             <p class="text-gray-500 mb-4">{move || t!(i18n, admin_access_denied)}</p>
-                            <LocaleA href="/sign-in" class="btn-primary">{move || t!(i18n, sign_in)}</LocaleA>
+                            <button class="btn-primary border-0 cursor-pointer" on:click={
+                                let ap = use_context::<AuthPanelSignal>();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(Some(AuthMode::SignIn));
+                                    }
+                                }
+                            }>{move || t!(i18n, sign_in)}</button>
                         </div>
                     }),
                     Some(Ok(Some(s))) if s >= 6 => Either3::Right(Either::Left(view! {

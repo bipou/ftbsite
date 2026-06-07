@@ -194,7 +194,7 @@ pub async fn sign_in(signature: &str, password: &str) -> Result<AuthUser, String
     })
 }
 
-/// Register a new user (status=0).  Returns `(user_id, username)`.
+/// Register a new user (status=1).  Returns `(user_id, username)`.
 pub async fn register_user(data: RegisterData) -> Result<(String, String), String> {
     let username = data.username.trim().to_lowercase();
     let email = data.email.trim().to_lowercase();

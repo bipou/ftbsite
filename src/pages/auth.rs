@@ -200,12 +200,12 @@ pub fn SignInForm() -> impl IntoView {
                 <div>
                     <label class="form-label">{move || t!(i18n, sign_in_account)}</label>
                     <input type="text" name="signature" required
-                           class="form-input " autocomplete="username"/>
+                           class="form-input" autocomplete="username"/>
                 </div>
                 <div>
                     <label class="form-label">{move || t!(i18n, sign_in_password)}</label>
                     <input type="password" name="password" required
-                           class="form-input " autocomplete="current-password"/>
+                           class="form-input" autocomplete="current-password"/>
                 </div>
 
                 <CaptchaCore/>
@@ -221,7 +221,6 @@ pub fn SignInForm() -> impl IntoView {
                     {move || if action.pending().get() { pending.get() } else { btn.get() }}
                 </button>
 
-                // Error
                 {move || action.value().get().and_then(|r| r.err()).map(|e| {
                     let raw = e.to_string();
                     let msg = server_error_text!(i18n, raw,
@@ -306,22 +305,22 @@ pub fn RegisterForm() -> impl IntoView {
                         <div>
                             <label class="form-label">{move || t!(i18n, register_username)} " *"</label>
                             <input type="text" name="username" required
-                                   class="form-input " pattern="[a-z0-9_-]+" autocomplete="username"/>
+                                   class="form-input" pattern="[a-z0-9_-]+" autocomplete="username"/>
                         </div>
                         <div>
                             <label class="form-label">{move || t!(i18n, register_email)} " *"</label>
                             <input type="email" name="email" required
-                                   class="form-input " autocomplete="email"/>
+                                   class="form-input" autocomplete="email"/>
                         </div>
                         <div>
                             <label class="form-label">{move || t!(i18n, register_password)} " *"</label>
                             <input type="password" name="password" required
-                                   class="form-input " autocomplete="new-password"/>
+                                   class="form-input" autocomplete="new-password"/>
                         </div>
                         <div>
                             <label class="form-label">{move || t!(i18n, register_confirm_password)} " *"</label>
                             <input type="password" name="confirm_password" required
-                                   class="form-input " autocomplete="new-password"/>
+                                   class="form-input" autocomplete="new-password"/>
                         </div>
                     </div>
                     <div class="space-y-4 mt-4">
@@ -349,7 +348,6 @@ pub fn RegisterForm() -> impl IntoView {
                         {move || if action.pending().get() { pending_btn.get() } else { btn.get() }}
                     </button>
 
-                    // Error
                     {move || action.value().get().and_then(|r| r.err()).map(|e| {
                         let raw = e.to_string();
                         let msg = server_error_text!(i18n, raw,
@@ -375,8 +373,6 @@ pub fn RegisterForm() -> impl IntoView {
                     }
                 }>{move || t!(i18n, register_go_sign_in)}</button>
             </p>
-
-            // 成功弹框
             <Show when=move || success.get() fallback=|| ()>
                 <div class="modal-overlay">
                     <div class="modal-card">
@@ -426,6 +422,7 @@ pub fn RegisterForm() -> impl IntoView {
 pub fn UserActivatePage() -> impl IntoView {
     let i18n = use_i18n();
     let params = use_params_map();
+    let auth_panel = use_context::<AuthPanelSignal>();
     let user_id = move || params.read().get("id").unwrap_or_default();
 
     let activate_res = Resource::new_blocking(
@@ -457,7 +454,7 @@ pub fn UserActivatePage() -> impl IntoView {
                             </h1>
                             <p class="text-gray-600 mb-4">{username}</p>
                             {move || {
-                                let ap = use_context::<AuthPanelSignal>();
+                                let ap = auth_panel.clone();
                                 view! {
                                     <button class="btn-primary border-0 cursor-pointer" on:click={
                                         let ap = ap.clone();
