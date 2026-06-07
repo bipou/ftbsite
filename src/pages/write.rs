@@ -1,8 +1,16 @@
+#[cfg(feature = "hydrate")]
+use crate::app::AuthMode;
+#[cfg(feature = "hydrate")]
+use crate::app::AuthPanelSignal;
 use crate::i18n::{t, t_display, use_i18n};
 use crate::page_title;
 use crate::server_error_text;
+#[cfg(feature = "hydrate")]
+use crate::shared::auth::use_auth;
 use leptos::prelude::*;
 use leptos_meta::Title;
+#[cfg(feature = "hydrate")]
+use leptos_router::hooks::use_navigate;
 
 use crate::components::{CaptchaCore, CaptchaState, CategorySelect, MarkdownEditor, TopicInput};
 use crate::shared::constant::{H1, WIDE};
@@ -140,6 +148,34 @@ fn CategorySection(selected: RwSignal<String>) -> impl IntoView {
 #[component]
 pub fn WriteArticlePage() -> impl IntoView {
     let i18n = use_i18n();
+
+    // 登录守卫（仅客户端执行，避免 SSR 时 auth 未就绪误判）
+    // 等 auth 资源加载完毕（get() 返回 Some）后一次性检查
+    #[cfg(feature = "hydrate")]
+    {
+        let auth_panel = use_context::<AuthPanelSignal>();
+        let navigate = use_navigate();
+        let auth_res = use_context::<crate::shared::auth::AuthResource>();
+        let guard_done = RwSignal::new(false);
+        Effect::new(move |_| {
+            if guard_done.get() {
+                return;
+            }
+            // Resource::get() 返回 None 表示尚未加载完毕
+            let loaded = auth_res.as_ref().and_then(|r| r.get()).is_some();
+            if !loaded {
+                return;
+            }
+            guard_done.set(true);
+            if use_auth().is_none() {
+                if let Some(ref ap) = auth_panel {
+                    ap.set(Some(AuthMode::SignIn));
+                }
+                let loc = i18n.get_locale().to_string();
+                navigate(&["/", &loc, "/"].join(""), Default::default());
+            }
+        });
+    }
 
     let title = RwSignal::new(String::new());
     let category_id = RwSignal::new(String::new());

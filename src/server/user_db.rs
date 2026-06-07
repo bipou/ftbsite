@@ -223,7 +223,7 @@ pub async fn register_user(data: RegisterData) -> Result<(String, String), Strin
                 introduction: $introduction, \
                 created_at: time::now(), \
                 updated_at: time::now(), \
-                status: 0 \
+                status: 1 \
             }",
         )
         .bind(("username", username.clone()))

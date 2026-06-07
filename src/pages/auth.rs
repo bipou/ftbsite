@@ -4,7 +4,7 @@ use crate::page_title;
 use crate::server_error_text;
 use leptos::prelude::*;
 use leptos_meta::Title;
-use leptos_router::hooks::use_params_map;
+use leptos_router::hooks::{use_navigate, use_params_map};
 
 use crate::components::{CaptchaCore, CaptchaState, MarkdownEditor, TopicInput};
 use crate::shared::common::Either3;
@@ -262,6 +262,7 @@ pub fn RegisterForm() -> impl IntoView {
     let intro = RwSignal::new("## About Me\n我关注足球数据与计算。".to_string());
     let intro_err = RwSignal::new(false);
     let auth_panel = use_context::<AuthPanelSignal>();
+    let navigate = use_navigate();
 
     Effect::new(move |_| {
         if let Some(Ok(name)) = action.value().get() {
@@ -390,6 +391,7 @@ pub fn RegisterForm() -> impl IntoView {
                             <button class="btn-primary modal-btn border-0 cursor-pointer" on:click={
                                 let ap = auth_panel.clone();
                                 move |_| {
+                                    set_success.set(false);
                                     if let Some(ref ap) = ap {
                                         ap.set(Some(AuthMode::SignIn));
                                     }
@@ -397,9 +399,19 @@ pub fn RegisterForm() -> impl IntoView {
                             }>
                                 {move || t!(i18n, register_go_sign_in)}
                             </button>
-                            <a href=move || ["/", &i18n.get_locale().to_string(), "/"].join("") class="modal-btn-primary">
+                            <button class="btn-primary modal-btn border-0 cursor-pointer" on:click={
+                                let ap = auth_panel.clone();
+                                let nav = navigate.clone();
+                                let loc = i18n.get_locale().to_string();
+                                move |_| {
+                                    if let Some(ref ap) = ap {
+                                        ap.set(None);
+                                    }
+                                    nav(&["/", &loc, "/"].join(""), Default::default());
+                                }
+                            }>
                                 {move || t!(i18n, go_home)}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
