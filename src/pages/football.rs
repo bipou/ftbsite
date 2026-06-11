@@ -1,7 +1,7 @@
 use crate::i18n::{t, t_display, use_i18n};
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_SECTION, FLEX_WRAP_GAP, ITALIC,
-    SECTION_H2, TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, CARD_SECTION, FLEX_WRAP_GAP, SECTION_H2,
+    TEXT_MUTED, TEXT_WARN, TEXT_XS_MUTED,
 };
 use crate::site_title;
 use leptos::either::Either;
@@ -137,13 +137,7 @@ fn render_detail_extra(f: &Football) -> impl IntoView + use<> {
 fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
-        return Either::Left(view! {
-            <div class=CARD_SECTION>
-                <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>
-                    {move || t!(i18n, not_calc)}
-                </p>
-            </div>
-        });
+        return Either::Left(());
     }
     Either::Right(view! {
         <div class=CARD_SECTION>
@@ -179,13 +173,7 @@ fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
 fn CalcsTable(calcs: Vec<crate::models::Calc>) -> impl IntoView {
     let i18n = use_i18n();
     if calcs.is_empty() {
-        return Either::Left(view! {
-            <div class=CARD_SECTION>
-                <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>
-                    {move || t!(i18n, not_calc)}
-                </p>
-            </div>
-        });
+        return Either::Left(());
     }
     Either::Right(view! {
         <div class=CARD_SECTION>
@@ -470,11 +458,8 @@ fn ArticleHeader(f: Football) -> impl IntoView {
 fn AnalysisCard(
     analysis: crate::models::FootballAnalysis,
     #[prop(into)] ana_type: u8,
-    #[prop(into)] created_at: String,
-    #[prop(into)] updated_at: String,
 ) -> impl IntoView {
     let i18n = use_i18n();
-    let is_ai = ana_type > 0;
 
     // 提取所需字段，避免 view! 中移动冲突
     let user_id = analysis.user_id;
@@ -490,30 +475,26 @@ fn AnalysisCard(
         },
     );
 
+    // ana_type → i18n key
+    let label = match ana_type {
+        0 => t_display!(i18n, user_analysis).to_string(),
+        1 => t_display!(i18n, pre_match_analysis).to_string(),
+        _ => t_display!(i18n, post_match_review).to_string(),
+    };
+
     view! {
         <div class="mb-6">
             <div class=[TEXT_XS_MUTED, "mb-2"].join(" ")>
-                <Suspense fallback=|| "">
-                {move || {
-                    if is_ai {
-                                            t_display!(i18n, analysis_ai).to_string()
-                                        } else {
-                        author_name.get().flatten().unwrap_or_default()
-                    }
+                {match ana_type {
+                    0 => Either::Left(view! {
+                        <Suspense fallback=|| "">
+                            {move || author_name.get().flatten().unwrap_or_default()}
+                        </Suspense>
+                    }),
+                    _ => Either::Right(view! { <span>{label}</span> }),
                 }}
-                </Suspense>
-                {" · "}
-                {created_at}
-                {" · "}
-                {updated_at}
             </div>
             <div inner_html=content_html></div>
-            {move || match is_ai {
-                true => Either::Right(view! {
-                    <p class="text-xs text-gray-400 mt-2">{t_display!(i18n, analysis_ai_label).to_string()}</p>
-                }),
-                false => Either::Left(()),
-            }}
         </div>
     }
 }
@@ -522,19 +503,22 @@ fn AnalysisCard(
 fn AnalysisSection(
     analyses: Vec<crate::models::FootballAnalysis>,
     #[prop(into)] ana_type: u8,
-    #[prop(into)] created_at: String,
-    #[prop(into)] updated_at: String,
 ) -> impl IntoView {
     let i18n = use_i18n();
     if analyses.is_empty() {
         return Either::Left(());
     }
+    let title = match ana_type {
+        0 => t_display!(i18n, user_analysis).to_string(),
+        1 => t_display!(i18n, pre_match_analysis).to_string(),
+        _ => t_display!(i18n, post_match_review).to_string(),
+    };
     Either::Right(view! {
         <div class=CARD_SECTION>
-            <h2 class=SECTION_H2>{move || t!(i18n, football_analysis)}</h2>
+            <h2 class=SECTION_H2>{title}</h2>
             <div class="prose prose-sm max-w-none">
                 {analyses.into_iter().map(|a| view! {
-                    <AnalysisCard analysis=a ana_type=ana_type created_at=created_at.clone() updated_at=updated_at.clone()/>
+                    <AnalysisCard analysis=a ana_type=ana_type/>
                 }).collect::<Vec<_>>()}
             </div>
         </div>
@@ -549,41 +533,37 @@ fn ResultDetail(
     #[prop(into)] gd: Option<i8>,
 ) -> impl IntoView {
     let i18n = use_i18n();
-    view! {
-        <div class=CARD_SECTION>
-            <h2 class=SECTION_H2>{move || t!(i18n, football_result)}</h2>
-            {match (&s, &wdl, &tg, &gd) {
-                (Some(s), Some(wdl), Some(tg), Some(gd)) => {
-                    let s = s.clone();
-                    let wdl = *wdl;
-                    let tg = *tg;
-                    let gd = *gd;
-                    Either::Right(view! {
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
-                                <tr>
-                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_s)}</th>
-                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_wdl)}</th>
-                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_tg)}</th>
-                                    <th class="px-4 py-2 text-center">{move || t!(i18n, football_gd)}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="table-row">
-                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{s}</td>
-                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{wdl}</td>
-                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{tg}</td>
-                                    <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{gd}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    })
-                }
-                _ => Either::Left(view! {
-                    <p class=["text-gray-400", "text-sm", ITALIC].join(" ")>{move || t!(i18n, not_full)}</p>
-                }),
-            }}
-        </div>
+    match (&s, &wdl, &tg, &gd) {
+        (Some(s), Some(wdl), Some(tg), Some(gd)) => {
+            let s = s.clone();
+            let wdl = *wdl;
+            let tg = *tg;
+            let gd = *gd;
+            Either::Right(view! {
+                <div class=CARD_SECTION>
+                    <h2 class=SECTION_H2>{move || t!(i18n, football_result)}</h2>
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                            <tr>
+                                <th class="px-4 py-2 text-center">{move || t!(i18n, football_s)}</th>
+                                <th class="px-4 py-2 text-center">{move || t!(i18n, football_wdl)}</th>
+                                <th class="px-4 py-2 text-center">{move || t!(i18n, football_tg)}</th>
+                                <th class="px-4 py-2 text-center">{move || t!(i18n, football_gd)}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-row">
+                                <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{s}</td>
+                                <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{wdl}</td>
+                                <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{tg}</td>
+                                <td class="px-4 py-2 font-semibold text-blue-600 dark:text-blue-400 text-center">{gd}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            })
+        }
+        _ => Either::Left(()),
     }
 }
 
@@ -620,8 +600,6 @@ pub fn FootballDetail(f: Football) -> impl IntoView {
     let away_lineup = f.away_lineup;
     let events = f.events;
     let stats = f.stats;
-    let created_at = f.created_at;
-    let updated_at = f.updated_at;
     let topics = f.topics;
     let result_s = f.result_s;
     let result_wdl = f.result_wdl;
@@ -657,7 +635,7 @@ pub fn FootballDetail(f: Football) -> impl IntoView {
                             <p class="text-sm text-gray-600 dark:text-gray-300">{s}</p>
                         </div>
                     })}
-                    <AnalysisSection analyses=analyses ana_type=ana_type created_at=created_at.clone() updated_at=updated_at.clone()/>
+                    <AnalysisSection analyses=analyses ana_type=ana_type/>
                 }
             })}
         </Suspense>

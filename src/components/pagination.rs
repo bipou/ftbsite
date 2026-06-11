@@ -16,16 +16,18 @@ pub fn Pagination(page_info: PageInfo, base_url: String) -> impl IntoView {
         return Either::Left(view! { <div/> });
     }
 
+    let sep = if base.contains('?') { "&" } else { "?" };
     let prev_url = [
         &base,
-        "?from=",
+        sep,
+        "from=",
         &pi.current_page.saturating_sub(1).max(1).to_string(),
     ]
     .join("");
-    let next_url = [&base, "?from=", &(pi.current_page + 1).to_string()].join("");
+    let next_url = [&base, sep, "from=", &(pi.current_page + 1).to_string()].join("");
 
     Either::Right(view! {
-        <nav class={[FLEX_BETWEEN, "mt-8", "px-4"].join(" ")}>
+        <nav class={[FLEX_BETWEEN, "my-8", "px-4"].join(" ")}>
             <div class={["text-sm", TEXT_SUBTLE].join(" ")}>
                 <span>{move || {
                     let (c, t, n) = (pi.current_page, pi.total_pages, pi.total_count);
@@ -35,7 +37,7 @@ pub fn Pagination(page_info: PageInfo, base_url: String) -> impl IntoView {
             <div class="flex gap-2">
                 {if pi.has_previous {
                     Either::Left(view! {
-                        <a href=prev_url class="btn-secondary text-sm">
+                        <a href=prev_url class="btn btn-secondary text-sm">
                             {move || t!(i18n, pagination_previous)}
                         </a>
                     })
@@ -48,7 +50,7 @@ pub fn Pagination(page_info: PageInfo, base_url: String) -> impl IntoView {
                 }}
                 {if pi.has_next {
                     Either::Left(view! {
-                        <a href=next_url class="btn-secondary text-sm">
+                        <a href=next_url class="btn btn-secondary text-sm">
                             {move || t!(i18n, pagination_next)}
                         </a>
                     })

@@ -21,7 +21,6 @@
 
   "image": "Image",
   "not_sign_in": "Not signed in",
-  "not_full": "Not full-time",
   "user_not_found": "User not found",
   "page_error_404": "Page not found",
 
@@ -38,7 +37,6 @@
   "football_events": "Events",
   "football_stats": "Statistics",
   "football_possession": "Possession",
-  "football_analysis": "Analysis",
   "football_coach": "Coach",
   "football_substitutes": "Substitutes",
   "football_formation": "Formation",
@@ -51,8 +49,6 @@
   "football_stat_red_cards": "Red cards",
   "football_stat_passes": "Passes",
   "football_stat_pass_accuracy": "Pass accuracy",
-  "analysis_ai": "AI Analysis",
-  "analysis_ai_label": "AI-generated content, for reference only",
 
   "write_article": "Analysis Share",
   "article_summary": "Summary (200 chars max)",

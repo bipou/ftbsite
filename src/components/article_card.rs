@@ -23,17 +23,18 @@ pub fn ArticleCard(football: Football, on_click: Callback<String>) -> impl IntoV
         }
     });
     let updated = football.updated_at;
-    let is_ai = football.ana_type > 0;
+    let ana_type = football.ana_type;
     let fid = crate::shared::common::record_key(&football.id).to_string();
     let href = ["/", &i18n.get_locale().to_string(), "/footballs/", &fid].join("");
 
     let status = football.status;
     let card_class = ["card", "p-4", HOVER_SHADOW, status_class(status), "min-w-0"].join(" ");
     let badge = status_badge(status);
-    let badge_or_label = Memo::new(move |_| match (badge.is_empty(), is_ai) {
+    let badge_or_label = Memo::new(move |_| match (badge.is_empty(), ana_type) {
         (false, _) => badge.to_string(),
-        (true, true) => t_display!(i18n, analysis_ai).to_string(),
-        (true, false) => String::new(),
+        (true, 1) => t_display!(i18n, pre_match_analysis).to_string(),
+        (true, 2) => t_display!(i18n, post_match_review).to_string(),
+        (true, _) => String::new(),
     });
 
     // 卡片点击回调：因 on:click 需闭包非 Callback，故每处内联

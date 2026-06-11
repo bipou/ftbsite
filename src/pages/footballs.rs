@@ -5,7 +5,7 @@ use crate::page_title;
 use leptos::either::Either;
 use leptos::prelude::*;
 use leptos_meta::Title;
-use leptos_router::hooks::use_params_map;
+use leptos_router::hooks::{use_params_map, use_query_map};
 
 use crate::components::{ArticleCard, CategorySelect, FootballCard, Pagination, SlidePanel};
 use crate::models::FootballsResult;
@@ -65,18 +65,30 @@ pub fn FootballsPage() -> impl IntoView {
     let detail_close = detail_close_nav!(selected_id, i18n, "/footballs");
     let on_card_click = detail_open_nav!(selected_id, detail_ver, i18n, "/footballs/");
 
-    // 路由参数 → 稳定信号（params Memo 路由切换时释放，不能直接捕获）
+    // 查询参数 → 稳定信号
     let from_sig = RwSignal::new(1i64);
     let filter_sig: RwSignal<(String, String)> = RwSignal::new((String::new(), String::new()));
+    let query = use_query_map();
     Effect::new(move |_| {
+        let q = query.read();
+        from_sig.set(q.get("from").and_then(|v| v.parse().ok()).unwrap_or(1));
+        // 路径参数优先（cid/tid 在路由路径中）
         let p = params.read();
-        from_sig.set(p.get("from").and_then(|v| v.parse().ok()).unwrap_or(1));
         if let Some(cid) = p.get("cid").filter(|s| !s.is_empty()) {
             filter_sig.set(("category".into(), cid));
         } else if let Some(tid) = p.get("tid").filter(|s| !s.is_empty()) {
             filter_sig.set(("topic".into(), tid));
         } else {
-            filter_sig.set((String::new(), String::new()));
+            // 查询参数 picks/hot
+            let fi = q.get("picks");
+            let fh = q.get("hot");
+            if fi.is_some() {
+                filter_sig.set(("picks".into(), String::new()));
+            } else if fh.is_some() {
+                filter_sig.set(("hot".into(), String::new()));
+            } else {
+                filter_sig.set((String::new(), String::new()));
+            }
         }
     });
 
@@ -178,6 +190,8 @@ pub fn FootballsPage() -> impl IntoView {
                             let base = match filter_sig.get().0.as_str() {
                                 "category" => ["/", &i18n.get_locale().to_string(), "/footballs/category/", &filter_sig.get().1].join(""),
                                 "topic" => ["/", &i18n.get_locale().to_string(), "/footballs/topic/", &filter_sig.get().1].join(""),
+                                "picks" => ["/", &i18n.get_locale().to_string(), "/footballs?picks"].join(""),
+                                "hot" => ["/", &i18n.get_locale().to_string(), "/footballs?hot"].join(""),
                                 _ => ["/", &i18n.get_locale().to_string(), "/footballs"].join(""),
                             };
                             if data.items.is_empty() {

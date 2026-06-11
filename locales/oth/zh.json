@@ -21,11 +21,9 @@
 
   "calc": "计算：",
   "odds": "赔率：",
-  "not_calc": "尚未计算",
   "image": "图片",
 
   "not_sign_in": "未登录",
-  "not_full": "尚未全场",
   "user_not_found": "用户不存在",
   "page_error_404": "页面未找到",
 
@@ -49,7 +47,6 @@
   "football_events": "赛况",
   "football_stats": "技术统计",
   "football_possession": "控球率",
-  "football_analysis": "赛后分析",
   "football_coach": "主教练",
   "football_substitutes": "替补",
   "football_formation": "阵型",
@@ -62,8 +59,6 @@
   "football_stat_red_cards": "红牌",
   "football_stat_passes": "传球",
   "football_stat_pass_accuracy": "传球成功率",
-  "analysis_ai": "AI 分析",
-  "analysis_ai_label": "AI 生成，仅供参考",
 
   "write_article": "剖析分享",
   "article_summary": "摘要（限200字）",

@@ -128,6 +128,65 @@ pub async fn create_topics_from_names(names: &str) -> Result<Vec<String>, String
     Ok(ids)
 }
 
+/// 批量回填足球条目的 topics——与 DB 子查询解耦
+pub async fn batch_fill_football_topics(
+    items: &mut [crate::models::Football],
+) -> Result<(), String> {
+    let fids: Vec<RecordId> = items.iter().map(|f| into_rid(&f.id, "footballs")).collect();
+    if fids.is_empty() {
+        return Ok(());
+    }
+    // 一次查询拿到所有 football → topic 关联
+    let mut rel_res = get_db()
+        .query("SELECT football_id, topic_id FROM topics_rel WHERE football_id IN $fids")
+        .bind(("fids", fids))
+        .await
+        .map_err(|e| e.to_string())?;
+    let rels: Vec<RelRow> = rel_res.take(0).map_err(|e| e.to_string())?;
+    if rels.is_empty() {
+        return Ok(());
+    }
+    // 去重收集所有 topic_id
+    let mut tids: Vec<String> = Vec::new();
+    for r in &rels {
+        let tid = rid_str(&r.topic_id);
+        if !tids.contains(&tid) {
+            tids.push(tid);
+        }
+    }
+    let in_clause = tids.join(", ");
+    let q = format!(
+        "SELECT * FROM topics WHERE id IN [{}] ORDER BY quotes DESC",
+        in_clause
+    );
+    let mut top_res = get_db().query(&q).await.map_err(|e| e.to_string())?;
+    let docs: Vec<TopicDoc> = top_res.take(0).map_err(|e| e.to_string())?;
+    let topics: Vec<Topic> = docs.into_iter().map(into_topic).collect();
+    // 按 football_id 分组回填
+    for item in items.iter_mut() {
+        let fid = into_rid(&item.id, "footballs");
+        let tids: Vec<String> = rels
+            .iter()
+            .filter(|r| r.football_id == fid)
+            .map(|r| rid_str(&r.topic_id))
+            .collect();
+        item.topics = topics
+            .iter()
+            .filter(|t| tids.contains(&t.id))
+            .cloned()
+            .collect();
+    }
+    Ok(())
+}
+
+// ── Relation row for batch query ────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize, SurrealValue)]
+struct RelRow {
+    football_id: RecordId,
+    topic_id: RecordId,
+}
+
 pub async fn link_topics_to_football(
     football_id: &str,
     topic_ids: &[String],

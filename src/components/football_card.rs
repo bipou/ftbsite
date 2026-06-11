@@ -2,8 +2,8 @@ use crate::i18n::{t, use_i18n};
 use crate::models::Football;
 use crate::shared::common::Either3;
 use crate::shared::constant::{
-    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, ITALIC,
-    NO_UNDERLINE, TEXT_SUBTLE, TEXT_XS_MUTED,
+    BADGE_BLUE_NO_UL, BADGE_GRAY, BADGE_GRAY_NO_UL, FLEX_BETWEEN, HOVER_SHADOW, NO_UNDERLINE,
+    TEXT_SUBTLE,
 };
 #[cfg(feature = "oth")]
 use crate::shared::constant::{BADGE_GREEN, BADGE_RED, TEXT_MUTED};
@@ -70,11 +70,7 @@ fn ResultSection(
                 </span>
             </div>
         }),
-        _ => Either::Left(view! {
-            <div class="text-xs mb-2">
-                <p class=[TEXT_XS_MUTED, ITALIC, "my-0"].join(" ")>{move || t!(i18n, not_full)}</p>
-            </div>
-        }),
+        _ => Either::Left(()),
     }
 }
 
@@ -103,13 +99,7 @@ fn render_card_extra(football: &Football) -> impl IntoView + use<> {
 fn OddsSection(odds: Vec<crate::models::Line>) -> impl IntoView {
     let i18n = use_i18n();
     if odds.is_empty() {
-        return Either::Left(view! {
-            <div class="text-xs mb-2">
-                <p class=[TEXT_XS_MUTED, ITALIC, "my-0"].join(" ")>
-                    {move || t!(i18n, not_calc)}
-                </p>
-            </div>
-        });
+        return Either::Left(());
     }
     let init = odds.first().cloned();
     let last = odds.last().cloned();
@@ -274,8 +264,8 @@ pub fn FootballCard(football: Football, on_click: Callback<String>) -> impl Into
             <ResultSection s=football.result_s wdl=football.result_wdl tg=football.result_tg/>
             </div>
 
-            <div class=[FLEX_BETWEEN, "mt-3"].join(" ")>
-                <div class="flex flex-wrap gap-1">
+            <div class="flex items-start justify-between mt-3">
+                <div class="flex flex-wrap gap-1 min-w-0" style="max-width:calc(100% - 5rem)">
                     {topics.into_iter().map(|topic| {
                         let kid = crate::shared::common::record_key(&topic.id).to_string();
                         let name = topic.name;
