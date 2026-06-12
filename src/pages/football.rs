@@ -144,7 +144,7 @@ fn OddsTable(odds: Vec<crate::models::Line>) -> impl IntoView {
             <h2 class=SECTION_H2>{move || t!(i18n, odds)}</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                    <thead class="bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-300">
                         <tr>
                             <th class="px-4 py-2">{move || t!(i18n, football_win)}</th>
                             <th class="px-4 py-2">{move || t!(i18n, football_draw)}</th>
@@ -543,7 +543,7 @@ fn ResultDetail(
                 <div class=CARD_SECTION>
                     <h2 class=SECTION_H2>{move || t!(i18n, football_result)}</h2>
                     <table class="w-full text-sm text-left">
-                        <thead class="bg-gray-50 dark:bg-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2 text-center">{move || t!(i18n, football_s)}</th>
                                 <th class="px-4 py-2 text-center">{move || t!(i18n, football_wdl)}</th>

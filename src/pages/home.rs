@@ -88,7 +88,7 @@ pub fn HomePage() -> impl IntoView {
             }
         },
     );
-    let detail_close = detail_close_nav!(selected_id, i18n, "");
+    let detail_close = detail_close_nav!(selected_id, i18n, "/");
     let on_card_click = detail_open_nav!(selected_id, detail_ver, i18n, "/footballs/");
 
     view! {

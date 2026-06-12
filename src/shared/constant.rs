@@ -8,7 +8,6 @@ pub const BADGE_GRAY_NO_UL: &str = "badge-gray no-underline";
 pub const BADGE_GREEN: &str = "badge-green";
 #[cfg(feature = "oth")]
 pub const BADGE_RED: &str = "badge-red";
-pub const ITALIC: &str = "italic";
 
 // ── Shared utility class combinations ────────────────────────────────────
 pub const TEXT_MUTED: &str = "text-gray-600 dark:text-gray-300";

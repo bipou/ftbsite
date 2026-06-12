@@ -25,10 +25,10 @@ struct FootballDoc {
     #[serde(default)]
     hits: Option<i64>,
     status: i8,
-    s: Option<String>,
-    wdl: Option<u8>,
-    tg: Option<u8>,
-    gd: Option<i8>,
+    result_s: Option<String>,
+    result_wdl: Option<u8>,
+    result_tg: Option<u8>,
+    result_gd: Option<i8>,
     #[cfg(feature = "oth")]
     #[serde(default)]
     lines: Option<Vec<LineDoc>>,
@@ -65,9 +65,12 @@ struct CategorySubDoc {
 }
 
 #[cfg(feature = "oth")]
-const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, lines, calcs, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id";
+const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, result_s, result_wdl, result_tg, result_gd, lines, calcs, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id";
 #[cfg(not(feature = "oth"))]
-const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, s, wdl, tg, gd, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id";
+const FL: &str = "id, category_id, season, home_team, away_team, kick_off_at, created_at, updated_at, hits, status, result_s, result_wdl, result_tg, result_gd, article_title, ana_type, (SELECT id, name, level, pinned FROM ONLY $parent.category_id) AS category_sub, (SELECT VALUE summary FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS analysis_summary, (SELECT VALUE user_id FROM footballs_analyses WHERE football_id = $parent.id LIMIT 1)[0] AS article_user_id";
+
+/// 全站统一排序：最新更新优先，开球时间次之
+const ORDER: &str = "ORDER BY updated_at DESC, kick_off_at DESC";
 
 #[derive(Debug, Deserialize, SurrealValue)]
 struct LineupPlayerDoc {
@@ -145,6 +148,35 @@ fn first_last<T: Clone>(v: &[T]) -> Vec<T> {
         1 => vec![v[0].clone()],
         n => vec![v[0].clone(), v[n - 1].clone()],
     }
+}
+
+/// 从比分字符串解析主客得分
+fn parse_score(s: &Option<String>) -> Option<(u8, u8)> {
+    let s = s.as_ref()?;
+    let (h, a) = s.split_once(':')?;
+    Some((h.parse().ok()?, a.parse().ok()?))
+}
+
+/// 比分 → 胜平负：主胜=3 平=1 主负=0
+fn parse_wdl(s: &Option<String>) -> Option<u8> {
+    let (h, a) = parse_score(s)?;
+    match h.cmp(&a) {
+        std::cmp::Ordering::Greater => Some(3),
+        std::cmp::Ordering::Equal => Some(1),
+        _ => Some(0),
+    }
+}
+
+/// 比分 → 总进球
+fn parse_tg(s: &Option<String>) -> Option<u8> {
+    let (h, a) = parse_score(s)?;
+    Some(h + a)
+}
+
+/// 比分 → 净胜球
+fn parse_gd(s: &Option<String>) -> Option<i8> {
+    let (h, a) = parse_score(s)?;
+    Some(h as i8 - a as i8)
 }
 
 fn doc_to_football(doc: FootballDoc) -> Football {
@@ -294,10 +326,10 @@ fn doc_to_football(doc: FootballDoc) -> Football {
         article_user_id,
         article_title: doc.article_title,
         ana_type: doc.ana_type as u8,
-        result_s: doc.s,
-        result_wdl: doc.wdl,
-        result_tg: doc.tg,
-        result_gd: doc.gd,
+        result_s: doc.result_s.clone(),
+        result_wdl: doc.result_wdl.or_else(|| parse_wdl(&doc.result_s)),
+        result_tg: doc.result_tg.or_else(|| parse_tg(&doc.result_s)),
+        result_gd: doc.result_gd.or_else(|| parse_gd(&doc.result_s)),
         category_name,
         topics: vec![],
     }
@@ -306,9 +338,7 @@ fn doc_to_football(doc: FootballDoc) -> Football {
 pub async fn get_home_footballs(
     limit: i64,
 ) -> Result<(Vec<Football>, Vec<Football>, Vec<Football>), String> {
-    let q = format!(
-        "SELECT {FL} FROM footballs WHERE status >= 1 ORDER BY updated_at DESC LIMIT $limit"
-    );
+    let q = format!("SELECT {FL} FROM footballs WHERE status >= 1 {ORDER} LIMIT $limit");
     let mut res = get_db()
         .query(&q)
         .bind(("limit", limit))
@@ -368,7 +398,7 @@ pub async fn get_footballs(
     let total = counts.into_iter().next().map(|c| c.count).unwrap_or(0);
     let skip = ((from - 1) * ps).max(0);
     let q = format!(
-        "SELECT {FL} FROM footballs WHERE status >= $min AND status <= $max ORDER BY kick_off_at DESC, updated_at DESC LIMIT $ps START $skip"
+        "SELECT {FL} FROM footballs WHERE status >= $min AND status <= $max {ORDER} LIMIT $ps START $skip"
     );
     let mut res = get_db()
         .query(&q)
@@ -401,7 +431,7 @@ pub async fn get_footballs_by_category(
     let total = counts.into_iter().next().map(|c| c.count).unwrap_or(0);
     let skip = ((from - 1) * ps).max(0);
     let q = format!(
-        "SELECT {FL} FROM footballs WHERE category_id = $cid AND status >= 1 ORDER BY kick_off_at DESC, updated_at DESC LIMIT $ps START $skip"
+        "SELECT {FL} FROM footballs WHERE category_id = $cid AND status >= 1 {ORDER} LIMIT $ps START $skip"
     );
     let mut res = get_db()
         .query(&q)
@@ -443,7 +473,7 @@ pub async fn get_footballs_by_topic(
         });
     }
     let q = format!(
-        "SELECT {FL} FROM footballs WHERE id IN [{}] AND status >= 1 ORDER BY kick_off_at DESC",
+        "SELECT {FL} FROM footballs WHERE id IN [{}] AND status >= 1 {ORDER}",
         page_fids
             .iter()
             .map(|id| format!("{}", id))
@@ -469,7 +499,7 @@ pub async fn get_footballs_admin(from: i64) -> Result<FootballsResult, String> {
     let counts: Vec<CountResult> = cres.take(0).map_err(|e| e.to_string())?;
     let total = counts.into_iter().next().map(|c| c.count).unwrap_or(0);
     let skip = ((from - 1) * ps).max(0);
-    let q = format!("SELECT {FL} FROM footballs ORDER BY updated_at DESC LIMIT $ps START $skip");
+    let q = format!("SELECT {FL} FROM footballs {ORDER} LIMIT $ps START $skip");
     let mut res = get_db()
         .query(&q)
         .bind(("ps", ps))
